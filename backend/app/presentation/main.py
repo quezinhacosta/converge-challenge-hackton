@@ -33,7 +33,9 @@ def create_application() -> FastAPI:
 
     app.include_router(health.router, prefix="/api/v1/health", tags=["Health"])
     app.include_router(payroll.router, prefix="/api/v1/payroll", tags=["Auditoria de Folha"])
-    app.include_router(absences.router, prefix="/api/v1/absences", tags=["Afastamentos e Compliance"])
+    app.include_router(
+        absences.router, prefix="/api/v1/absences", tags=["Afastamentos e Compliance"]
+    )
 
     return app
 

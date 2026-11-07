@@ -43,9 +43,7 @@ class InMemoryPayrollRepository(PayrollRepository):
 
     def get_by_period(self, competence_period: date) -> List[Paystub]:
         """Filtra holerites por competencia."""
-        return [
-            p for p in self._paystubs.values() if p.competence_period == competence_period
-        ]
+        return [p for p in self._paystubs.values() if p.competence_period == competence_period]
 
     def get_by_employee_and_period(
         self, employee_id: str, competence_period: date

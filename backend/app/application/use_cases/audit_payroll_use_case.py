@@ -21,9 +21,7 @@ class AnomalyDetectorService(Protocol):
 class ComplianceAgentService(Protocol):
     """Protocolo definindo o servico generativo de explicabilidade juridico-trabalhista."""
 
-    def explain_anomaly(
-        self, employee_id: str, score: float, metrics: dict
-    ) -> str:
+    def explain_anomaly(self, employee_id: str, score: float, metrics: dict) -> str:
         """Gera uma explicacao em linguagem natural para um desvio de folha identificado."""
         ...
 

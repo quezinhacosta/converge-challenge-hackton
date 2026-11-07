@@ -22,9 +22,7 @@ class GroqComplianceAgent:
         self.api_key = api_key
         self.model_name = model_name
 
-    def explain_anomaly(
-        self, employee_id: str, score: float, metrics: Dict[str, Any]
-    ) -> str:
+    def explain_anomaly(self, employee_id: str, score: float, metrics: Dict[str, Any]) -> str:
         """Gera contextualizacao juridica e operacional para um desvio de folha apontado pelo ML.
 
         Argumentos:

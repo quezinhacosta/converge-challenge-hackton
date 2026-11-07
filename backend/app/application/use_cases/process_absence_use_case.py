@@ -54,4 +54,6 @@ class ProcessAbsenceUseCase:
         Retorna:
             ProcessAbsenceResultDTO: Legibilidade, divisao de dias empresa vs. INSS e alertas de choque.
         """
-        raise NotImplementedError("ProcessAbsenceUseCase.execute e um stub de interface estrutural.")
+        raise NotImplementedError(
+            "ProcessAbsenceUseCase.execute e um stub de interface estrutural."
+        )

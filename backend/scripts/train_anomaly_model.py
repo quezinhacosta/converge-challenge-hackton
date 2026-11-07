@@ -42,9 +42,7 @@ def generate_synthetic_payroll_dataset(
     rng = np.random.default_rng(random_state)
 
     # 1. Registros normais da rotina da empresa
-    normais = rng.normal(
-        loc=[5000, 10, 10, 0], scale=[1000, 3, 3, 10], size=(normal_samples, 4)
-    )
+    normais = rng.normal(loc=[5000, 10, 10, 0], scale=[1000, 3, 3, 10], size=(normal_samples, 4))
 
     # 2. Desvios atipicos e fraudes (picos desproporcionais de H.E. e desvio setorial extremo)
     anomalias = rng.uniform(
