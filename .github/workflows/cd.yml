@@ -1,0 +1,35 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend API (FastAPI)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Cloud Provider
+        run: |
+          echo "Deploying PayTrust backend to production environment..."
+          # Integrations: Railway CLI / Render Deploy Hook / AWS ECS / Google Cloud Run
+        env:
+          ENVIRONMENT: production
+
+  deploy-frontend:
+    name: Deploy Frontend Web Application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        run: |
+          echo "Deploying PayTrust frontend to Vercel/production..."
+          # Integration: vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+        env:
+          ENVIRONMENT: production

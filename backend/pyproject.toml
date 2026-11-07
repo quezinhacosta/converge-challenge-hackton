@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paytrust-backend"
+version = "0.1.0"
+description = "PayTrust: Digital Worker for Payroll Governance, Anti-Fraud, and Leaves"
+authors = [
+    { name = "PayTrust Engineering Team" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.7.0",
+    "scikit-learn>=1.4.0",
+    "joblib>=1.4.0",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "python-multipart>=0.0.9",
+    "requests>=2.32.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.6.9",
+    "mypy>=1.11.2",
+    "pytest>=8.2.0",
+    "httpx>=0.27.0"
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP"   # pyupgrade
+]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
