@@ -1,8 +1,10 @@
 """Caso de uso para redigir o Ponto Focal de Atencao e escalar para o RH (Etapas 6 e 7 do Pulso)."""
 
-from typing import Protocol
+from datetime import datetime, timezone
+from typing import Any, Dict, Protocol
 from app.application.dtos.risk_card_dto import RiskCardDTO
-from app.domain.entities.risk_card import RiskCard
+from app.domain.entities.risk_card import CardStatus, RiskCard
+from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
 from app.domain.repositories.interfaces import AreaRepository, RiskCardRepository
 
 
@@ -38,18 +40,12 @@ class GenerateRiskCardUseCase:
         risk_card_repository: RiskCardRepository,
         content_generator: CardContentGenerator,
     ) -> None:
-        """Inicializa o caso de uso.
-
-        Argumentos:
-            area_repository: Repositorio de consulta a area.
-            risk_card_repository: Repositorio de armazenamento de cards.
-            content_generator: Gerador textual com base em LLM.
-        """
+        """Inicializa o caso de uso."""
         self.area_repository = area_repository
         self.risk_card_repository = risk_card_repository
         self.content_generator = content_generator
 
-    def execute(self, area_id: str, analysis_result: dict) -> RiskCardDTO:
+    def execute(self, area_id: str, analysis_result: Dict[str, Any]) -> RiskCardDTO:
         """Gera o ponto focal e disponibiliza para apreciacao do RH.
 
         Argumentos:
@@ -59,6 +55,62 @@ class GenerateRiskCardUseCase:
         Retorna:
             RiskCardDTO: Card estruturado aguardando deliberacao humana.
         """
-        raise NotImplementedError(
-            "GenerateRiskCardUseCase.execute e um stub de interface estrutural."
+        area = self.area_repository.get_by_id(area_id)
+        if not area:
+            raise ValueError(f"Area '{area_id}' nao encontrada.")
+
+        risk_level = analysis_result["risk_level"]
+        if isinstance(risk_level, str):
+            risk_level = RiskLevel(risk_level)
+
+        factor = analysis_result["factor"]
+        if isinstance(factor, str):
+            factor = PsychosocialRiskFactor(factor)
+
+        context_events = analysis_result.get("context_events", [])
+        context_desc = (
+            context_events[0]["desc"]
+            if context_events
+            else "Sem eventos de contexto recentes registrados."
+        )
+
+        evidence = analysis_result.get("evidence_summary", "")
+        action = analysis_result.get("suggested_action", "")
+
+        status = CardStatus.ABERTO
+        if factor == PsychosocialRiskFactor.ASSEDIO:
+            status = CardStatus.ESCALADO_COMPLIANCE
+
+        sources = ["ponto", "folha", "desligamentos", "pesquisa pulso", "eventos_contexto"]
+
+        card = RiskCard(
+            id=f"card_{area.id}_{int(datetime.now().timestamp())}",
+            area_id=area.id,
+            area_name=area.name,
+            area_headcount=area.headcount,
+            risk_level=risk_level,
+            probable_risk_factor=factor,
+            evidence_summary=evidence,
+            context_description=context_desc,
+            suggested_action=action,
+            status=status,
+            consulted_sources=sources,
+            created_at=datetime.now(timezone.utc),
+        )
+
+        saved = self.risk_card_repository.save(card)
+
+        return RiskCardDTO(
+            card_id=saved.id,
+            area_id=saved.area_id,
+            area_name=saved.area_name,
+            area_headcount=saved.area_headcount,
+            risk_level=saved.risk_level.value,
+            fator_risco_provavel=saved.probable_risk_factor.value,
+            o_que_mudou_ultimos_meses=saved.evidence_summary,
+            contexto_organizacional=saved.context_description,
+            acao_sugerida=saved.suggested_action,
+            fontes_consultadas=saved.consulted_sources,
+            status=saved.status.value,
+            created_at=saved.created_at,
         )

@@ -1,8 +1,6 @@
 """Fabrica e ponto de entrada da aplicacao FastAPI do Pulso."""
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
+from app.presentation.compat import CORSMiddleware, FastAPI
 from app.presentation.api.v1.endpoints import areas, chat, health, pgr, risk_cards
 
 

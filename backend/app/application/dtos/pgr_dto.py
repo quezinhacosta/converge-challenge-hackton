@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 from typing import List, Optional
-from pydantic import BaseModel
+from app.application.dtos.compat import BaseModel
 
 
 class PgrInventoryItemDTO(BaseModel):
