@@ -233,3 +233,35 @@ npm install
 npm run type-check
 npm start
 ```
+
+
+## Deploy: Render + Vercel
+
+### Backend no Render (Web Service Free)
+
+1. Publique a branch `feature/strands-agents` com o `render.yaml` da raiz e crie um Blueprint no Render a partir do repositorio. O Blueprint usa `backend/`, Python 3.12.7 e o plano Free.
+2. No painel do Render, preencha `FEATHERLESS_API_KEY` como segredo e `PULSO_CORS_ORIGINS` com a origem HTTPS exata do frontend (sem barra final ou caminho). Para varias origens, separe por virgula. Nunca use `*`.
+3. O Blueprint define `PULSO_LLM_MODEL=Qwen/Qwen2.5-72B-Instruct`. O comando de inicio usa a porta `$PORT` fornecida pelo Render.
+4. Aguarde o deploy e confira `https://<servico>.onrender.com/api/v1/health` e `/docs`. Copie a URL publica real; o nome do servico nao garante o dominio disponivel.
+
+### Frontend na Vercel
+
+1. Substitua `https://SEU-SERVICO.onrender.com/api/v1` em `frontend/src/environments/environment.prod.ts` pela URL real do backend, mantendo `/api/v1`. Esse marcador precisa ser preenchido antes de publicar.
+2. Importe o repositorio na Vercel e selecione **Root Directory: frontend**. Para publicar esta branch, configure **Production Branch: feature/strands-agents**.
+3. O `frontend/vercel.json` define o build de producao, a saida `dist/pulso-frontend/browser` e o rewrite de rotas Angular para `/index.html`.
+4. Configure no Render `PULSO_CORS_ORIGINS=https://<projeto>.vercel.app` com a URL efetivamente atribuida e aplique a alteracao. URLs de preview precisam ser autorizadas explicitamente se forem usadas.
+5. Confira uma rota interna com recarga direta e as chamadas reais da API na aba Network do navegador. Os fallbacks existentes do frontend podem mostrar dados de demonstracao quando a API falha.
+
+O desenvolvimento local usa `environment.ts` (`http://localhost:8000/api/v1`); o build de producao substitui esse arquivo por `environment.prod.ts`. Nao coloque segredos nos environments do Angular, pois eles ficam publicos no bundle. `backend/.env` deve permanecer ignorado e nunca ser commitado.
+
+Validacao antes de commit/push:
+
+```sh
+cd backend
+python -m pytest -q
+cd ../frontend
+npm ci
+npx ng build --configuration production
+```
+
+O backend atual usa repositorios em memoria: reinicios perdem as decisoes e os registros. Consulte as limitacoes atuais do plano Free no Render antes de usar esta demonstracao em producao: https://render.com/docs/free

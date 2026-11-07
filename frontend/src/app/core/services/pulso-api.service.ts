@@ -3,6 +3,7 @@
  */
 
 import { Injectable, inject } from '@angular/core';
+import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -23,7 +24,7 @@ export interface ChatResponse {
 })
 export class PulsoApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8000/api/v1';
+  private readonly baseUrl = environment.apiUrl;
 
   /**
    * Consulta todas as areas com seus indicadores de headcount e status de anonimizacao.
