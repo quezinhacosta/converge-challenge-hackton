@@ -18,18 +18,22 @@ def get_active_risk_cards(
     cards = container.risk_card_repo.list_active()
     return [
         RiskCardDTO(
-            id=c.id,
+            card_id=c.id,
             area_id=c.area_id,
             area_name=c.area_name,
             area_headcount=c.area_headcount,
             risk_level=c.risk_level.value,
-            probable_risk_factor=c.probable_risk_factor.value,
-            evidence_summary=c.evidence_summary,
-            context_description=c.context_description,
-            suggested_action=c.suggested_action,
-            consulted_sources=c.consulted_sources,
+            fator_risco_provavel=c.probable_risk_factor.value,
+            o_que_mudou_ultimos_meses=c.evidence_summary,
+            contexto_organizacional=c.context_description,
+            acao_sugerida=c.suggested_action,
+            fontes_consultadas=c.consulted_sources,
             status=c.status.value,
             created_at=c.created_at,
+            risk_score=c.risk_score,
+            shap_breakdown=c.shap_breakdown,
+            ai_provider_used=c.ai_provider_used,
+            ai_fallback_triggered=c.ai_fallback_triggered,
         )
         for c in cards
     ]
