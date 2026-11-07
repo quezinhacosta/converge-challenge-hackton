@@ -1,1 +1,0 @@
-"""Endpoints module router package."""
