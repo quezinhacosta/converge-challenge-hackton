@@ -1,4 +1,4 @@
-"""Domain entity representing a company employee."""
+"""Entidade de dominio representando um colaborador da empresa."""
 
 from dataclasses import dataclass
 from datetime import date
@@ -7,18 +7,18 @@ from typing import Optional
 
 @dataclass
 class Employee:
-    """Represents an employee within the organization for payroll and absence audit.
+    """Representa um colaborador da organizacao para auditoria de folha e afastamentos.
 
-    Attributes:
-        id: Unique identifier of the employee.
-        registration_number: Corporate registration code or enrollment ID.
-        name: Full legal name of the employee.
-        department: Department or operational business unit.
-        role: Current job position or title.
-        base_salary: Monthly baseline compensation in BRL.
-        hire_date: Date of initial employment.
-        is_active: Whether the employee is actively employed.
-        manager_id: Identifier of the employee's direct supervisor.
+    Atributos:
+        id: Identificador unico do colaborador.
+        registration_number: Matricula funcional na organizacao.
+        name: Nome completo do colaborador.
+        department: Departamento ou setor de atuacao.
+        role: Cargo ocupado atualmente.
+        base_salary: Salario base mensal contratual em Reais (BRL).
+        hire_date: Data de admissao.
+        is_active: Indicador se o contrato de trabalho esta ativo.
+        manager_id: Identificador do gestor imediato.
     """
 
     id: str

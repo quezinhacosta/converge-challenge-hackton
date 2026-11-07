@@ -1,5 +1,5 @@
 /**
- * TypeScript type definitions for medical certificate OCR and absence statutory splits.
+ * Definicoes de tipos TypeScript para leitura de atestados via OCR e regras de afastamento.
  */
 
 export type AbsenceType = 'MEDICAL' | 'MATERNITY' | 'BEREAVEMENT' | 'VACATION' | 'UNEXCUSED';

@@ -1,8 +1,8 @@
-"""Training script for the PayTrust Isolation Forest anomaly detection model.
+"""Script de treino e compilacao do modelo Isolation Forest do PayTrust.
 
-Generates synthetic baseline payroll distributions and anomalous spikes, trains
-an Isolation Forest model, and exports the serialized model artifact (.pkl)
-for integration with the FastAPI backend inference pipeline.
+Gera dados sinteticos simulando distribuicoes normais de folha e desvios fraudulentos,
+treina o modelo Isolation Forest e exporta o artefato serializado (.pkl)
+para ser consumido na inferencia da API FastAPI.
 """
 
 from pathlib import Path
@@ -23,30 +23,30 @@ DEFAULT_OUTPUT_PATH = (
 def generate_synthetic_payroll_dataset(
     normal_samples: int = 800, anomaly_samples: int = 50, random_state: int = 42
 ) -> pd.DataFrame:
-    """Generate synthetic payroll features simulating normal employees and fraudulent spikes.
+    """Gera caracteristicas sinteticas simulando colaboradores padrao e fraudes em horas extras.
 
-    Feature Definitions:
-        - salario_base: Contracted monthly base salary in BRL.
-        - he_mes: Overtime hours logged in the current audit period.
-        - he_media_3m: Historic 3-month rolling average of overtime hours.
-        - desvio_setor: Deviation of overtime hours relative to departmental peers.
+    Definicao das Features:
+        - salario_base: Salario base mensal contratual em Reais.
+        - he_mes: Horas extras totais registradas na competencia corrente.
+        - he_media_3m: Media movel de horas extras dos 3 meses anteriores.
+        - desvio_setor: Desvio das horas extras do colaborador em relacao aos pares do setor.
 
-    Args:
-        normal_samples: Count of regular payroll observations to synthesize.
-        anomaly_samples: Count of severe overtime/deviation anomalies to inject.
-        random_state: Seed for reproducible data generation.
+    Argumentos:
+        normal_samples: Quantidade de observacoes regulares a simular.
+        anomaly_samples: Quantidade de distorcoes atipicas de horas extras a injetar.
+        random_state: Semente pseudo-aleatoria para reprodutibilidade.
 
-    Returns:
-        pd.DataFrame: Consolidated dataset containing normal and anomalous observations.
+    Retorna:
+        pd.DataFrame: Conjunto de dados unificado contendo registros normais e anomalias.
     """
     rng = np.random.default_rng(random_state)
 
-    # 1. Normal baseline records
+    # 1. Registros normais da rotina da empresa
     normais = rng.normal(
         loc=[5000, 10, 10, 0], scale=[1000, 3, 3, 10], size=(normal_samples, 4)
     )
 
-    # 2. Fraudulent or aberrant records (abnormal overtime spikes, extreme sector deviations)
+    # 2. Desvios atipicos e fraudes (picos desproporcionais de H.E. e desvio setorial extremo)
     anomalias = rng.uniform(
         low=[3000, 45, 5, 200], high=[8000, 80, 10, 500], size=(anomaly_samples, 4)
     )
@@ -61,14 +61,14 @@ def generate_synthetic_payroll_dataset(
 def train_and_export_model(
     output_path: Path = DEFAULT_OUTPUT_PATH, contamination_rate: float = 0.06
 ) -> Path:
-    """Train the Isolation Forest model on synthetic payroll data and export artifact.
+    """Treina o modelo Isolation Forest no conjunto sintetico e exporta o artefato compilado.
 
-    Args:
-        output_path: Target filesystem location for the .pkl artifact.
-        contamination_rate: Expected proportion of outliers in the training distribution.
+    Argumentos:
+        output_path: Caminho de destino para salvar o arquivo .pkl serializado.
+        contamination_rate: Proporcao esperada de outliers na distribuicao de treino.
 
-    Returns:
-        Path: Destination path of the saved artifact.
+    Retorna:
+        Path: Caminho do arquivo onde o modelo foi salvo.
     """
     dataset = generate_synthetic_payroll_dataset()
 
@@ -77,7 +77,7 @@ def train_and_export_model(
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, output_path)
-    print(f"PayTrust model successfully compiled and serialized to: {output_path}")
+    print(f"Modelo PayTrust compilado e serializado com sucesso em: {output_path}")
 
     return output_path
 

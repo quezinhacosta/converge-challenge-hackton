@@ -1,4 +1,4 @@
-"""Generative AI and compliance agent adapters."""
+"""Adaptadores para IA generativa e agentes de compliance trabalhista."""
 
 from app.infrastructure.llm.compliance_agent import GroqComplianceAgent
 

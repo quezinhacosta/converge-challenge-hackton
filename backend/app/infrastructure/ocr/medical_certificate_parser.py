@@ -1,37 +1,36 @@
-"""OCR Vision adapter for parsing medical certificates and doctor notes."""
+"""Adaptador de OCR Vision para leitura e parsing estruturado de atestados medicos."""
 
 from typing import Any, Dict
 
 
 class VisionMedicalCertificateParser:
-    """Extracts structured clinical and administrative fields from medical certificates.
+    """Extrai campos clinicos e cadastrais a partir de imagens ou PDFs de atestados medicos.
 
-    Utilizes Vision APIs / OCR to parse:
-        - Doctor name and Regional Medical Council ID (CRM)
-        - Issue date and start of leave
-        - Total duration in calendar days
-        - International Classification of Diseases (CID/ICD code)
-        - Document legibility and tampering indicators
+    Responsabilidades da extracao:
+        - Nome do medico assistente e inscricao no CRM.
+        - Data de emissao e data de inicio do repouso.
+        - Duracao total do afastamento em dias corridos.
+        - Codigo CID (Classificacao Internacional de Doencas), quando expresso.
+        - Metricas de legibilidade da imagem e indicios visuais de adulteracao.
     """
 
     def __init__(self, api_key: str | None = None) -> None:
-        """Initialize OCR vision client.
+        """Inicializa o cliente do servico de OCR Vision.
 
-        Args:
-            api_key: Optional API key for third-party OCR / Vision endpoint.
+        Argumentos:
+            api_key: Chave de API opcional para servicos de visao computacional externos.
         """
         self.api_key = api_key
 
     def extract_certificate_data(self, file_url: str) -> Dict[str, Any]:
-        """Perform OCR and information extraction on medical certificate file.
+        """Executa OCR e extracao de informacoes no arquivo do atestado.
 
-        Args:
-            file_url: URI or local path of the certificate image or PDF.
+        Argumentos:
+            file_url: URI ou caminho local do documento de atestado.
 
-        Returns:
-            Dict[str, Any]: Extracted metadata containing legibility status,
-                granted days, doctor details, and validation warnings.
+        Retorna:
+            Dict[str, Any]: Dicionario com os campos estruturados e status de legibilidade.
         """
         raise NotImplementedError(
-            "VisionMedicalCertificateParser.extract_certificate_data is a structural stub."
+            "VisionMedicalCertificateParser.extract_certificate_data e um stub estrutural."
         )

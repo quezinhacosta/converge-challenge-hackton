@@ -1,1 +1,1 @@
-"""Presentation layer delivering HTTP REST and WebSocket APIs via FastAPI."""
+"""Camada de apresentacao contendo rotas HTTP REST e WebSockets via FastAPI."""

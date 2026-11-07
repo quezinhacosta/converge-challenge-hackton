@@ -1,4 +1,4 @@
-"""Domain entity representing leaves, medical absences, and INSS split rules."""
+"""Entidade de dominio representando afastamentos medicos, licencas e regras do INSS."""
 
 from dataclasses import dataclass
 from datetime import date
@@ -7,7 +7,7 @@ from typing import Optional
 
 
 class AbsenceType(str, Enum):
-    """Categorization of employee absence."""
+    """Classificacao do tipo de ausencia do colaborador."""
 
     MEDICAL = "MEDICAL"
     MATERNITY = "MATERNITY"
@@ -17,7 +17,7 @@ class AbsenceType(str, Enum):
 
 
 class AbsenceStatus(str, Enum):
-    """Current processing status of the absence request."""
+    """Estado de processamento e encaminhamento do afastamento."""
 
     PENDING_VALIDATION = "PENDING_VALIDATION"
     APPROVED_COMPANY = "APPROVED_COMPANY"
@@ -27,27 +27,27 @@ class AbsenceStatus(str, Enum):
 
 @dataclass
 class Absence:
-    """Represents a medical or statutory absence episode.
+    """Representa um afastamento medico ou licenca trabalhista.
 
-    Business Rules:
-        - Brazilian Labor Law (CLT Art. 476): First 15 consecutive days of illness
-          are paid directly by the employer.
-        - Days exceeding the 15-day threshold transfer payment responsibility to INSS.
-        - Checks for overlapping pre-scheduled vacations or duplicate medical certificates.
+    Regras de Negocio:
+        - CLT Art. 476: Os primeiros 15 dias consecutivos de incapacidade sao pagos
+          diretamente pelo empregador.
+        - Os dias que excederem o 15º dia transferem o encargo financeiro para a Previdencia Social (INSS).
+        - Valida sobreposicoes com periodos de ferias agendadas ou atestados duplicados.
 
-    Attributes:
-        id: Unique absence event identifier.
-        employee_id: Identifier of the absent employee.
-        absence_type: Categorization of absence (e.g., medical, vacation).
-        start_date: Initial date of the leave period.
-        end_date: Final date of the leave period.
-        duration_days: Total number of days granted in the medical certificate.
-        company_paid_days: Portion of days funded by the employer (capped at 15 for illness).
-        inss_paid_days: Portion of days directed to Social Security (INSS) after day 15.
-        status: Current validation and routing status.
-        icd_code: International Classification of Diseases code (optional/confidential).
-        document_url: Remote storage URL for the uploaded medical certificate image or PDF.
-        requires_inss_scheduling: Indicates whether the employee must schedule an INSS medical exam.
+    Atributos:
+        id: Identificador unico do evento de afastamento.
+        employee_id: Identificador do colaborador afastado.
+        absence_type: Tipo de afastamento (ex.: medico, ferias).
+        start_date: Data de inicio do afastamento.
+        end_date: Data final do periodo de afastamento.
+        duration_days: Duracao total em dias indicada no atestado.
+        company_paid_days: Quantidade de dias sob responsabilidade da empresa (maximo 15).
+        inss_paid_days: Quantidade de dias encaminhados ao INSS (apos o 15º dia).
+        status: Estado atual de validacao e encaminhamento.
+        icd_code: Codigo de Classificacao Internacional de Doencas (CID), quando disponivel.
+        document_url: URL ou caminho do comprovante ou atestado anexado.
+        requires_inss_scheduling: Indica se o colaborador deve agendar pericia presencial no INSS.
     """
 
     id: str

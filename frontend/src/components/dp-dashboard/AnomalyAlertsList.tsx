@@ -2,17 +2,17 @@ import React from 'react';
 import { AnomalyReport } from '@/types/payroll';
 
 export interface AnomalyAlertsListProps {
-  /** Array of anomalies flagged by the Layer 1 ML model. */
+  /** Colecao de anomalias detectadas pelo motor de ML da Camada 1. */
   alerts: AnomalyReport[];
-  /** Callback invoked when an alert card is selected for in-depth inspection. */
+  /** Callback acionado ao selecionar um card de anomalia para auditoria detalhada. */
   onSelectAlert: (alert: AnomalyReport) => void;
 }
 
 /**
- * AnomalyAlertsList Component.
+ * Componente AnomalyAlertsList.
  *
- * Renders priority alert cards sorted by PayTrust Score (0 to 100), highlighting
- * severe overtime deviations, unverified benefits, and ghost worker anomalies.
+ * Renderiza os cards de apontamento priorizados pelo PayTrust Score (0 a 100),
+ * destacando saltos de horas extras, adicionais suspeitos e funcionarios fantasmas.
  */
 export const AnomalyAlertsList: React.FC<AnomalyAlertsListProps> = ({
   alerts,
@@ -20,8 +20,8 @@ export const AnomalyAlertsList: React.FC<AnomalyAlertsListProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium text-slate-800">Priority Anomaly Alerts</h3>
-      {/* Component UI implementation stub */}
+      <h3 className="text-lg font-medium text-slate-800">Alertas Prioritarios de Anomalia</h3>
+      {/* Stub de implementacao da interface visual */}
     </div>
   );
 };

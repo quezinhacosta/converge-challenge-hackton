@@ -1,20 +1,20 @@
-"""Domain entity representing monthly payroll entries and wage components."""
+"""Entidade de dominio representando lancamentos da folha de pagamento e rubricas."""
 
 from dataclasses import dataclass, field
 from datetime import date
-from typing import List, Optional
+from typing import List
 
 
 @dataclass
 class PaystubItem:
-    """Individual line item or code on an employee's paystub (holerite).
+    """Item individual ou rubrica do holerite do colaborador.
 
-    Attributes:
-        code: Internal rubric or eSocial rubric code.
-        description: Description of the credit or debit entry.
-        reference_units: Quantity of hours, days, or percentage (e.g., 20 overtime hours).
-        amount: Monetary value in BRL.
-        is_discount: True if this item reduces gross pay (e.g., INSS, IRRF, unjustified absences).
+    Atributos:
+        code: Codigo interno da rubrica ou identificador no padrao eSocial.
+        description: Descricao da verba (provento ou desconto).
+        reference_units: Quantidade de referencia (ex.: horas extras, dias ou percentual).
+        amount: Valor monetario correspondente em BRL.
+        is_discount: Indica se a rubrica e deducao (ex.: INSS, IRRF, faltas).
     """
 
     code: str
@@ -26,20 +26,20 @@ class PaystubItem:
 
 @dataclass
 class Paystub:
-    """Represents a monthly paystub record for auditing and employee transparency.
+    """Representa o holerite mensal de um colaborador para auditoria e explicabilidade.
 
-    Attributes:
-        id: Unique identifier of the paystub.
-        employee_id: Identifier of the employee receiving compensation.
-        competence_period: Year and month of the payroll period (e.g. 2026-10-01).
-        base_salary: Contracted base monthly compensation.
-        overtime_hours_current_month: Total overtime hours logged in this period.
-        overtime_hours_3m_average: Rolling 3-month average of overtime hours for anomaly comparison.
-        sector_overtime_standard_deviation: Deviation from the departmental peer baseline.
-        substitution_salary_differential: Proportional wage difference under Súmula 159 TST.
-        gross_total: Total gross earnings before statutory discounts.
-        net_total: Final net payable amount.
-        items: List of all rubric entries composing the paystub.
+    Atributos:
+        id: Identificador unico do holerite.
+        employee_id: Identificador do colaborador associado.
+        competence_period: Mes e ano da competencia da folha (ex.: 2026-10-01).
+        base_salary: Salario base mensal contratual.
+        overtime_hours_current_month: Horas extras totais apuradas no mes corrente.
+        overtime_hours_3m_average: Media movel de horas extras dos ultimos 3 meses.
+        sector_overtime_standard_deviation: Desvio padrao das horas extras do setor.
+        substitution_salary_differential: Diferenca salarial por substituicao (Sumula 159 TST).
+        gross_total: Total de proventos brutos antes das deducoes legais.
+        net_total: Salario liquido final a receber.
+        items: Lista de rubricas detalhadas que compoem o holerite.
     """
 
     id: str

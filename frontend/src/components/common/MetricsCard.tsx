@@ -1,21 +1,21 @@
 import React from 'react';
 
 export interface MetricsCardProps {
-  /** Metric card header label. */
+  /** Titulo ou rotulo do card de metrica. */
   title: string;
-  /** Primary metric value or amount. */
+  /** Valor principal em destaque (monetario ou quantidade). */
   value: string | number;
-  /** Contextual comparison or trend description. */
+  /** Subtitulo contextual ou comparativo com meses anteriores. */
   subtitle?: string;
-  /** Visual indicator type (e.g. success, alert, danger, neutral). */
+  /** Variante visual de status (neutro, sucesso, alerta, perigo). */
   variant?: 'neutral' | 'success' | 'warning' | 'danger';
 }
 
 /**
- * MetricsCard Component.
+ * Componente MetricsCard.
  *
- * Reusable summary metric card for DP dashboard KPIs (e.g., Blocked Fraud Value,
- * High-Risk Anomalies, INSS Referrals, Total Batch Headcount).
+ * Card visual reutilizavel para exibicao de KPIs do DP (ex.: Montante Retido de Fraude,
+ * Total de Anomalias de Alto Risco, Encaminhamentos ao INSS, Vidas Auditadas no Lote).
  */
 export const MetricsCard: React.FC<MetricsCardProps> = ({
   title,

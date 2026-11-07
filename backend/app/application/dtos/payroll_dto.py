@@ -1,36 +1,36 @@
-"""Data transfer objects for payroll ingestion, auditing, and anomaly reporting."""
+"""Objetos de transferencia de dados para ingestao de folha, auditoria e reporte de anomalias."""
 
 from datetime import date
-from typing import List, Optional
+from typing import List
 from pydantic import BaseModel, Field
 
 
 class PayrollEntryDTO(BaseModel):
-    """Input DTO representing a single employee payroll record in a batch submission.
+    """Representa o lancamento de um colaborador em um lote submetido para auditoria.
 
-    Attributes:
-        employee_id: Identifier of the employee.
-        competence_period: Payroll month/year in YYYY-MM-DD format.
-        salario_base: Monthly baseline salary in BRL.
-        he_mes: Total overtime hours registered in current month.
-        he_media_3m: Average overtime hours registered in preceding 3 months.
-        desvio_setor: Overtime hours deviation relative to department average.
+    Atributos:
+        employee_id: Identificador do colaborador.
+        competence_period: Competencia da folha no formato YYYY-MM-DD.
+        salario_base: Salario base mensal contratual em Reais (BRL).
+        he_mes: Total de horas extras apuradas no mes corrente.
+        he_media_3m: Media de horas extras realizadas nos ultimos 3 meses.
+        desvio_setor: Desvio das horas extras em relacao a media dos pares do setor.
     """
 
     employee_id: str
     competence_period: date
-    salario_base: float = Field(..., gt=0, description="Base monthly compensation")
-    he_mes: float = Field(..., ge=0, description="Current month overtime hours")
-    he_media_3m: float = Field(..., ge=0, description="Three-month moving average of overtime hours")
-    desvio_setor: float = Field(..., description="Departmental overtime deviation")
+    salario_base: float = Field(..., gt=0, description="Salario base mensal")
+    he_mes: float = Field(..., ge=0, description="Horas extras no mes")
+    he_media_3m: float = Field(..., ge=0, description="Media de horas extras ultimos 3 meses")
+    desvio_setor: float = Field(..., description="Desvio em relacao ao setor")
 
 
 class PayrollBatchAuditRequestDTO(BaseModel):
-    """Batch payload submitted by DP/ERP for pre-payment audit.
+    """Payload de lote de folha submetido pelo DP ou ERP para auditoria preventiva.
 
-    Attributes:
-        batch_id: Unique batch identification code.
-        entries: Collection of employee payroll entries to evaluate.
+    Atributos:
+        batch_id: Codigo identificador unico do lote.
+        entries: Colecao de lancamentos de colaboradores para avaliacao.
     """
 
     batch_id: str
@@ -38,15 +38,15 @@ class PayrollBatchAuditRequestDTO(BaseModel):
 
 
 class AnomalyReportDTO(BaseModel):
-    """DTO representing a flagged anomaly detected during batch evaluation.
+    """DTO representando um apontamento de anomalia identificado no lote da folha.
 
-    Attributes:
-        anomaly_id: Unique ID of the finding.
-        employee_id: Associated employee.
-        paytrust_score: Calculated risk score (0 to 100).
-        risk_severity: Severity level (LOW, MEDIUM, HIGH, CRITICAL).
-        explanation: LLM-generated explanation detailing why the entry was flagged.
-        action_recommended: Human-in-the-loop action proposed to the DP.
+    Atributos:
+        anomaly_id: Identificador unico da anomalia.
+        employee_id: Colaborador envolvido.
+        paytrust_score: Score de risco preditivo calculado (0 a 100).
+        risk_severity: Nivel de severidade do risco (LOW, MEDIUM, HIGH, CRITICAL).
+        explanation: Explicacao gerada pela IA contextualizando as regras trabalhistas violadas.
+        action_recommended: Acao preventiva recomendada para o analista do DP.
     """
 
     anomaly_id: str
@@ -58,14 +58,14 @@ class AnomalyReportDTO(BaseModel):
 
 
 class PayrollBatchAuditResponseDTO(BaseModel):
-    """Summary result returned after auditing a payroll batch.
+    """Resultado consolidado retornado apos a auditoria preditiva do lote de folha.
 
-    Attributes:
-        batch_id: Processed batch identifier.
-        total_records_analyzed: Count of evaluated payroll entries.
-        total_anomalies_detected: Count of suspicious items requiring intervention.
-        total_blocked_amount_brl: Estimated monetary value held pending validation.
-        anomalies: Detailed list of detected anomalies.
+    Atributos:
+        batch_id: Identificador do lote processado.
+        total_records_analyzed: Quantidade total de registros avaliados.
+        total_anomalies_detected: Quantidade de itens suspeitos que demandam revisao.
+        total_blocked_amount_brl: Montante financeiro total retido preventivamente em Reais.
+        anomalies: Lista detalhada de anomalias encontradas.
     """
 
     batch_id: str

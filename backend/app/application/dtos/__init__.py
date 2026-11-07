@@ -1,1 +1,1 @@
-"""Application Data Transfer Objects (DTOs)."""
+"""Objetos de Transferencia de Dados (DTOs) da aplicacao."""

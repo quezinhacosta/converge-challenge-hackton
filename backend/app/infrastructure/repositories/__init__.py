@@ -1,4 +1,4 @@
-"""Infrastructure repository implementations."""
+"""Implementacoes concretas dos repositorios de infraestrutura."""
 
 from app.infrastructure.repositories.in_memory_repositories import (
     InMemoryAbsenceRepository,

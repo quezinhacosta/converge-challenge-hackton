@@ -2,20 +2,20 @@ import React from 'react';
 import { AbsenceRecord, SubstitutionRule } from '@/types/absence';
 
 export interface AbsenceManagerProps {
-  /** Collection of active employee leaves and medical certificates. */
+  /** Colecao de afastamentos e atestados medicos ativos. */
   absences: AbsenceRecord[];
-  /** Calculated substitution cases governed by Súmula 159 TST. */
+  /** Casos calculados de substituicao temporaria sob a Sumula 159 do TST. */
   substitutions: SubstitutionRule[];
-  /** Handler to generate and dispatch INSS scheduling instructions. */
+  /** Handler para emitir comunicados e orientacoes de pericia ao INSS. */
   onDispatchInssNotice: (absenceId: string) => Promise<void>;
 }
 
 /**
- * AbsenceManager Component.
+ * Componente AbsenceManager.
  *
- * Manages medical leave routing: validates the 15-day employer responsibility threshold,
- * forwards long-term cases to INSS, detects vacation clashes, and computes non-occasional
- * substitution wage adjustments under Brazilian labor jurisprudence.
+ * Gerencia o ciclo de afastamentos: assegura o limite dos 15 dias pagos pela empresa (CLT),
+ * encaminha os casos superiores ao INSS, aponta choques com ferias e calcula a diferenca
+ * salarial devida ao substituto temporario conforme a jurisprudencia trabalhista.
  */
 export const AbsenceManager: React.FC<AbsenceManagerProps> = ({
   absences,
@@ -24,11 +24,11 @@ export const AbsenceManager: React.FC<AbsenceManagerProps> = ({
 }) => {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-semibold text-slate-900">Absence & Substitution Manager</h2>
+      <h2 className="text-xl font-semibold text-slate-900">Gestor de Afastamentos e Substituicoes</h2>
       <p className="mt-1 text-sm text-slate-500">
-        Automated 15-day CLT / INSS splits and Súmula 159 TST wage adjustments.
+        Cisao automatica de 15 dias CLT / INSS e calculo proporcional da Sumula 159 do TST.
       </p>
-      {/* Component UI implementation stub */}
+      {/* Stub de implementacao da interface visual */}
     </div>
   );
 };

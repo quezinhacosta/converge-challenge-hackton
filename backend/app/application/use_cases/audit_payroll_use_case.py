@@ -1,6 +1,6 @@
-"""Use case for auditing a payroll batch, computing ML anomaly scores, and generating alerts."""
+"""Caso de uso para auditoria de lote de folha, calculo do score de ML e alerta de anomalias."""
 
-from typing import Protocol
+from typing import List, Protocol
 import pandas as pd
 
 from app.application.dtos.payroll_dto import (
@@ -11,34 +11,34 @@ from app.domain.repositories.interfaces import AnomalyRepository, PayrollReposit
 
 
 class AnomalyDetectorService(Protocol):
-    """Protocol for the Machine Learning anomaly inference service."""
+    """Protocolo definindo o contrato do servico de deteccao de anomalias por Machine Learning."""
 
-    def predict_scores(self, features_df: pd.DataFrame) -> list[float]:
-        """Compute the continuous PayTrust anomaly score (0 to 100) for payroll items."""
+    def predict_scores(self, features_df: pd.DataFrame) -> List[float]:
+        """Calcula o PayTrust Score continuo (0 a 100) para cada item do lote."""
         ...
 
 
 class ComplianceAgentService(Protocol):
-    """Protocol for the generative LLM compliance explanation service."""
+    """Protocolo definindo o servico generativo de explicabilidade juridico-trabalhista."""
 
     def explain_anomaly(
         self, employee_id: str, score: float, metrics: dict
     ) -> str:
-        """Generate a natural language explanation for an identified payroll deviation."""
+        """Gera uma explicacao em linguagem natural para um desvio de folha identificado."""
         ...
 
 
 class AuditPayrollUseCase:
-    """Coordinates batch payroll audit using Layer 1 (ML) and Layer 2 (LLM Compliance).
+    """Coordena a auditoria do lote de folha combinando Camada 1 (ML) e Camada 2 (LLM).
 
-    Workflow:
-        1. Ingest batch payroll records submitted from ERP/DP.
-        2. Extract ML feature vector: [salario_base, he_mes, he_media_3m, desvio_setor].
-        3. Execute Isolation Forest inference to calculate PayTrust Score (0-100).
-        4. Filter items exceeding the anomaly threshold (e.g., Score >= 80).
-        5. Invoke Compliance Agent (LLM) to craft contextual Brazilian labor law explanations.
-        6. Persist detected anomalies for 1-click Human-in-the-Loop review.
-        7. Return consolidated audit report to DP dashboard.
+    Fluxo de Execucao:
+        1. Ingestao dos registros do lote de folha submetidos pelo DP ou ERP.
+        2. Extracao do vetor de caracteristicas: [salario_base, he_mes, he_media_3m, desvio_setor].
+        3. Execucao da inferencia pelo Isolation Forest gerando o PayTrust Score (0 a 100).
+        4. Filtragem dos itens cujo score ultrapasse o limiar critico de risco (ex.: Score >= 80).
+        5. Invocacao do Agente de Compliance para redigir a justificativa baseada na CLT.
+        6. Persistencia dos apontamentos de anomalia para analise humana em 1 clique.
+        7. Devolucao do relatorio consolidado para o dashboard do DP.
     """
 
     def __init__(
@@ -48,13 +48,13 @@ class AuditPayrollUseCase:
         payroll_repository: PayrollRepository,
         anomaly_repository: AnomalyRepository,
     ) -> None:
-        """Initialize the use case with required infrastructure adapters and repositories.
+        """Inicializa o caso de uso com os adaptadores e repositorios necessarios.
 
-        Args:
-            anomaly_detector: Service handling Isolation Forest anomaly inference.
-            compliance_agent: LLM service explaining labor law violations and deviations.
-            payroll_repository: Persistence layer for audited paystub batches.
-            anomaly_repository: Persistence layer for flagged anomalies.
+        Argumentos:
+            anomaly_detector: Servico responsavel pela inferencia do modelo Isolation Forest.
+            compliance_agent: Servico de LLM que formula a explicacao legal do desvio.
+            payroll_repository: Camada de persistencia para holerites e lotes.
+            anomaly_repository: Camada de persistencia para os registros de anomalia.
         """
         self.anomaly_detector = anomaly_detector
         self.compliance_agent = compliance_agent
@@ -62,15 +62,15 @@ class AuditPayrollUseCase:
         self.anomaly_repository = anomaly_repository
 
     def execute(self, request: PayrollBatchAuditRequestDTO) -> PayrollBatchAuditResponseDTO:
-        """Execute the payroll batch audit pipeline.
+        """Executa a esteira de auditoria preditiva no lote de folha de pagamento.
 
-        Args:
-            request: The batch payroll payload containing records to evaluate.
+        Argumentos:
+            request: Payload contendo a colecao de registros de colaboradores a avaliar.
 
-        Returns:
-            PayrollBatchAuditResponseDTO: Consolidated audit findings and anomaly list.
+        Retorna:
+            PayrollBatchAuditResponseDTO: Sumario da auditoria, valores retidos e anomalias.
 
-        Raises:
-            ValueError: If the batch payload is empty or malformed.
+        Lanca:
+            ValueError: Se o lote estiver vazio ou contiver dados inconsistentes.
         """
-        raise NotImplementedError("AuditPayrollUseCase.execute is a structural interface stub.")
+        raise NotImplementedError("AuditPayrollUseCase.execute e um stub de interface estrutural.")

@@ -1,4 +1,4 @@
-"""FastAPI application factory and server entrypoint for PayTrust."""
+"""Fabrica da aplicacao FastAPI e ponto de entrada da API do PayTrust."""
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,15 +7,15 @@ from app.presentation.api.v1.endpoints import absences, health, payroll
 
 
 def create_application() -> FastAPI:
-    """Instantiate and configure the FastAPI application.
+    """Instancia e configura a aplicacao FastAPI do PayTrust.
 
-    Returns:
-        FastAPI: Fully configured ASGI application instance.
+    Retorna:
+        FastAPI: Instancia ASGI da aplicacao totalmente configurada.
     """
     app = FastAPI(
         title="PayTrust API",
         description=(
-            "Digital Worker for Payroll Governance, Anti-Fraud, and Leaves. "
+            "Digital Worker de Governanca, Anti-Fraude e Afastamentos na Folha de Pagamento. "
             "Powered by Tako / Converge Challenge."
         ),
         version="0.1.0",
@@ -32,8 +32,8 @@ def create_application() -> FastAPI:
     )
 
     app.include_router(health.router, prefix="/api/v1/health", tags=["Health"])
-    app.include_router(payroll.router, prefix="/api/v1/payroll", tags=["Payroll Audit"])
-    app.include_router(absences.router, prefix="/api/v1/absences", tags=["Absence & Compliance"])
+    app.include_router(payroll.router, prefix="/api/v1/payroll", tags=["Auditoria de Folha"])
+    app.include_router(absences.router, prefix="/api/v1/absences", tags=["Afastamentos e Compliance"])
 
     return app
 

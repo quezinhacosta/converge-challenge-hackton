@@ -1,4 +1,4 @@
-"""Domain repository interfaces."""
+"""Interfaces de repositorio do dominio."""
 
 from app.domain.repositories.interfaces import (
     AbsenceRepository,

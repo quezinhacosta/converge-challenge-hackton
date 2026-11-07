@@ -1,153 +1,153 @@
 # PAYTRUST (POWERED BY TAKO)
 
-Digital Worker for Payroll Governance, Anti-Fraud, and Leaves
-Converge Challenge powered by Tako
+Digital Worker de Governanca, Anti-Fraude e Afastamentos na Folha de Pagamento
+Hackathon: Converge Challenge powered by Tako
 
 ---
 
-## 1. Executive Summary and Business Thesis
+## 1. Resumo Executivo e Tese de Negocio
 
-### Product Definition
-PayTrust is a digital worker and financial intelligence middleware for enterprise payroll. It integrates predictive Machine Learning anomaly detection with automated statutory leave processing, temporary substitution wage adjustments (Sumula 159 TST), and real-time paystub explainability.
+### Definicao do Produto
+O PayTrust e um digital worker e middleware de inteligencia financeira para folha de pagamento corporativa. Ele combina auditoria preditiva anti-fraude via Machine Learning com automacao do ciclo de afastamentos, calculo de diferenca salarial por substituicao temporaria (Sumula 159 do TST) e explicabilidade de holerite em tempo real para colaboradores.
 
-### Market Pain Point
-Traditional ERPs and HR systems (e.g., TOTVS, Senior, ADP) operate as blind calculators: they process inputs, timecards, and manager approvals without verifying historical behavioral patterns or complex labor regulations.
+### O Problema de Mercado
+Os sistemas de ERP e softwares de Recursos Humanos tradicionais (como TOTVS, Senior e ADP) atuam como "calculadoras cegas": processam lancamentos manuais, cartoes de ponto e aprovacoes de gestores sem analisar o historico comportamental dos colaboradores ou regras trabalhistas dinamicas.
 
-- Labor Liabilities and Rework: Inaccurate additions, miscalculated sick leaves, and unverified overtime inflations affect 5% to 8% of corporate payroll batches.
-- Rework Friction: Personnel Departments (DP) spend days resolving eSocial submission rejections and fielding repetitive employee questions regarding paystub line items.
+- Passivos Trabalhistas e Erros Ocultos: Inconsistencias em adicionais, calculos imprecisos de afastamento e fraudes em horas extras atingem entre 5% e 8% das folhas de pagamento corporativas.
+- Retrabalho Operacional: O Departamento Pessoal (DP) consome dias corrigindo inconsistencias no eSocial e respondendo chamados recorrentes de colaboradores com duvidas sobre os descontos em seus holerites.
 
-### Business Model and Scalability
-- B2B SaaS Model: Priced per audited active employee per month (R$ 3.00 to R$ 6.00 / life).
-- Immediate Return on Investment (ROI): Preventing a single fraudulent overtime incident or labor lawsuit covers platform operating costs for years.
-- Mergers and Acquisitions (M&A) Thesis: Highly defensible, pre-payment governance layer designed as a modular plug-in for major ERP and HRTech ecosystems (TOTVS, Senior, ADP, Flash, Caju).
+### Tese de Negocio e Escala
+- Modelo SaaS B2B: Cobranca mensal por vida auditada (R$ 3,00 a R$ 6,00 por colaborador/mes).
+- Retorno sobre Investimento (ROI) Imediato: Barrar um unico caso indevido de hora extra ou evitar uma acao trabalhista financia a plataforma por anos.
+- Atratividade para M&A: Camada modular de governanca pre-pagamento desenhada para plugar facilmente em grandes suites de ERP e HRTechs do mercado (TOTVS, Senior, ADP, Flash, Caju).
 
 ---
 
-## 2. Two-Layer AI Architecture
+## 2. Arquitetura de Inteligencia Artificial em Duas Camadas
 
-PayTrust separates statistical fraud detection from regulatory interpretation through a two-layer decoupled design:
+O PayTrust opera com uma arquitetura desacoplada em duas camadas de inteligencia:
 
 ```
 +-----------------------------------------------------------+
-|   Input: Payroll Batch (CSV/JSON) + Certificates (Img/PDF)|
+|   Entrada: Lote da Folha (CSV/JSON) + Atestados (Img/PDF) |
 +-----------------------------+-----------------------------+
                               |
                               v
 +-----------------------------------------------------------+
-|   LAYER 1: Predictive Anomaly Detection (ML Engine)       |
-|   - Scikit-Learn Isolation Forest / LinearSVC             |
-|   - Generates the continuous PayTrust Score (0 to 100)    |
+|   CAMADA 1: Predicao e Deteccao de Anomalias (Motor ML)   |
+|   - Scikit-Learn (Isolation Forest / LinearSVC)           |
+|   - Gera o PayTrust Score continuo (0 a 100)              |
 +-----------------------------+-----------------------------+
                               |
                               v
 +-----------------------------------------------------------+
-|   LAYER 2: Generative Compliance & Vision OCR (LLM Engine)|
-|   - OCR and Vision parser for medical certificates        |
-|   - RAG with Brazilian Labor Law (CLT) and Sumula 159 TST |
+|   CAMADA 2: Compliance Generativo e OCR Vision (Motor LLM)|
+|   - OCR Vision para extracao estruturada de atestados     |
+|   - RAG com legislacao trabalhista (CLT) e Sumula 159 TST |
 +-----------------------------+-----------------------------+
                               |
                               v
 +-----------------------------------------------------------+
-|   Interfaces: DP Governance Dashboard + Employee Portal   |
+|   Interfaces: Dashboard do DP + Portal do Colaborador     |
 +-----------------------------------------------------------+
 ```
 
-### Layer Comparison Matrix
+### Matriz das Camadas de IA
 
-| Layer | Technology | Functional Role |
+| Camada | Tecnologia | Funcao no Produto |
 | :--- | :--- | :--- |
-| Layer 1: Predictive Detection (ML) | Scikit-Learn (Isolation Forest / LinearSVC) in Python | Analyzes batch metrics to compute the PayTrust Score (0-100), detecting numerical anomalies, sudden overtime spikes, and duplicates. |
-| Layer 2: Parsing & Compliance (LLM) | Groq / OpenAI (Llama-3 / GPT-4o-mini) + Vision OCR | Extracts structured data from doctor notes, validates statutory thresholds (Employer 15-day cap vs. INSS), calculates Sumula 159 TST differentials, and provides transparent explanations. |
+| Camada 1: Preditiva e Deteccao (ML) | Scikit-Learn (Isolation Forest / LinearSVC) em Python | Avalia o lote da folha e gera o PayTrust Score (0-100) para identificar anomalias estatisticas, picos incomuns de horas extras e duplicidades. |
+| Camada 2: Leitura e Compliance (LLM) | Groq / OpenAI (Llama-3 / GPT-4o-mini) + Vision OCR | Realiza a leitura de atestados medicos, valida o teto de 15 dias da empresa vs. INSS, aplica as regras da Sumula 159 do TST e gera justificativas humanizadas. |
 
 ---
 
-## 3. Monorepo Structure (Clean Architecture)
+## 3. Estrutura do Repositorio (Clean Architecture)
 
 ```
 converge-challenge-hackton/
 |-- .github/
 |   `-- workflows/
-|       |-- ci.yml                   # Linting (Ruff), Type-checking (Mypy), and ML validation
-|       `-- cd.yml                   # Automated deployment pipeline
-|-- .pre-commit-config.yaml          # Git hooks: Ruff format, Ruff check, Mypy, file hygiene
-|-- backend/                         # Python 3.11+ / FastAPI
-|   |-- pyproject.toml               # Tooling configuration (Ruff, Mypy, Pytest)
-|   |-- requirements.txt             # Production and development dependencies
+|       |-- ci.yml                   # Pipeline de Lint (Ruff), Tipagem (Mypy) e Testes do Modelo
+|       `-- cd.yml                   # Deploy continuo automatizado do MVP
+|-- .pre-commit-config.yaml          # Hooks do Git: Ruff format, Ruff check, Mypy e higiene de arquivos
+|-- backend/                         # Python 3.11+ com FastAPI
+|   |-- pyproject.toml               # Configuracoes de ferramentas (Ruff, Mypy, Pytest)
+|   |-- requirements.txt             # Dependencias de producao e desenvolvimento
 |   |-- app/
-|   |   |-- domain/                  # Pure enterprise domain entities and repository contracts
+|   |   |-- domain/                  # Entidades de dominio puras e contratos de repositorios
 |   |   |   |-- entities/            # Employee, Absence, Paystub, Anomaly
-|   |   |   `-- repositories/        # Abstract repository interfaces
-|   |   |-- application/             # Business use cases and data transfer objects (DTOs)
-|   |   |   |-- dtos/                # Request/response schemas
+|   |   |   `-- repositories/        # Interfaces abstratas de persistencia
+|   |   |-- application/             # Casos de uso de negocio e Data Transfer Objects (DTOs)
+|   |   |   |-- dtos/                # Schemas de requisicao e resposta
 |   |   |   `-- use_cases/           # AuditPayrollUseCase, ProcessAbsenceUseCase, CalculateSubstitutionUseCase
-|   |   |-- infrastructure/          # Adapters and external service implementations
-|   |   |   |-- ml/                  # Isolation Forest anomaly model and artifacts (.pkl)
-|   |   |   |-- ocr/                 # Vision parser for medical certificates
-|   |   |   |-- llm/                 # Compliance agent and explainability clients
-|   |   |   `-- repositories/        # In-memory and persistent database adapters
-|   |   `-- presentation/            # Entrypoints and API layer
-|   |       |-- main.py              # FastAPI server entrypoint
-|   |       `-- api/v1/endpoints/    # REST endpoints (health, payroll, absences)
+|   |   |-- infrastructure/          # Adaptadores e integracoes com servicos externos
+|   |   |   |-- ml/                  # Modelo Isolation Forest e artefato compilado (.pkl)
+|   |   |   |-- ocr/                 # Adaptador de parser OCR Vision para documentos
+|   |   |   |-- llm/                 # Agente de compliance e explicabilidade via LLM
+|   |   |   `-- repositories/        # Implementacoes em memoria e adaptadores de banco de dados
+|   |   `-- presentation/            # Camada de exposicao HTTP e WebSockets
+|   |       |-- main.py              # Fabrica e ponto de entrada da aplicacao FastAPI
+|   |       `-- api/v1/endpoints/    # Endpoints REST (health, payroll, absences)
 |   |-- scripts/
-|   |   `-- train_anomaly_model.py   # Isolated model training and serialization script
+|   |   `-- train_anomaly_model.py   # Script isolado para treino e serializacao do modelo ML
 |   `-- tests/
-|       `-- unit/                    # Unit tests for domain entities and ML serialization
+|       `-- unit/                    # Testes unitarios de entidades de dominio e pipeline de ML
 `-- frontend/                        # Next.js / TypeScript / Tailwind CSS
-    |-- package.json                 # Node package configuration
-    |-- tsconfig.json                # TypeScript compiler configuration
+    |-- package.json                 # Configuracao de dependencias do Node
+    |-- tsconfig.json                # Configuracao do compilador TypeScript
     `-- src/
-        |-- app/                     # Next.js App Router root layout and pages
+        |-- app/                     # Rotas e layout base do Next.js App Router
         |-- components/
-        |   |-- dp-dashboard/        # DP Analyst Interface (AuditActionCenter, AbsenceManager, AnomalyAlertsList)
-        |   |-- employee-portal/     # Employee Interface (InteractivePaystub, CertificateUploadModal, ExplainabilityChat)
-        |   `-- common/              # Shared design components (MetricsCard)
-        |-- services/                # Backend API integration clients
-        `-- types/                   # TypeScript domain contracts
+        |   |-- dp-dashboard/        # Interface do Analista de DP (AuditActionCenter, AbsenceManager, AnomalyAlertsList)
+        |   |-- employee-portal/     # Interface do Colaborador (InteractivePaystub, CertificateUploadModal, ExplainabilityChat)
+        |   `-- common/              # Componentes visuais compartilhados (MetricsCard)
+        |-- services/                # Clientes de integracao com a API FastAPI
+        `-- types/                   # Tipos e interfaces TypeScript do dominio
 ```
 
 ---
 
-## 4. MVP Use Case Matrix
+## 4. Matriz de Casos de Uso para Demonstracao (MVP)
 
-| ID | Use Case | PayTrust Automated Action | Expected Impact |
+| Numero | Caso de Uso | Acao Automatica do PayTrust | Impacto / Resultado |
 | :--- | :--- | :--- | :--- |
-| 1 | Simple Medical Leave (<= 15 days) | OCR parses dates and doctor information; attributes 100% of days to employer responsibility under CLT Art. 476. | Happy Path: Automated logging with manager notification. |
-| 2 | Long Medical Leave (> 15 days) | Automatically splits leave: first 15 days paid by company; remaining days routed to INSS with medical exam scheduling checklist. | Business Rule: Statutory threshold enforcement without manual calculation. |
-| 3 | Illegible Medical Certificate | Instant OCR rejection during upload; prompts the employee to upload a legible photograph immediately. | Exception Handling: Prevents degraded or invalid submissions from reaching DP. |
-| 4 | Leave Overlapping Scheduled Vacation | Detects schedule conflict between medical leave and booked annual vacation; escalates immediate resolution card to HR. | Escalation: Proactive conflict resolution before payroll lock. |
-| 5 | Non-Occasional Replacement (Sumula 159 TST) | Validates replacement condition and calculates proportional wage differential based on the absent employee's salary. | Financial Compliance: Full alignment with labor jurisprudence. |
-| 6 | Overtime Anomaly Spike | Isolation Forest flags uncharacteristic overtime surge (e.g., PayTrust Score 94/100); blocks item pending review. | Anti-Fraud: Halts improper cash outflow before monthly disbursement. |
+| 1 | Atestado medico simples (3 dias) | OCR extrai dados e lanca os dias abonados sob responsabilidade integral da empresa conforme CLT Art. 476. | Caminho Feliz: Processamento automatico com aviso ao gestor imediato. |
+| 2 | Atestado longo (20 dias) | Divide o periodo: 15 dias pagos pela empresa e 5 dias direcionados ao INSS com instrucoes para agendamento de pericia. | Regra de Negocio: Aplicacao do marco legal sem necessidade de divisao manual. |
+| 3 | Atestado com imagem ilegivel | Rejeicao imediata no momento do upload com notificacao ao colaborador para reenvio de foto nitida. | Tratamento de Excecao: Bloqueia a entrada de documentos corrompidos ou ilegiveis no DP. |
+| 4 | Afastamento sobreposto a ferias | Identifica conflito de datas entre o atestado e ferias agendadas, gerando card de resolucao proativa para o RH. | Escalonamento: Prevencao de choque de beneficios e inconsistencias cadastrais. |
+| 5 | Substituicao temporaria (Sumula 159 TST) | Valida carater nao-eventual da substituicao e calcula a Diferenca Salarial Proporcional a ser creditada na folha. | Impacto Financeiro: Conformidade estrita com a jurisprudencia trabalhista. |
+| 6 | Anomalia de horas extras (Pico atipico) | Isolation Forest detecta aumento desproporcional (Score 94/100) e retem o pagamento preventivamente para auditoria. | Anti-Fraude: Estancamento de sangramento financeiro antes do pagamento. |
 
 ---
 
-## 5. Human-in-the-Loop Governance Guardrails
+## 5. Governanca e Guardrails (Human-in-the-Loop)
 
-To ensure labor compliance, accountability, and ethical deployment:
+Para assegurar conformidade juridica, etica e responsabilidade nas decisoes:
 
-- Automated Assistant Role: The AI digital worker performs OCR parsing, calculates proportional wage differentials, executes ML anomaly scoring, and cites labor regulations.
-- Human Final Authority: The Department of Personnel (DP) analyst or HR manager retains exclusive authority to approve disbursements or dismiss flagged items via a 1-click review action.
-
----
-
-## 6. Code Quality, Tooling, and CI/CD
-
-### Static Analysis and Linters
-- Ruff: Python linter and formatter running on py311 rules.
-- Mypy: Strict static typing verification on domain, application, and infrastructure modules.
-- Pre-commit: Local Git hooks ensuring clean commits, trailing whitespace removal, and code formatting.
-
-### CI/CD Pipeline
-- Continuous Integration (`.github/workflows/ci.yml`):
-  1. Executes `ruff check` and `ruff format --check`.
-  2. Executes `mypy app scripts` across the backend codebase.
-  3. Executes model training and runs automated `pytest` test suites.
-  4. Verifies frontend package dependencies and configuration files.
-- Continuous Deployment (`.github/workflows/cd.yml`):
-  Prepares automated deployment targets for FastAPI and the Next.js web application.
+- Papel do Assistente Digital (IA): O agente digital executa a leitura OCR, calcula valores proporcionais de substituicao, infere scores de risco preditivo e redige justificativas referenciando a legislacao.
+- Autoridade Humana Exclusiva: O analista de DP ou gestor de RH permanece como a unica autoridade competente para autorizar a liberacao do pagamento ou descartar apontamentos por meio de aprovacao em 1 clique.
 
 ---
 
-## 7. Local Setup Instructions
+## 6. Qualidade de Codigo, Ferramentas e CI/CD
+
+### Analise Estatica e Padronizacao
+- Ruff: Linter e formatador de codigo Python configurado para o padrao py311.
+- Mypy: Checagem estatica estrita de tipagem no dominio, aplicacao e infraestrutura.
+- Pre-commit: Hooks locais que garantem validacao sintatica, remocao de espacos em branco e formatacao antes de cada commit.
+
+### Pipeline de CI/CD (GitHub Actions)
+- Integracao Continua (`.github/workflows/ci.yml`):
+  1. Executa validacao de formatacao e estilo com `ruff check` e `ruff format --check`.
+  2. Executa verificacao estatica de tipos com `mypy app scripts`.
+  3. Treina e valida o artefato do modelo Isolation Forest e roda a suite `pytest`.
+  4. Valida a integridade da configuracao e estrutura do frontend.
+- Entrega Continua (`.github/workflows/cd.yml`):
+  Prepara o fluxo de deploy automatizado da API FastAPI e da interface web.
+
+---
+
+## 7. Instrucoes de Execucao Local
 
 ### Backend (Python 3.11+)
 ```bash
@@ -156,21 +156,21 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# Run linter and formatting checks
+# Executar linter e checagem de formatacao
 ruff check .
 ruff format --check .
 
-# Run static type checker
+# Executar verificador estatico de tipos
 mypy app scripts
 
-# Train anomaly model artifact
+# Treinar artefato do modelo de deteccao de anomalias
 python scripts/train_anomaly_model.py
 
-# Run unit tests
+# Executar testes unitarios
 pytest tests/ -v
 ```
 
-### Pre-commit Configuration
+### Configuracao do Pre-commit
 ```bash
 pre-commit install
 pre-commit run --all-files

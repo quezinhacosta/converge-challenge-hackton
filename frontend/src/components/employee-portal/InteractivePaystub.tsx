@@ -2,18 +2,18 @@ import React from 'react';
 import { Paystub } from '@/types/payroll';
 
 export interface InteractivePaystubProps {
-  /** The detailed paystub object for the selected period. */
+  /** Objeto de holerite detalhado da competencia selecionada. */
   paystub: Paystub;
-  /** Callback to request conversational AI clarification on any rubric code. */
+  /** Callback para solicitar explicacao interativa da IA sobre qualquer rubrica. */
   onRequestExplanation: (rubricCode: string) => void;
 }
 
 /**
- * InteractivePaystub Component.
+ * Componente InteractivePaystub.
  *
- * Provides a modern, transparent paystub visualization for employees. Every rubric
- * (e.g., INSS discounts, Súmula 159 substitution differential, overtime breakdown)
- * is interactive and can be explained in plain language by the AI compliance agent.
+ * Exibe o holerite interativo para o colaborador. Cada rubrica (ex.: descontos de INSS,
+ * diferenca da Sumula 159, detalhamento de horas extras) e clicavel e pode ser explicada
+ * em linguagem humana e transparente pelo agente de compliance.
  */
 export const InteractivePaystub: React.FC<InteractivePaystubProps> = ({
   paystub,
@@ -21,8 +21,8 @@ export const InteractivePaystub: React.FC<InteractivePaystubProps> = ({
 }) => {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-semibold text-slate-900">Explainable Paystub</h2>
-      {/* Component UI implementation stub */}
+      <h2 className="text-xl font-semibold text-slate-900">Holerite Interativo Explicavel</h2>
+      {/* Stub de implementacao da interface visual */}
     </div>
   );
 };

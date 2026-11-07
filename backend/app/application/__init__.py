@@ -1,1 +1,1 @@
-"""Application layer orchestrating domain logic, use cases, and data transfer objects."""
+"""Camada de aplicacao contendo casos de uso e objetos de transferencia de dados (DTOs)."""

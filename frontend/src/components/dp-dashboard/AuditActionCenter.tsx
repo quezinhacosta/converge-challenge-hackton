@@ -2,20 +2,20 @@ import React from 'react';
 import { AnomalyReport } from '@/types/payroll';
 
 export interface AuditActionCenterProps {
-  /** List of detected anomalies awaiting 1-click human resolution. */
+  /** Lista de anomalias detectadas aguardando analise humana do DP. */
   pendingAnomalies: AnomalyReport[];
-  /** Callback triggered when the DP analyst approves or rejects the flagged item. */
+  /** Callback executado quando o analista aprova ou rejeita o lancamento retido. */
   onResolveAnomaly: (anomalyId: string, approved: boolean, note: string) => Promise<void>;
-  /** Total monetary amount held to prevent improper disbursements. */
+  /** Montante financeiro total retido preventivamente. */
   totalBlockedAmount: number;
 }
 
 /**
- * AuditActionCenter Component.
+ * Componente AuditActionCenter.
  *
- * Implements the Human-in-the-Loop governance center for Department of Personnel (DP) analysts.
- * Allows 1-click approval or rejection of flagged payroll anomalies, viewing the underlying
- * PayTrust Score and LLM compliance rationale.
+ * Implementa o painel de governanca Human-in-the-Loop para o Departamento Pessoal.
+ * Permite a tomada de decisao em 1 clique (aprovar ou rejeitar), exibindo o PayTrust Score
+ * e a fundamentacao trabalhista elaborada pela IA de compliance.
  */
 export const AuditActionCenter: React.FC<AuditActionCenterProps> = ({
   pendingAnomalies,
@@ -24,11 +24,11 @@ export const AuditActionCenter: React.FC<AuditActionCenterProps> = ({
 }) => {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-semibold text-slate-900">DP Governance & Action Center</h2>
+      <h2 className="text-xl font-semibold text-slate-900">Central de Governanca e Acoes do DP</h2>
       <p className="mt-1 text-sm text-slate-500">
-        Review high-risk payroll items and execute 1-click compliance decisions.
+        Revise os itens criticos da folha e execute decisoes de compliance em 1 clique.
       </p>
-      {/* Component UI implementation stub */}
+      {/* Stub de implementacao da interface visual */}
     </div>
   );
 };

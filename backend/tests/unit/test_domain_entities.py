@@ -1,4 +1,4 @@
-"""Unit test suite for domain entity construction and structural integrity."""
+"""Suite de testes unitarios validando integridade estrutural das entidades do dominio."""
 
 from datetime import date
 from app.domain.entities.absence import Absence, AbsenceStatus, AbsenceType
@@ -8,13 +8,13 @@ from app.domain.entities.paystub import Paystub, PaystubItem
 
 
 def test_employee_entity_initialization() -> None:
-    """Validate Employee entity creation with standard contracts."""
+    """Valida a criacao e atributos da entidade Employee."""
     employee = Employee(
         id="emp_01",
         registration_number="REG-10023",
         name="Carlos Silva",
-        department="Operations",
-        role="Machine Operator",
+        department="Operacoes",
+        role="Operador de Maquinas",
         base_salary=4200.0,
         hire_date=date(2022, 5, 10),
     )
@@ -24,7 +24,7 @@ def test_employee_entity_initialization() -> None:
 
 
 def test_absence_entity_rules() -> None:
-    """Validate Absence entity attributes under INSS 15-day distribution rule."""
+    """Valida as regras de negocio de divisao legal dos 15 dias CLT vs. INSS em Absence."""
     absence = Absence(
         id="abs_01",
         employee_id="emp_01",
@@ -44,7 +44,7 @@ def test_absence_entity_rules() -> None:
 
 
 def test_paystub_and_anomaly_entities() -> None:
-    """Validate Paystub line item and Anomaly score tracking."""
+    """Valida os lancamentos do holerite e atributos de risco da entidade Anomaly."""
     item = PaystubItem(
         code="HE_050",
         description="Horas Extras 50%",
@@ -71,8 +71,8 @@ def test_paystub_and_anomaly_entities() -> None:
         category=AnomalyCategory.OVERTIME_SPIKE,
         severity=RiskSeverity.HIGH,
         paytrust_score=94.5,
-        explanation="Overtime spike of 275% compared to 3-month rolling average.",
-        suggested_action="Hold overtime disbursement and review timecards.",
+        explanation="Salto de horas extras de 275% em relacao a media movel dos ultimos 3 meses.",
+        suggested_action="Reter desembolso de horas extras e auditar espelho de ponto.",
     )
     assert anomaly.paytrust_score == 94.5
     assert anomaly.severity == RiskSeverity.HIGH

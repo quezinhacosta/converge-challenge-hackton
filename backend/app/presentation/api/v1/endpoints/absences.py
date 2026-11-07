@@ -1,4 +1,4 @@
-"""Absence processing, OCR validation, and Súmula 159 substitution endpoints."""
+"""Endpoints para analise de atestados medicos, regras de afastamento e Sumula 159 TST."""
 
 from fastapi import APIRouter, HTTPException, status
 
@@ -20,17 +20,17 @@ router = APIRouter()
 def process_medical_certificate(
     payload: MedicalCertificateUploadDTO,
 ) -> ProcessAbsenceResultDTO:
-    """Submit a medical certificate for OCR parsing and CLT/INSS statutory split.
+    """Recebe atestado medico para leitura OCR e aplicacao da divisao legal de dias (CLT/INSS).
 
-    Parameters:
-        payload: Metadata and document URL of the uploaded doctor note.
+    Parametros:
+        payload: Metadados e URL do atestado medico anexado pelo colaborador.
 
-    Returns:
-        ProcessAbsenceResultDTO: Document validity, company vs INSS breakdown, and conflict alerts.
+    Retorna:
+        ProcessAbsenceResultDTO: Resultado da leitura, reparticao de dias e alertas de conflito.
     """
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Endpoint is a structural stub pending application use case binding.",
+        detail="Endpoint e um stub estrutural aguardando implementacao do caso de uso.",
     )
 
 
@@ -42,15 +42,15 @@ def process_medical_certificate(
 def calculate_substitution(
     payload: SubstitutionCalculationRequestDTO,
 ) -> SubstitutionCalculationResponseDTO:
-    """Calculate the wage differential under Súmula 159 do TST for non-occasional replacements.
+    """Calcula a diferenca salarial sob a Sumula 159 do TST para substituicoes temporarias.
 
-    Parameters:
-        payload: Parameters defining substitute employee, replaced employee, and dates.
+    Parametros:
+        payload: Parametros com identificacao do substituto, substituido e periodo.
 
-    Returns:
-        SubstitutionCalculationResponseDTO: Wage difference calculation and legal basis.
+    Retorna:
+        SubstitutionCalculationResponseDTO: Valor apurado e embasamento na legislacao trabalhista.
     """
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Endpoint is a structural stub pending application use case binding.",
+        detail="Endpoint e um stub estrutural aguardando implementacao do caso de uso.",
     )

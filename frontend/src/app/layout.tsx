@@ -1,12 +1,12 @@
 import React from 'react';
 
 export const metadata = {
-  title: 'PayTrust - Payroll Governance & Anti-Fraud',
-  description: 'Digital Worker for Payroll Governance, Anti-Fraud, and Leaves. Powered by Tako.',
+  title: 'PayTrust - Governanca e Anti-Fraude na Folha de Pagamento',
+  description: 'Digital Worker de Governanca, Anti-Fraude e Afastamentos. Powered by Tako.',
 };
 
 /**
- * Root application layout.
+ * Layout raiz da aplicacao frontend.
  */
 export default function RootLayout({
   children,

@@ -1,17 +1,16 @@
-"""Data transfer objects for absence processing and medical certificate validation."""
+"""Objetos de transferencia de dados para processamento de afastamentos e atestados."""
 
 from datetime import date
-from typing import Optional
 from pydantic import BaseModel, Field
 
 
 class MedicalCertificateUploadDTO(BaseModel):
-    """Payload representing a medical certificate submitted for OCR extraction and compliance check.
+    """Payload representando o envio de um atestado para extracao OCR e validacao trabalhista.
 
-    Attributes:
-        employee_id: Identifier of the employee uploading the document.
-        file_url: URL or path to the certificate image or PDF.
-        submission_date: Date the certificate was submitted.
+    Atributos:
+        employee_id: Identificador do colaborador que enviou o atestado.
+        file_url: URL ou caminho para a imagem ou documento PDF do atestado.
+        submission_date: Data do envio do documento.
     """
 
     employee_id: str
@@ -20,18 +19,18 @@ class MedicalCertificateUploadDTO(BaseModel):
 
 
 class ProcessAbsenceResultDTO(BaseModel):
-    """Response DTO with the result of parsing and legal split calculation.
+    """DTO de resposta contendo o resultado da extracao OCR e a divisao legal da responsabilidade.
 
-    Attributes:
-        absence_id: Generated absence identifier.
-        employee_id: Associated employee identifier.
-        is_legible: Flag indicating if OCR successfully extracted key certificate fields.
-        total_days_granted: Total duration extracted from document.
-        company_paid_days: Portion falling under 15-day employer responsibility (CLT).
-        inss_paid_days: Days exceeding 15 that must be referred to INSS.
-        requires_inss_scheduling: True if employee must attend an INSS medical evaluation.
-        has_vacation_conflict: Flag indicating conflict with pre-scheduled annual leave.
-        compliance_message: Humanized explanation of the decision and legal grounds.
+    Atributos:
+        absence_id: Identificador do registro de afastamento gerado.
+        employee_id: Identificador do colaborador correspondente.
+        is_legible: Indicador se o OCR conseguiu ler e extrair os campos fundamentais com confianca.
+        total_days_granted: Duracao total concedida no atestado.
+        company_paid_days: Dias sob responsabilidade de pagamento da empresa (teto de 15 dias CLT).
+        inss_paid_days: Dias que excedem o 15º dia e devem ser custeados pela Previdencia Social.
+        requires_inss_scheduling: Indica se ha necessidade de agendar pericia medica junto ao INSS.
+        has_vacation_conflict: Indicador de sobreposicao com ferias previamente cadastradas.
+        compliance_message: Justificativa humanizada com embasamento nas regras da CLT.
     """
 
     absence_id: str
@@ -46,13 +45,13 @@ class ProcessAbsenceResultDTO(BaseModel):
 
 
 class SubstitutionCalculationRequestDTO(BaseModel):
-    """Payload to compute temporary replacement wage differential under Súmula 159 TST.
+    """Payload para calculo de diferenca salarial por substituicao sob a Sumula 159 do TST.
 
-    Attributes:
-        substitute_employee_id: Employee temporarily assuming higher-level duties.
-        replaced_employee_id: Employee currently on medical or statutory leave.
-        start_date: Start date of the substitution assignment.
-        end_date: End date of the substitution assignment.
+    Atributos:
+        substitute_employee_id: Colaborador substituto que assume a funcao temporaria.
+        replaced_employee_id: Colaborador substituido que esta temporariamente afastado.
+        start_date: Data inicial da substituicao.
+        end_date: Data final da substituicao.
     """
 
     substitute_employee_id: str
@@ -62,15 +61,15 @@ class SubstitutionCalculationRequestDTO(BaseModel):
 
 
 class SubstitutionCalculationResponseDTO(BaseModel):
-    """Result of Súmula 159 TST wage differential computation.
+    """Resultado do calculo de diferenca salarial fundamentado na Sumula 159 do TST.
 
-    Attributes:
-        is_eligible_sumula_159: True if substitution is non-occasional (não eventual).
-        duration_days: Days of effective replacement.
-        substitute_base_salary: Base monthly salary of the substitute.
-        replaced_base_salary: Base monthly salary of the absent employee.
-        proportional_differential_amount: Proportional monetary addition to be added to paystub.
-        legal_rationale: Legal explanation citing Súmula 159 do TST for DP audit trail.
+    Atributos:
+        is_eligible_sumula_159: Indica se a substituicao possui carater nao-eventual.
+        duration_days: Total de dias corridos em que durou a substituicao.
+        substitute_base_salary: Salario base mensal do colaborador substituto.
+        replaced_base_salary: Salario base mensal do colaborador substituido.
+        proportional_differential_amount: Valor monetario proporcional a ser acrescido na folha.
+        legal_rationale: Fundamentacao juridica referenciando a Sumula 159 do TST para auditoria.
     """
 
     is_eligible_sumula_159: bool

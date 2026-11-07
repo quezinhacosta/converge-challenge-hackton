@@ -1,1 +1,1 @@
-"""Infrastructure layer implementing persistence, machine learning, OCR, and external APIs."""
+"""Camada de infraestrutura implementando persistencia, modelos de Machine Learning, OCR e APIs."""

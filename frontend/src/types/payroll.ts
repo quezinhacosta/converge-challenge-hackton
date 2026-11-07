@@ -1,5 +1,5 @@
 /**
- * TypeScript type definitions for payroll entities, audit batches, and ML anomaly findings.
+ * Definicoes de tipos TypeScript para entidades de folha de pagamento e anomalias de ML.
  */
 
 export type RiskSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -41,7 +41,7 @@ export interface AnomalyReport {
   employeeName: string;
   category: AnomalyCategory;
   severity: RiskSeverity;
-  paytrustScore: number; // 0 to 100
+  paytrustScore: number; // 0 a 100
   explanation: string;
   actionRecommended: string;
   isResolved: boolean;

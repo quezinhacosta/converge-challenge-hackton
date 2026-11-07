@@ -1,4 +1,4 @@
-"""Payroll auditing and anomaly evaluation endpoints."""
+"""Endpoints para auditoria de lotes de folha de pagamento e deteccao de anomalias."""
 
 from typing import List
 from fastapi import APIRouter, HTTPException, status
@@ -20,17 +20,17 @@ router = APIRouter()
 def audit_payroll_batch(
     payload: PayrollBatchAuditRequestDTO,
 ) -> PayrollBatchAuditResponseDTO:
-    """Ingest and audit a batch of payroll entries against ML predictive models.
+    """Ingere e audita um lote da folha de pagamento via modelo de Machine Learning.
 
-    Parameters:
-        payload: PayrollBatchAuditRequestDTO containing employee compensation and overtime metrics.
+    Parametros:
+        payload: PayrollBatchAuditRequestDTO contendo os lancamentos e metricas dos colaboradores.
 
-    Returns:
-        PayrollBatchAuditResponseDTO: Consolidated analysis, anomaly scores, and blocked amounts.
+    Retorna:
+        PayrollBatchAuditResponseDTO: Relatorio consolidado de auditoria e valores retidos.
     """
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Endpoint is a structural stub pending application use case binding.",
+        detail="Endpoint e um stub estrutural aguardando implementacao do caso de uso.",
     )
 
 
@@ -40,12 +40,12 @@ def audit_payroll_batch(
     status_code=status.HTTP_200_OK,
 )
 def get_pending_anomalies() -> List[AnomalyReportDTO]:
-    """Retrieve all flagged payroll items awaiting 1-click Human-in-the-Loop review.
+    """Retorna todas as inconsistencias da folha aguardando revisao humana em 1 clique pelo DP.
 
-    Returns:
-        List[AnomalyReportDTO]: Open risk items with high PayTrust Scores.
+    Retorna:
+        List[AnomalyReportDTO]: Apontamentos de risco pendentes com PayTrust Score elevado.
     """
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Endpoint is a structural stub pending application use case binding.",
+        detail="Endpoint e um stub estrutural aguardando implementacao do caso de uso.",
     )

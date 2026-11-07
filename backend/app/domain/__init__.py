@@ -1,1 +1,1 @@
-"""Domain layer containing pure business models, entities, and repository interfaces."""
+"""Camada de dominio contendo modelos de negocio puros, entidades e interfaces de repositorio."""

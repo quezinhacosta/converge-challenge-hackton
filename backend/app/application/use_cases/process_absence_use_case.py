@@ -1,4 +1,4 @@
-"""Use case for processing medical certificates, applying CLT/INSS rules, and detecting conflicts."""
+"""Caso de uso para processamento de atestados, aplicacao de regras CLT/INSS e deteccao de conflitos."""
 
 from typing import Protocol
 
@@ -10,21 +10,22 @@ from app.domain.repositories.interfaces import AbsenceRepository, EmployeeReposi
 
 
 class MedicalCertificateOcrService(Protocol):
-    """Protocol for OCR and document vision extraction service."""
+    """Protocolo definindo o servico de OCR e extracao visual de campos em atestados medicos."""
 
     def extract_certificate_data(self, file_url: str) -> dict:
-        """Extract structured fields (doctor name, CRM, CID, duration, date) from certificate image."""
+        """Extrai dados estruturados (medico, CRM, CID, periodo de repouso) da imagem ou PDF."""
         ...
 
 
 class ProcessAbsenceUseCase:
-    """Orchestrates validation and statutory splitting of employee leaves.
+    """Orquestra a validacao e o direcionamento legal de afastamentos e licencas.
 
-    Business Rules:
-        - Case 1 (Simple Sick Leave <= 15 days): 100% paid by company under CLT Art. 476.
-        - Case 2 (Long Leave > 15 days): First 15 days paid by company; subsequent days routed to INSS.
-        - Case 3 (Illegible Document): Immediate refusal requesting clear resubmission.
-        - Case 4 (Vacation Overlap): Detect conflicts between sick leave and scheduled vacations.
+    Cenarios Cobertos:
+        - Caso 1 (Atestado simples ate 15 dias): Integralmente pago pela empresa (CLT Art. 476).
+        - Caso 2 (Atestado longo acima de 15 dias): Divisao automatica: 15 dias pela empresa e
+          excedente encaminhado ao INSS com instrucao de pericia.
+        - Caso 3 (Documento ilegivel): Recusa imediata solicitando reenvio de foto legivel.
+        - Caso 4 (Sobreposicao de ferias): Deteccao de conflito entre atestado e periodo de ferias.
     """
 
     def __init__(
@@ -33,25 +34,24 @@ class ProcessAbsenceUseCase:
         absence_repository: AbsenceRepository,
         employee_repository: EmployeeRepository,
     ) -> None:
-        """Initialize the use case with dependencies.
+        """Inicializa o caso de uso com suas dependencias de infraestrutura e persistencia.
 
-        Args:
-            ocr_service: Adapter for document parsing and OCR vision extraction.
-            absence_repository: Persistence gateway for absences.
-            employee_repository: Access gateway for employee profile and schedule data.
+        Argumentos:
+            ocr_service: Adaptador para OCR Vision e parsing de atestados.
+            absence_repository: Repositorio para persistencia e consulta de afastamentos.
+            employee_repository: Repositorio para consulta de dados funcionais do colaborador.
         """
         self.ocr_service = ocr_service
         self.absence_repository = absence_repository
         self.employee_repository = employee_repository
 
     def execute(self, request: MedicalCertificateUploadDTO) -> ProcessAbsenceResultDTO:
-        """Process an uploaded medical certificate document.
+        """Processa o documento de atestado medico submetido.
 
-        Args:
-            request: The uploaded certificate details.
+        Argumentos:
+            request: Detalhes do atestado enviado e identificacao do colaborador.
 
-        Returns:
-            ProcessAbsenceResultDTO: Document validity, company vs INSS day distribution,
-                and conflict alerts.
+        Retorna:
+            ProcessAbsenceResultDTO: Legibilidade, divisao de dias empresa vs. INSS e alertas de choque.
         """
-        raise NotImplementedError("ProcessAbsenceUseCase.execute is a structural interface stub.")
+        raise NotImplementedError("ProcessAbsenceUseCase.execute e um stub de interface estrutural.")

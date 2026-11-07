@@ -1,4 +1,4 @@
-"""Validation tests for the ML anomaly model training pipeline."""
+"""Testes de validacao da esteira de treinamento e persistencia do modelo de ML."""
 
 from pathlib import Path
 import joblib
@@ -7,7 +7,7 @@ from scripts.train_anomaly_model import generate_synthetic_payroll_dataset, trai
 
 
 def test_synthetic_data_generation() -> None:
-    """Verify synthetic dataset produces expected shape and columns."""
+    """Verifica se a geracao de dados sinteticos produz as colunas e dimensoes esperadas."""
     df = generate_synthetic_payroll_dataset(normal_samples=50, anomaly_samples=5)
     assert isinstance(df, pd.DataFrame)
     assert len(df) == 55
@@ -16,7 +16,7 @@ def test_synthetic_data_generation() -> None:
 
 
 def test_model_training_and_serialization(tmp_path: Path) -> None:
-    """Verify Isolation Forest model can be trained, saved, and reloaded."""
+    """Verifica se o modelo Isolation Forest pode ser treinado, salvo e recarregado do disco."""
     temp_model_path = tmp_path / "test_model.pkl"
     train_and_export_model(output_path=temp_model_path)
 

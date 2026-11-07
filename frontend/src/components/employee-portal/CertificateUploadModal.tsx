@@ -1,20 +1,20 @@
 import React from 'react';
 
 export interface CertificateUploadModalProps {
-  /** Flag controlling modal visibility. */
+  /** Flag de controle de visibilidade da modal. */
   isOpen: boolean;
-  /** Modal close callback. */
+  /** Callback para fechamento da modal. */
   onClose: () => void;
-  /** Upload handler receiving the selected image or PDF file. */
+  /** Handler de envio recebendo o arquivo de imagem ou PDF do atestado. */
   onUploadFile: (file: File) => Promise<{ isLegible: boolean; feedbackMessage: string }>;
 }
 
 /**
- * CertificateUploadModal Component.
+ * Componente CertificateUploadModal.
  *
- * Employee self-service interface for medical certificate submission.
- * Performs instantaneous OCR legibility assessment; if the image is blurry or unreadable,
- * prompts the employee for immediate recapturing before ticket submission.
+ * Interface de autoatendimento para submissao de atestado medico pelo colaborador.
+ * Executa checagem de legibilidade via OCR em tempo real; se a foto estiver borrada ou
+ * ilegivel, solicita imediatamente uma nova captura ao usuario antes de registrar o protocolo.
  */
 export const CertificateUploadModal: React.FC<CertificateUploadModalProps> = ({
   isOpen,
@@ -26,11 +26,11 @@ export const CertificateUploadModal: React.FC<CertificateUploadModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-        <h3 className="text-lg font-medium text-slate-900">Upload Medical Certificate</h3>
+        <h3 className="text-lg font-medium text-slate-900">Enviar Atestado Medico</h3>
         <p className="mt-1 text-sm text-slate-500">
-          Capture or attach a clear photo of your medical certificate.
+          Capture ou selecione uma foto nitida do seu atestado medico.
         </p>
-        {/* Component UI implementation stub */}
+        {/* Stub de implementacao da interface visual */}
       </div>
     </div>
   );

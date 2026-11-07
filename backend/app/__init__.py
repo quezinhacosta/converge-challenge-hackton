@@ -1,1 +1,1 @@
-"""PayTrust core backend application package."""
+"""Pacote principal da aplicacao backend do PayTrust."""

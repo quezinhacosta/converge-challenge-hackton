@@ -1,4 +1,4 @@
-"""Use case for calculating wage differential for temporary substitutions under Súmula 159 TST."""
+"""Caso de uso para calculo de diferenca salarial por substituicao temporaria (Sumula 159 TST)."""
 
 from app.application.dtos.absence_dto import (
     SubstitutionCalculationRequestDTO,
@@ -8,38 +8,38 @@ from app.domain.repositories.interfaces import EmployeeRepository
 
 
 class CalculateSubstitutionUseCase:
-    """Calculates wage differences when an employee assumes duties of an absent colleague.
+    """Calcula diferencas salariais devidas quando um colaborador assume posto de colega ausente.
 
-    Legal Context (Súmula 159 do TST - Item I):
-        "Enquanto perdurar a substituição que não tenha cargo vago e não seja meramente eventual,
-        inclusive nas férias, o empregado substituto fará jus ao salário contratual do substituído."
+    Fundamentacao Juridica (Sumula 159 do TST - Item I):
+        "Enquanto perdurar a substituicao que nao tenha cargo vago e nao seja meramente eventual,
+        inclusive nas ferias, o empregado substituto fara jus ao salario contratual do substituido."
 
-    Workflow:
-        1. Fetch base compensation of both substitute and substituted employees.
-        2. Validate if the duration exceeds the threshold of "eventual" (e.g., > 10-15 days).
-        3. Calculate proportional daily differential: ((Salary_Substituted - Salary_Substitute) / 30) * Days.
-        4. Generate legal rationale for automatic paystub rubric injection.
+    Fluxo de Execucao:
+        1. Consulta o salario base mensal do colaborador substituto e do colaborador substituido.
+        2. Avalia se o periodo de cobertura configura substituicao nao-eventual.
+        3. Realiza o calculo da diferenca diaria proporcional: ((Salario_Substituido - Salario_Substituto) / 30) * Dias.
+        4. Formula a justificativa legal para inclusao automatica da rubrica no holerite.
     """
 
     def __init__(self, employee_repository: EmployeeRepository) -> None:
-        """Initialize the use case with employee repository.
+        """Inicializa o caso de uso com o repositorio de colaboradores.
 
-        Args:
-            employee_repository: Data repository for querying employee positions and salaries.
+        Argumentos:
+            employee_repository: Repositorio para obtencao dos cargos e faixas salariais.
         """
         self.employee_repository = employee_repository
 
     def execute(
         self, request: SubstitutionCalculationRequestDTO
     ) -> SubstitutionCalculationResponseDTO:
-        """Compute the proportional substitution wage differential.
+        """Calcula a diferenca salarial proporcional devida ao colaborador substituto.
 
-        Args:
-            request: DTO containing substitute, substituted, and period parameters.
+        Argumentos:
+            request: DTO contendo identificadores dos envolvidos e datas da substituicao.
 
-        Returns:
-            SubstitutionCalculationResponseDTO: Calculation result and legal compliance statement.
+        Retorna:
+            SubstitutionCalculationResponseDTO: Valor apurado e embasamento na Sumula 159 do TST.
         """
         raise NotImplementedError(
-            "CalculateSubstitutionUseCase.execute is a structural interface stub."
+            "CalculateSubstitutionUseCase.execute e um stub de interface estrutural."
         )

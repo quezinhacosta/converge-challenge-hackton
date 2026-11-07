@@ -1,4 +1,4 @@
-"""Domain entities module exports."""
+"""Exportacoes do modulo de entidades de dominio."""
 
 from app.domain.entities.absence import Absence, AbsenceStatus, AbsenceType
 from app.domain.entities.anomaly import Anomaly, AnomalyCategory, RiskSeverity
