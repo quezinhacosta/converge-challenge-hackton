@@ -2,14 +2,15 @@
 
 import importlib
 import os
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
+
 from app.infrastructure.llm.resilience.interfaces import LLMProviderProtocol
 
 
 class GeminiProvider(LLMProviderProtocol):
     """Provedor primario de linguagem natural conectando a API do Google Gemini."""
 
-    def __init__(self, api_key: Optional[str] = None, model_name: str = "gemini-1.5-pro") -> None:
+    def __init__(self, api_key: str | None = None, model_name: str = "gemini-1.5-pro") -> None:
         """Inicializa o cliente do Gemini."""
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
         self.model_name = model_name
@@ -27,10 +28,10 @@ class GeminiProvider(LLMProviderProtocol):
         self,
         area_name: str,
         metrics_summary: str,
-        context_events: List[Dict[str, Any]],
+        context_events: list[dict[str, Any]],
         shap_narrative: str,
         factor: str,
-    ) -> Tuple[str, str]:
+    ) -> tuple[str, str]:
         """Invoca o Gemini para correlacionar metricas SHAP com contexto organizacional."""
         if not self.is_available():
             raise RuntimeError(
@@ -70,7 +71,7 @@ class GeminiProvider(LLMProviderProtocol):
     def generate_chat_reply(
         self,
         query_text: str,
-        context_data: Dict[str, Any],
+        context_data: dict[str, Any],
     ) -> str:
         """Gera resposta em linguagem natural via Gemini."""
         if not self.is_available():

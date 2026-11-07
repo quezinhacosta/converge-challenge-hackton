@@ -1,6 +1,7 @@
 """Caso de uso para medicao de eficacia e acompanhamento pos-acao (Etapa 9 do Pulso)."""
 
 from datetime import date
+
 from app.application.dtos.pgr_dto import ReassessmentEvaluationDTO
 from app.domain.repositories.interfaces import (
     PgrInventoryRepository,

@@ -1,6 +1,6 @@
 """Endpoints de gestao dos cards de atencao e ponto focal do RH."""
 
-from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.application.dtos.pgr_dto import PgrInventoryItemDTO
@@ -10,10 +10,10 @@ from app.presentation.deps import PulsoAppContainer, get_container
 router = APIRouter()
 
 
-@router.get("/active", response_model=List[RiskCardDTO], status_code=status.HTTP_200_OK)
+@router.get("/active", response_model=list[RiskCardDTO], status_code=status.HTTP_200_OK)
 def get_active_risk_cards(
     container: PulsoAppContainer = Depends(get_container),
-) -> List[RiskCardDTO]:
+) -> list[RiskCardDTO]:
     """Retorna os cards de atencao em aberto aguardando apreciacao e deliberacao do RH."""
     active_cards = container.risk_card_repo.list_active()
     return [

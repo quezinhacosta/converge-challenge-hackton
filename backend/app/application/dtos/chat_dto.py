@@ -1,6 +1,6 @@
 """DTOs para a interacao do RH com o agente Pulso no chat corporativo."""
 
-from typing import List, Optional
+
 from app.application.dtos.compat import BaseModel, Field
 
 
@@ -29,5 +29,5 @@ class ChatQueryResponseDTO(BaseModel):
 
     reply_text: str
     is_refusal: bool = False
-    refusal_reason: Optional[str] = None
-    sources_used: List[str] = Field(default_factory=list)
+    refusal_reason: str | None = None
+    sources_used: list[str] = Field(default_factory=list)

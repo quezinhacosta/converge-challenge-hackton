@@ -1,7 +1,8 @@
 """Caso de uso para deliberacao humana do RH e registro no PGR da NR-1 (Etapa 8 do Pulso)."""
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from typing import Protocol
+
 from app.application.dtos.pgr_dto import PgrInventoryItemDTO
 from app.application.dtos.risk_card_dto import ResolveRiskCardRequestDTO
 from app.domain.entities.pgr_inventory import PgrRiskItem
@@ -55,7 +56,7 @@ class RegisterPgrActionUseCase:
             card.status = CardStatus.DESCARTADO
             card.reviewer_name = request.reviewer_name
             card.resolution_notes = request.justification_notes or "Descartado pelo RH."
-            card.resolved_at = datetime.now(timezone.utc)
+            card.resolved_at = datetime.now(UTC)
             self.risk_card_repository.save(card)
 
             # Retorna item simbolico arquivado
@@ -69,7 +70,7 @@ class RegisterPgrActionUseCase:
                 responsavel=request.reviewer_name,
                 prazo_limite=date.today(),
                 intervalo_reavaliacao_dias=0,
-                data_registro=datetime.now(timezone.utc),
+                data_registro=datetime.now(UTC),
                 is_reaberto=False,
                 data_encerramento=date.today(),
                 parecer_encerramento="Descartado na triagem inicial do RH.",
@@ -87,7 +88,7 @@ class RegisterPgrActionUseCase:
             action_text = card.suggested_action
 
         card.reviewer_name = request.reviewer_name
-        card.resolved_at = datetime.now(timezone.utc)
+        card.resolved_at = datetime.now(UTC)
         self.risk_card_repository.save(card)
 
         responsible = request.responsible_person or request.reviewer_name
@@ -109,7 +110,7 @@ class RegisterPgrActionUseCase:
             responsible_person=responsible,
             deadline_date=deadline,
             reassessment_interval_days=request.deadline_days,
-            registered_at=datetime.now(timezone.utc),
+            registered_at=datetime.now(UTC),
             is_reopened=False,
             audit_log=[audit_entry],
         )

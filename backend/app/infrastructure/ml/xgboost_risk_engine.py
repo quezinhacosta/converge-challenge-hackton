@@ -10,7 +10,8 @@ Interpretabilidade Legal (SHAP):
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any
+
 from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
 
 
@@ -32,7 +33,7 @@ class ShapContribution:
     observed_value: str
     direction: str = "AGRAVANTE"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Converte a contribuicao SHAP para dicionario serializavel."""
         return {
             "feature_name": self.feature_name,
@@ -58,10 +59,10 @@ class RiskPredictionResult:
     risk_score: float
     risk_level: RiskLevel
     probable_factor: PsychosocialRiskFactor
-    shap_breakdown: List[ShapContribution] = field(default_factory=list)
+    shap_breakdown: list[ShapContribution] = field(default_factory=list)
     audit_narrative: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Converte o resultado da predicao para formato de dicionario."""
         return {
             "risk_score": round(self.risk_score, 1),

@@ -1,7 +1,8 @@
 """Caso de uso para redigir o Ponto Focal de Atencao e escalar para o RH (Etapas 6 e 7 do Pulso)."""
 
-from datetime import datetime, timezone
-from typing import Any, Dict, Protocol
+from datetime import UTC, datetime
+from typing import Any, Protocol
+
 from app.application.dtos.risk_card_dto import RiskCardDTO
 from app.domain.entities.risk_card import CardStatus, RiskCard
 from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
@@ -45,7 +46,7 @@ class GenerateRiskCardUseCase:
         self.risk_card_repository = risk_card_repository
         self.content_generator = content_generator
 
-    def execute(self, area_id: str, analysis_result: Dict[str, Any]) -> RiskCardDTO:
+    def execute(self, area_id: str, analysis_result: dict[str, Any]) -> RiskCardDTO:
         """Gera o ponto focal e disponibiliza para apreciacao do RH.
 
         Argumentos:
@@ -108,7 +109,7 @@ class GenerateRiskCardUseCase:
             suggested_action=action,
             status=status,
             consulted_sources=sources,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             risk_score=risk_score,
             shap_breakdown=shap_breakdown,
             ai_provider_used=provider_used,

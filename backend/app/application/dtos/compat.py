@@ -1,6 +1,7 @@
 """Camada de compatibilidade transparente entre Pydantic e Dataclasses da biblioteca padrao."""
 
-from typing import Any, Callable, Dict, Type, TypeVar
+import builtins
+from typing import Any
 
 try:
     from pydantic import BaseModel as _PydanticBaseModel
@@ -12,7 +13,7 @@ try:
 
 except ImportError:
     HAS_PYDANTIC = False
-    from dataclasses import dataclass, field
+    from dataclasses import field
 
     def Field(*args: Any, **kwargs: Any) -> Any:
         """Fallback do Pydantic Field usando dataclasses.field."""
@@ -31,10 +32,10 @@ except ImportError:
             for k, v in kwargs.items():
                 setattr(self, k, v)
 
-        def dict(self) -> Dict[str, Any]:
+        def dict(self) -> dict[str, Any]:
             return self.__dict__.copy()
 
-        def model_dump(self) -> Dict[str, Any]:
+        def model_dump(self) -> builtins.dict[str, Any]:
             return self.__dict__.copy()
 
         def __repr__(self) -> str:

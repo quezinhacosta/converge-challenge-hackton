@@ -6,7 +6,8 @@ motor local assume instantaneamente, utilizando as evidencias matematicas do SHA
 os eventos de contexto da organizacao para redigir a hipotese e o plano de acao da NR-1.
 """
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
+
 from app.infrastructure.llm.resilience.interfaces import LLMProviderProtocol
 
 
@@ -26,10 +27,10 @@ class RuleBasedFallbackProvider(LLMProviderProtocol):
         self,
         area_name: str,
         metrics_summary: str,
-        context_events: List[Dict[str, Any]],
+        context_events: list[dict[str, Any]],
         shap_narrative: str,
         factor: str,
-    ) -> Tuple[str, str]:
+    ) -> tuple[str, str]:
         """Gera hipotese e acao deterministica fundamentada na auditoria do SHAP."""
         # Correlacao temporal com eventos de contexto
         eventos_texto = ""
@@ -76,7 +77,7 @@ class RuleBasedFallbackProvider(LLMProviderProtocol):
     def generate_chat_reply(
         self,
         query_text: str,
-        context_data: Dict[str, Any],
+        context_data: dict[str, Any],
     ) -> str:
         """Gera resposta contextualizada do chat caso o provedor primario falhe."""
         lower = query_text.lower()

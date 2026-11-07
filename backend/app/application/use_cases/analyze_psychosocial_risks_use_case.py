@@ -1,6 +1,7 @@
 """Caso de uso para comparacao historica, correlacao com contexto e classificacao de risco NR-1."""
 
-from typing import Any, Dict, Protocol
+from typing import Any, Protocol
+
 from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
 from app.domain.repositories.interfaces import (
     AreaRepository,
@@ -15,7 +16,7 @@ class PsychosocialRiskReasoner(Protocol):
     def correlate_and_classify(
         self,
         area_name: str,
-        history_delta: Dict[str, Any],
+        history_delta: dict[str, Any],
         context_events: list,
         survey_themes: list,
     ) -> Any:
@@ -49,7 +50,7 @@ class AnalyzePsychosocialRisksUseCase:
         self.survey_repository = survey_repository
         self.reasoner = reasoner
 
-    def execute(self, area_id: str) -> Dict[str, Any]:
+    def execute(self, area_id: str) -> dict[str, Any]:
         """Analisa os riscos psicossociais da area para a competencia corrente.
 
         Argumentos:

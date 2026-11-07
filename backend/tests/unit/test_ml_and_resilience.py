@@ -21,10 +21,10 @@ class FailingProviderMock:
     def is_available(self) -> bool:
         return True
 
-    def generate_hypothesis_and_action(self, *args, **kwargs):
+    def generate_hypothesis_and_action(self, *args: object, **kwargs: object) -> tuple[str, str]:
         raise ConnectionResetError("Timeout de 4000ms atingido na API externa.")
 
-    def generate_chat_reply(self, *args, **kwargs):
+    def generate_chat_reply(self, *args: object, **kwargs: object) -> str:
         raise TimeoutError("Falha de rede ao conectar no provedor primario.")
 
 

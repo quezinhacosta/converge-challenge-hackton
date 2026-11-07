@@ -5,10 +5,11 @@ o Digital Worker, chaveando imediatamente para provedores substitutos ou
 para o fallback deterministico local.
 """
 
-from datetime import datetime, timezone
-from enum import Enum
 import logging
-from typing import Callable, TypeVar
+from collections.abc import Callable
+from datetime import UTC, datetime
+from enum import Enum
+from typing import TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +59,7 @@ class CircuitBreaker:
         self.state = CircuitState.CLOSED
         self.consecutive_failures = 0
         self.last_failure_time: float = 0.0
-        self.last_state_change: float = datetime.now(timezone.utc).timestamp()
+        self.last_state_change: float = datetime.now(UTC).timestamp()
 
     def record_success(self) -> None:
         """Registra sucesso na execucao, resetando contadores e fechando o circuito."""
@@ -66,11 +67,11 @@ class CircuitBreaker:
         if self.state != CircuitState.CLOSED:
             logger.info("Circuit breaker fechado com sucesso para '%s'.", self.provider_name)
             self.state = CircuitState.CLOSED
-            self.last_state_change = datetime.now(timezone.utc).timestamp()
+            self.last_state_change = datetime.now(UTC).timestamp()
 
     def record_failure(self, error: Exception) -> None:
         """Registra falha na execucao, incrementando o contador e abrindo o circuito se exceder."""
-        now = datetime.now(timezone.utc).timestamp()
+        now = datetime.now(UTC).timestamp()
         self.consecutive_failures += 1
         self.last_failure_time = now
 
@@ -93,7 +94,7 @@ class CircuitBreaker:
 
     def can_execute(self) -> bool:
         """Verifica se uma nova chamada pode ser disparada pelo provedor."""
-        now = datetime.now(timezone.utc).timestamp()
+        now = datetime.now(UTC).timestamp()
 
         if self.state == CircuitState.CLOSED:
             return True
@@ -115,7 +116,7 @@ class CircuitBreaker:
 
     def execute_with_circuit(self, operation: Callable[[], T]) -> T:
         """Executa a operacao protegida pelo circuit breaker."""
-        now = datetime.now(timezone.utc).timestamp()
+        now = datetime.now(UTC).timestamp()
 
         if not self.can_execute():
             remaining = max(0.0, self.recovery_cooldown_seconds - (now - self.last_failure_time))

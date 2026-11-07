@@ -1,6 +1,7 @@
 """Caso de uso para coleta e anonimizacao de sinais operacionais das areas (Etapas 1 e 2 do Pulso)."""
 
 from typing import Protocol
+
 from app.application.dtos.signal_dto import AreaHistoryComparisonDTO
 from app.domain.repositories.interfaces import AreaRepository, SignalRepository
 

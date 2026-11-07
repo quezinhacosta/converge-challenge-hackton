@@ -1,9 +1,9 @@
 """Entidade de dominio representando o Ponto Focal de Atencao (Card de Risco) emitido ao RH."""
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
 
@@ -58,12 +58,12 @@ class RiskCard:
     context_description: str
     suggested_action: str
     status: CardStatus = CardStatus.ABERTO
-    consulted_sources: List[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    resolved_at: Optional[datetime] = None
-    reviewer_name: Optional[str] = None
-    resolution_notes: Optional[str] = None
+    consulted_sources: list[str] = field(default_factory=list)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    resolved_at: datetime | None = None
+    reviewer_name: str | None = None
+    resolution_notes: str | None = None
     risk_score: float = 0.0
-    shap_breakdown: List[Dict[str, Any]] = field(default_factory=list)
+    shap_breakdown: list[dict[str, Any]] = field(default_factory=list)
     ai_provider_used: str = "xgboost+gemini-1.5-pro"
     ai_fallback_triggered: bool = False

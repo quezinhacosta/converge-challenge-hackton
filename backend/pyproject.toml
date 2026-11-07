@@ -41,7 +41,11 @@ select = [
     "B",
     "UP"
 ]
-ignore = []
+ignore = [
+    "E501",  # line length permitido em docstrings e descricoes textuais longas
+    "B008",  # Depends() padrao do FastAPI em assinaturas de endpoint
+    "B904",  # raise HTTPException em endpoints da camada de apresentacao
+]
 
 [tool.ruff.format]
 quote-style = "double"

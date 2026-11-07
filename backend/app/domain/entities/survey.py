@@ -3,7 +3,6 @@
 from dataclasses import dataclass, field
 from datetime import date
 from enum import Enum
-from typing import List, Optional
 
 
 class SurveyType(str, Enum):
@@ -52,7 +51,7 @@ class SurveySummary:
     participation_rate: float
     average_score: float
     workload_score: float
-    summarized_themes: List[str] = field(default_factory=list)
+    summarized_themes: list[str] = field(default_factory=list)
     urgent_help_flags_count: int = 0
 
 
@@ -74,4 +73,4 @@ class TeamDevolutivaMessage:
     risk_card_id: str
     summary_of_listening: str
     approved_action_plan: str
-    publication_date: Optional[date] = None
+    publication_date: date | None = None

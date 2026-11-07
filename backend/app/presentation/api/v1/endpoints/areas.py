@@ -1,18 +1,18 @@
 """Endpoints de consulta de areas e sinais operacionais agregados."""
 
-from typing import Any, Dict, List
-from app.presentation.compat import APIRouter, Depends, HTTPException, status
+from typing import Any
 
 from app.application.dtos.signal_dto import AreaHistoryComparisonDTO
+from app.presentation.compat import APIRouter, Depends, HTTPException, status
 from app.presentation.deps import PulsoAppContainer, get_container
 
 router = APIRouter()
 
 
-@router.get("", response_model=List[Dict[str, Any]], status_code=status.HTTP_200_OK)
+@router.get("", response_model=list[dict[str, Any]], status_code=status.HTTP_200_OK)
 def list_company_areas(
     container: PulsoAppContainer = Depends(get_container),
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Lista todas as areas da empresa informando headcount e status de anonimizacao."""
     areas = container.area_repo.list_all()
     return [

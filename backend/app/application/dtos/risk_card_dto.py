@@ -1,7 +1,8 @@
 """DTOs para manipulacao dos cards de atencao do RH e aprovacao de acoes."""
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 from app.application.dtos.compat import BaseModel, Field
 
 
@@ -36,11 +37,11 @@ class RiskCardDTO(BaseModel):
     o_que_mudou_ultimos_meses: str
     contexto_organizacional: str
     acao_sugerida: str
-    fontes_consultadas: List[str]
+    fontes_consultadas: list[str]
     status: str
     created_at: datetime
     risk_score: float = 0.0
-    shap_breakdown: List[Dict[str, Any]] = Field(default_factory=list)
+    shap_breakdown: list[dict[str, Any]] = Field(default_factory=list)
     ai_provider_used: str = "xgboost+gemini-1.5-pro"
     ai_fallback_triggered: bool = False
 
@@ -59,7 +60,7 @@ class ResolveRiskCardRequestDTO(BaseModel):
 
     action_type: str = Field(..., description="APROVAR_PGR | AJUSTAR_ACAO | DESCARTAR")
     reviewer_name: str
-    adjusted_action_text: Optional[str] = None
-    responsible_person: Optional[str] = None
+    adjusted_action_text: str | None = None
+    responsible_person: str | None = None
     deadline_days: int = Field(default=60, ge=15, le=180)
-    justification_notes: Optional[str] = None
+    justification_notes: str | None = None

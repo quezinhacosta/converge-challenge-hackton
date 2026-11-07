@@ -1,7 +1,6 @@
 """Guardrails centrais de privacidade, anonimizacao e limites eticos do Pulso (LGPD & NR-1)."""
 
 import re
-from typing import Optional, Tuple
 
 
 class PrivacyAndEthicsGuardrail:
@@ -31,7 +30,7 @@ class PrivacyAndEthicsGuardrail:
         """
         return headcount >= self.MINIMUM_GROUP_SIZE
 
-    def inspect_query_for_individual_data(self, query_text: str) -> Tuple[bool, Optional[str]]:
+    def inspect_query_for_individual_data(self, query_text: str) -> tuple[bool, str | None]:
         """Avalia se uma consulta recebida no chat tenta acessar dados de individuo.
 
         Argumentos:

@@ -1,7 +1,7 @@
 """DTOs para o Inventario de Riscos e Plano de Acao do PGR (NR-1)."""
 
 from datetime import date, datetime
-from typing import List, Optional
+
 from app.application.dtos.compat import BaseModel
 
 
@@ -19,9 +19,9 @@ class PgrInventoryItemDTO(BaseModel):
     intervalo_reavaliacao_dias: int
     data_registro: datetime
     is_reaberto: bool
-    data_encerramento: Optional[date]
-    parecer_encerramento: Optional[str]
-    rastro_auditoria: List[str]
+    data_encerramento: date | None
+    parecer_encerramento: str | None
+    rastro_auditoria: list[str]
 
 
 class ReassessmentEvaluationDTO(BaseModel):

@@ -1,6 +1,6 @@
 """Ferramentas operacionais (tools) consumidas pelo agente Pulso em seu laco de raciocinio."""
 
-from typing import Any, Dict, List
+from typing import Any
 
 
 class PulsoAgentTools:
@@ -11,7 +11,7 @@ class PulsoAgentTools:
         - Nenhuma ferramenta aceita CPF, nome ou identificador individual de funcionario.
     """
 
-    def consultar_ponto(self, area_id: str, meses: int = 6) -> Dict[str, Any]:
+    def consultar_ponto(self, area_id: str, meses: int = 6) -> dict[str, Any]:
         """Consulta horas extras medias, banco de horas e intervalos nao cumpridos da area.
 
         Argumentos:
@@ -20,7 +20,7 @@ class PulsoAgentTools:
         """
         raise NotImplementedError("consultar_ponto e um stub de ferramenta estrutural.")
 
-    def consultar_atestados_agregados(self, area_id: str, meses: int = 6) -> Dict[str, Any]:
+    def consultar_atestados_agregados(self, area_id: str, meses: int = 6) -> dict[str, Any]:
         """Consulta quantidade e dias totais de atestados por mes para a area (sem ler CID nem medico).
 
         Argumentos:
@@ -31,7 +31,7 @@ class PulsoAgentTools:
             "consultar_atestados_agregados e um stub de ferramenta estrutural."
         )
 
-    def consultar_desligamentos(self, area_id: str, meses: int = 6) -> Dict[str, Any]:
+    def consultar_desligamentos(self, area_id: str, meses: int = 6) -> dict[str, Any]:
         """Consulta turnover, pedidos de demissao e temas agregados de saida para a area.
 
         Argumentos:
@@ -40,7 +40,7 @@ class PulsoAgentTools:
         """
         raise NotImplementedError("consultar_desligamentos e um stub de ferramenta estrutural.")
 
-    def consultar_denuncias_contagem(self, area_id: str, meses: int = 6) -> Dict[str, Any]:
+    def consultar_denuncias_contagem(self, area_id: str, meses: int = 6) -> dict[str, Any]:
         """Consulta contagem agregada de denuncias no compliance (sem ler conteudo nem nomes).
 
         Argumentos:
@@ -51,7 +51,7 @@ class PulsoAgentTools:
             "consultar_denuncias_contagem e um stub de ferramenta estrutural."
         )
 
-    def consultar_pesquisas(self, area_id: str) -> Dict[str, Any]:
+    def consultar_pesquisas(self, area_id: str) -> dict[str, Any]:
         """Consulta notas medias de carga e comentarios sumarizados da pesquisa pulso anonima.
 
         Argumentos:
@@ -59,7 +59,7 @@ class PulsoAgentTools:
         """
         raise NotImplementedError("consultar_pesquisas e um stub de ferramenta estrutural.")
 
-    def consultar_eventos_org(self, area_id: str) -> List[Dict[str, Any]]:
+    def consultar_eventos_org(self, area_id: str) -> list[dict[str, Any]]:
         """Consulta mudancas de lideranca, novas metas e reestruturacoes associadas a area.
 
         Argumentos:
@@ -67,7 +67,7 @@ class PulsoAgentTools:
         """
         raise NotImplementedError("consultar_eventos_org e um stub de ferramenta estrutural.")
 
-    def abrir_card_rh(self, card_payload: Dict[str, Any]) -> str:
+    def abrir_card_rh(self, card_payload: dict[str, Any]) -> str:
         """Disponibiliza o card de atencao no painel do RH e aguarda deliberacao humana.
 
         Argumentos:
@@ -75,7 +75,7 @@ class PulsoAgentTools:
         """
         raise NotImplementedError("abrir_card_rh e um stub de ferramenta estrutural.")
 
-    def registrar_pgr(self, pgr_payload: Dict[str, Any]) -> str:
+    def registrar_pgr(self, pgr_payload: dict[str, Any]) -> str:
         """Insere o item de risco no inventario oficial do PGR apos aprovacao humana.
 
         Argumentos:
@@ -83,7 +83,7 @@ class PulsoAgentTools:
         """
         raise NotImplementedError("registrar_pgr e um stub de ferramenta estrutural.")
 
-    def enviar_pesquisa(self, area_id: str, perguntas: List[str]) -> bool:
+    def enviar_pesquisa(self, area_id: str, perguntas: list[str]) -> bool:
         """Dispara micro-pesquisa direcionada aos colaboradores da area via chat (Slack/WhatsApp).
 
         Argumentos:

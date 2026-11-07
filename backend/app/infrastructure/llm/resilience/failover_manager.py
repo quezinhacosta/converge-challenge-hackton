@@ -6,10 +6,10 @@ Garante que o Digital Worker Pulso NUNCA fique fora do ar:
     3. Se todos os provedores em nuvem falharem, assume o Provedor Terciario Deterministico Local.
 """
 
-from dataclasses import dataclass
 import logging
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from dataclasses import dataclass
+from typing import Any
 
 from app.infrastructure.llm.resilience.circuit_breaker import CircuitBreaker
 from app.infrastructure.llm.resilience.gemini_provider import GeminiProvider
@@ -33,11 +33,11 @@ class FailoverExecutionMetadata:
 
     provider_used: str
     fallback_triggered: bool
-    failover_reason: Optional[str] = None
+    failover_reason: str | None = None
     circuit_state: str = "CLOSED"
     latency_ms: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Converte metadados para dicionario serializavel."""
         return {
             "provider_used": self.provider_used,
@@ -53,9 +53,9 @@ class FailoverManager:
 
     def __init__(
         self,
-        primary_provider: Optional[LLMProviderProtocol] = None,
-        secondary_provider: Optional[LLMProviderProtocol] = None,
-        fallback_provider: Optional[LLMProviderProtocol] = None,
+        primary_provider: LLMProviderProtocol | None = None,
+        secondary_provider: LLMProviderProtocol | None = None,
+        fallback_provider: LLMProviderProtocol | None = None,
     ) -> None:
         """Inicializa os provedores da cascata e seus circuit breakers."""
         self.primary = primary_provider or GeminiProvider()
@@ -68,10 +68,10 @@ class FailoverManager:
         self,
         area_name: str,
         metrics_summary: str,
-        context_events: List[Dict[str, Any]],
+        context_events: list[dict[str, Any]],
         shap_narrative: str,
         factor: str,
-    ) -> Tuple[str, str, FailoverExecutionMetadata]:
+    ) -> tuple[str, str, FailoverExecutionMetadata]:
         """Executa a geracao da hipotese e acao tentando a cadeia de provedores em cascata.
 
         Retorna:
@@ -141,8 +141,8 @@ class FailoverManager:
     def generate_chat_reply(
         self,
         query_text: str,
-        context_data: Dict[str, Any],
-    ) -> Tuple[str, FailoverExecutionMetadata]:
+        context_data: dict[str, Any],
+    ) -> tuple[str, FailoverExecutionMetadata]:
         """Gera a resposta do chat corporativo com substituicao automatica em caso de falha."""
         start_time = time.perf_counter()
 

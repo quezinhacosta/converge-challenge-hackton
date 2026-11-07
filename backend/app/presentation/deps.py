@@ -1,6 +1,5 @@
 """Provedor de dependencias e estado em memoria para a API do Pulso."""
 
-from typing import Dict
 from app.application.use_cases.analyze_psychosocial_risks_use_case import (
     AnalyzePsychosocialRisksUseCase,
 )

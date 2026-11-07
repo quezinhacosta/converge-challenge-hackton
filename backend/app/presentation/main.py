@@ -1,7 +1,7 @@
 """Fabrica e ponto de entrada da aplicacao FastAPI do Pulso."""
 
-from app.presentation.compat import CORSMiddleware, FastAPI
 from app.presentation.api.v1.endpoints import areas, chat, health, pgr, risk_cards
+from app.presentation.compat import CORSMiddleware, FastAPI
 
 
 def create_application() -> FastAPI:

@@ -1,7 +1,6 @@
 """Entidade de dominio representando uma area ou departamento da organizacao."""
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -26,7 +25,7 @@ class Area:
     headcount: int
     manager_name: str
     is_active: bool = True
-    description: Optional[str] = None
+    description: str | None = None
 
     @property
     def is_eligible_for_analytics(self) -> bool:

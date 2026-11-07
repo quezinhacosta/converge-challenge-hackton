@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 from datetime import date
 from enum import Enum
-from typing import Optional
 
 
 class ContextEventType(str, Enum):
@@ -75,4 +74,4 @@ class AreaMonthlyMetrics:
     unfulfilled_break_intervals_count: int
     harassment_complaints_count: int
     sesmt_long_term_absences_count: int
-    pulse_survey_workload_score: Optional[float] = None
+    pulse_survey_workload_score: float | None = None

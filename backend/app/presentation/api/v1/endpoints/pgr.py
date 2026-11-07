@@ -1,6 +1,6 @@
 """Endpoints do Inventario de Riscos e Plano de Acao do PGR (NR-1)."""
 
-from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.application.dtos.pgr_dto import PgrInventoryItemDTO, ReassessmentEvaluationDTO
@@ -9,10 +9,10 @@ from app.presentation.deps import PulsoAppContainer, get_container
 router = APIRouter()
 
 
-@router.get("/inventory", response_model=List[PgrInventoryItemDTO], status_code=status.HTTP_200_OK)
+@router.get("/inventory", response_model=list[PgrInventoryItemDTO], status_code=status.HTTP_200_OK)
 def get_pgr_inventory(
     container: PulsoAppContainer = Depends(get_container),
-) -> List[PgrInventoryItemDTO]:
+) -> list[PgrInventoryItemDTO]:
     """Retorna o inventario oficial de riscos psicossociais e planos de acao do PGR."""
     items = container.pgr_repo.list_all()
     return [

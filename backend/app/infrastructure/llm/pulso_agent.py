@@ -5,7 +5,8 @@ Integracao da Arquitetura em 2 Camadas:
     - Camada 2: Failover Manager Multi-Provider (Gemini com fallback deterministico e Circuit Breaker).
 """
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
+
 from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
 from app.infrastructure.llm.resilience.failover_manager import (
     FailoverExecutionMetadata,
@@ -25,10 +26,10 @@ class PulsoAgentLLM:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         model_name: str = "gemini-1.5-pro",
-        xgboost_engine: Optional[XGBoostRiskEngine] = None,
-        failover_manager: Optional[FailoverManager] = None,
+        xgboost_engine: XGBoostRiskEngine | None = None,
+        failover_manager: FailoverManager | None = None,
     ) -> None:
         """Inicializa os motores da Camada 1 (ML) e Camada 2 (LLM Failover)."""
         self.api_key = api_key
@@ -39,10 +40,10 @@ class PulsoAgentLLM:
     def correlate_and_classify(
         self,
         area_name: str,
-        history_delta: Dict[str, Any],
-        context_events: List[Dict[str, Any]],
-        survey_themes: List[str],
-    ) -> Tuple[
+        history_delta: dict[str, Any],
+        context_events: list[dict[str, Any]],
+        survey_themes: list[str],
+    ) -> tuple[
         RiskLevel, PsychosocialRiskFactor, str, str, RiskPredictionResult, FailoverExecutionMetadata
     ]:
         """Executa a predicao tabular do XGBoost com SHAP e gera a hipotese contextual via LLM.
@@ -105,7 +106,7 @@ class PulsoAgentLLM:
         metrics_summary: str,
         context_summary: str,
         factor: str,
-    ) -> Tuple[str, str]:
+    ) -> tuple[str, str]:
         """Redige o card de atencao do RH com evidencias e sugestao de acao."""
         evidence = f"Para a area {area_name} ({headcount} pessoas): {metrics_summary}"
         suggested = (
@@ -123,12 +124,12 @@ class PulsoAgentLLM:
     def process_chat_query(
         self,
         query_text: str,
-        context_data: Dict[str, Any],
-    ) -> Tuple[str, FailoverExecutionMetadata]:
+        context_data: dict[str, Any],
+    ) -> tuple[str, FailoverExecutionMetadata]:
         """Processa a consulta do chat corporativo com substituicao automatica de IA."""
         return self.failover_manager.generate_chat_reply(query_text, context_data)
 
-    def generate_team_response(self, query_text: str) -> Tuple[str, List[str]]:
+    def generate_team_response(self, query_text: str) -> tuple[str, list[str]]:
         """Gera resposta sobre equipes no chat mantendo compatibilidade com use cases existentes."""
         reply, _ = self.failover_manager.generate_chat_reply(query_text, {})
         return reply, ["ponto", "folha", "desligamentos", "pesquisa_pulso", "xgboost_shap"]
