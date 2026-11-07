@@ -1,17 +1,19 @@
 """Camada de compatibilidade transparente entre Pydantic e Dataclasses da biblioteca padrao."""
 
 import builtins
-from typing import Any
+from typing import Any, Callable
 
 try:
     from pydantic import BaseModel as _PydanticBaseModel
     from pydantic import ConfigDict as _ConfigDict
     from pydantic import Field as _PydanticField
+    from pydantic import model_validator as _PydanticModelValidator
     from pydantic.alias_generators import to_camel as _to_camel
 
     HAS_PYDANTIC = True
     BaseModel = _PydanticBaseModel
     Field = _PydanticField
+    model_validator = _PydanticModelValidator
 
     class ApiModel(_PydanticBaseModel):
         """DTO de API: aceita snake_case ou camelCase na entrada e responde em camelCase.
@@ -35,6 +37,12 @@ except ImportError:
             return field(default=default)
         return field()
 
+    def model_validator(*args: Any, **kwargs: Any) -> Callable[[Any], Any]:
+        """Fallback do Pydantic model_validator como no-op decorator."""
+        def decorator(fn: Any) -> Any:
+            return fn
+        return decorator
+
     class _DataclassBaseModel:
         """Fallback do BaseModel do Pydantic usando inicializacao dinamica."""
 
@@ -42,10 +50,10 @@ except ImportError:
             for k, v in kwargs.items():
                 setattr(self, k, v)
 
-        def dict(self) -> dict[str, Any]:
+        def dict(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
             return self.__dict__.copy()
 
-        def model_dump(self) -> builtins.dict[str, Any]:
+        def model_dump(self, *args: Any, **kwargs: Any) -> builtins.dict[str, Any]:
             return self.__dict__.copy()
 
         def __repr__(self) -> str:

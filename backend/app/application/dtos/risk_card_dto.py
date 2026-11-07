@@ -3,9 +3,7 @@
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import model_validator
-
-from app.application.dtos.compat import ApiModel, Field
+from app.application.dtos.compat import ApiModel, Field, model_validator
 
 MIN_DEADLINE_DAYS = 15
 

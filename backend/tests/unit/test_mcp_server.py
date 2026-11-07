@@ -3,8 +3,11 @@
 from collections.abc import Iterator
 from typing import Any
 
-import anyio
 import pytest
+
+pytest.importorskip("anyio")
+pytest.importorskip("fastapi.testclient")
+import anyio
 from fastapi.testclient import TestClient
 
 from app.presentation import mcp_server

@@ -22,7 +22,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any, TypeVar
 
-from pydantic import BaseModel
+from app.application.dtos.compat import BaseModel
 
 from app.domain.entities.risk_factor import PsychosocialRiskFactor
 from app.infrastructure.llm.knowledge import (

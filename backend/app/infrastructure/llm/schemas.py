@@ -1,6 +1,6 @@
 """Formatos de saida estruturada dos agentes especialistas (validados com Pydantic)."""
 
-from pydantic import BaseModel, Field
+from app.application.dtos.compat import BaseModel, Field
 
 
 class ContextHypothesis(BaseModel):

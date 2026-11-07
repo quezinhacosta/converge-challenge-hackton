@@ -3,6 +3,8 @@
 from collections.abc import Iterator
 
 import pytest
+
+pytest.importorskip("fastapi.testclient")
 from fastapi.testclient import TestClient
 
 from app.presentation.deps import PulsoAppContainer, get_container

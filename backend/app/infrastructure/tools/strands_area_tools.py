@@ -31,7 +31,9 @@ def build_area_tools(
     try:
         from strands import tool
     except ImportError:
-        return []
+        def tool(fn: Any) -> Any:
+            fn.tool_name = getattr(fn, "__name__", "tool")
+            return fn
 
     def resolve_area_id(area: str) -> str | None:
         wanted = _normalize(area)

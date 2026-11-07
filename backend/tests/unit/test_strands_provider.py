@@ -114,7 +114,8 @@ def test_small_area_is_not_analyzed() -> None:
 
 def test_chat_tools_hide_small_areas() -> None:
     container = PulsoAppContainer()
-    tools = {t.tool_name: t for t in container.llm_provider.chat_tools}
+    chat_tools_any: list[Any] = container.llm_provider.chat_tools  # type: ignore[assignment]
+    tools = {getattr(t, "tool_name", getattr(t, "__name__", "")): t for t in chat_tools_any}
     hidden = tools["sinais_da_area"]("Design")
     assert hidden["dados_ocultos_lgpd"] is True
     visible = tools["sinais_da_area"]("logistica")
