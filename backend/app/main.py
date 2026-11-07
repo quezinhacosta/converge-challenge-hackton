@@ -17,6 +17,7 @@ from app.presentation.compat import CORSMiddleware, FastAPI, HTTPException, stat
 from app.presentation.deps import get_container
 from app.presentation.api.v1.endpoints import areas as areas_v1
 from app.presentation.api.v1.endpoints import chat as chat_v1
+from app.presentation.api.v1.endpoints import closing as closing_v1
 from app.presentation.api.v1.endpoints import health as health_v1
 from app.presentation.api.v1.endpoints import pgr as pgr_v1
 from app.presentation.api.v1.endpoints import risk_cards as risk_cards_v1
@@ -547,6 +548,7 @@ def create_app() -> FastAPI:
     app.include_router(risk_cards_v1.router, prefix="/api/v1/risk-cards", tags=["Cards de Atencao"])
     app.include_router(pgr_v1.router, prefix="/api/v1/pgr", tags=["PGR / NR-1"])
     app.include_router(chat_v1.router, prefix="/api/v1/chat", tags=["Chat do Agente"])
+    app.include_router(closing_v1.router, prefix="/api/v1/fechamento", tags=["Fechamento"])
 
     return app
 

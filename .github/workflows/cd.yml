@@ -15,7 +15,7 @@ jobs:
 
       - name: Deploy to Cloud Provider
         run: |
-          echo "Deploying PayTrust backend to production environment..."
+          echo "Deploying Pulso backend to production environment..."
           # Integrations: Railway CLI / Render Deploy Hook / AWS ECS / Google Cloud Run
         env:
           ENVIRONMENT: production
@@ -29,7 +29,7 @@ jobs:
 
       - name: Deploy to Vercel
         run: |
-          echo "Deploying PayTrust frontend to Vercel/production..."
+          echo "Deploying Pulso frontend to Vercel/production..."
           # Integration: vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
         env:
           ENVIRONMENT: production

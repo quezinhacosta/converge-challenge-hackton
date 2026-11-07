@@ -1,7 +1,9 @@
 """Caso de uso para deliberacao humana do RH e registro no PGR da NR-1 (Etapa 8 do Pulso)."""
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from typing import Protocol
+from uuid import uuid4
+
 from app.application.dtos.pgr_dto import PgrInventoryItemDTO
 from app.application.dtos.risk_card_dto import ResolveRiskCardRequestDTO
 from app.domain.entities.pgr_inventory import PgrRiskItem
@@ -14,12 +16,14 @@ from app.domain.repositories.interfaces import (
 )
 
 
+class CardStateError(Exception):
+    """Card em estado que nao aceita decisao (ja decidido ou escalado ao compliance)."""
+
+
 class DevolutivaDraftingService(Protocol):
     """Protocolo para redacao da devolutiva de escuta ('Voce falou, a empresa fez')."""
 
-    def generate_devolutiva_text(
-        self, area_name: str, action_description: str
-    ) -> str:
+    def generate_devolutiva_text(self, area_name: str, action_description: str) -> str:
         """Redige o comunicado transparente para a equipe informando a mudanca acordada."""
         ...
 
@@ -52,12 +56,21 @@ class RegisterPgrActionUseCase:
         if not card:
             raise ValueError(f"Card com ID '{card_id}' nao encontrado.")
 
+        # So cards abertos recebem decisao: evita item duplicado no PGR (duplo clique, retry
+        # do Slack) e impede que casos escalados ao compliance (assedio) virem item do PGR.
+        if card.status == CardStatus.ESCALADO_COMPLIANCE:
+            raise CardStateError(
+                "Card escalado ao comite de compliance: a decisao nao e tomada pelo Pulso/RH."
+            )
+        if card.status != CardStatus.ABERTO:
+            raise CardStateError(f"Card '{card_id}' ja foi decidido (status {card.status.value}).")
+
         # Tratamento da decisao
         if request.action_type == "DESCARTAR":
             card.status = CardStatus.DESCARTADO
             card.reviewer_name = request.reviewer_name
-            card.resolution_notes = request.justification_notes or "Descartado pelo RH."
-            card.resolved_at = datetime.now(timezone.utc)
+            card.resolution_notes = request.justification_notes
+            card.resolved_at = datetime.now(UTC)
             self.risk_card_repository.save(card)
 
             # Retorna item simbolico arquivado
@@ -71,23 +84,25 @@ class RegisterPgrActionUseCase:
                 responsavel=request.reviewer_name,
                 prazo_limite=date.today(),
                 intervalo_reavaliacao_dias=0,
-                data_registro=datetime.now(timezone.utc),
+                data_registro=datetime.now(UTC),
                 is_reaberto=False,
                 data_encerramento=date.today(),
                 parecer_encerramento="Descartado na triagem inicial do RH.",
-                rastro_auditoria=[f"Descartado por {request.reviewer_name} em {datetime.now().isoformat()}"],
+                rastro_auditoria=[
+                    f"Descartado por {request.reviewer_name} em {datetime.now().isoformat()}"
+                ],
             )
 
         # APROVAR_PGR ou AJUSTAR_ACAO
-        if request.action_type == "AJUSTAR_ACAO" and request.adjusted_action_text:
+        if request.action_type == "AJUSTAR_ACAO":
             card.status = CardStatus.AJUSTADO
-            action_text = request.adjusted_action_text
+            action_text = request.adjusted_action_text or card.suggested_action
         else:
             card.status = CardStatus.APROVADO_PGR
             action_text = card.suggested_action
 
         card.reviewer_name = request.reviewer_name
-        card.resolved_at = datetime.now(timezone.utc)
+        card.resolved_at = datetime.now(UTC)
         self.risk_card_repository.save(card)
 
         responsible = request.responsible_person or request.reviewer_name
@@ -99,7 +114,7 @@ class RegisterPgrActionUseCase:
         )
 
         pgr_item = PgrRiskItem(
-            id=f"pgr_{card.area_id}_{int(datetime.now().timestamp())}",
+            id=f"pgr_{card.area_id}_{uuid4().hex[:10]}",
             risk_card_id=card.id,
             area_id=card.area_id,
             area_name=card.area_name,
@@ -109,7 +124,7 @@ class RegisterPgrActionUseCase:
             responsible_person=responsible,
             deadline_date=deadline,
             reassessment_interval_days=request.deadline_days,
-            registered_at=datetime.now(timezone.utc),
+            registered_at=datetime.now(UTC),
             is_reopened=False,
             audit_log=[audit_entry],
         )
@@ -117,7 +132,9 @@ class RegisterPgrActionUseCase:
         saved_item = self.pgr_repository.save(pgr_item)
 
         # Emissao da Devolutiva ("Voce falou, a empresa fez")
-        devolutiva_text = self.devolutiva_service.generate_devolutiva_text(card.area_name, action_text)
+        devolutiva_text = self.devolutiva_service.generate_devolutiva_text(
+            card.area_name, action_text
+        )
         devolutiva_msg = TeamDevolutivaMessage(
             id=f"dev_{saved_item.id}",
             area_id=card.area_id,

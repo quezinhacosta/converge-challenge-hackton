@@ -1,10 +1,18 @@
 /**
- * Modelos para os Cards de Ponto Focal de Atencao do RH.
+ * Modelos para os Cards de Ponto Focal de Atencao do RH com explicabilidade SHAP e resiliencia.
  */
 
 import { PsychosocialRiskFactor, RiskLevel } from './nr1.model';
 
 export type CardStatus = 'ABERTO' | 'APROVADO_PGR' | 'AJUSTADO' | 'DESCARTADO';
+
+export interface ShapContribution {
+  feature_name: string;
+  display_name: string;
+  contribution_pct: number;
+  observed_value: string;
+  direction: 'AGRAVANTE' | 'ATENUANTE';
+}
 
 export interface RiskCard {
   cardId: string;
@@ -19,6 +27,10 @@ export interface RiskCard {
   fontesConsultadas: string[];
   status: CardStatus;
   createdAt: string;
+  riskScore?: number;
+  shapBreakdown?: ShapContribution[];
+  aiProviderUsed?: string;
+  aiFallbackTriggered?: boolean;
 }
 
 export interface ResolveRiskCardPayload {

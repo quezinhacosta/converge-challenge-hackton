@@ -1,10 +1,8 @@
 """Testes unitarios validando as entidades de dominio do Pulso."""
 
-from datetime import date
 from app.domain.entities.area import Area
 from app.domain.entities.risk_card import CardStatus, RiskCard
 from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
-from app.domain.entities.signals import AreaMonthlyMetrics, ContextEvent, ContextEventType
 
 
 def test_area_entity_anonymization_property() -> None:

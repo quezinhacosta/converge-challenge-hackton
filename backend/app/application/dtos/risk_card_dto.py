@@ -1,11 +1,14 @@
 """DTOs para manipulacao dos cards de atencao do RH e aprovacao de acoes."""
 
 from datetime import datetime
-from typing import List, Optional
-from app.application.dtos.compat import BaseModel, Field
+from typing import Any, Literal
+
+from app.application.dtos.compat import ApiModel, Field, model_validator
+
+MIN_DEADLINE_DAYS = 15
 
 
-class RiskCardDTO(BaseModel):
+class RiskCardDTO(ApiModel):
     """Representacao de um ponto focal emitido pelo Pulso para decisao do RH.
 
     Atributos:
@@ -21,6 +24,10 @@ class RiskCardDTO(BaseModel):
         fontes_consultadas: Origem dos dados utilizados.
         status: Estado de tramitacao (ABERTO, APROVADO_PGR, AJUSTADO, DESCARTADO).
         created_at: Data e hora de emissao.
+        risk_score: Pontuacao quantitativa continua (0 a 100) do XGBoost.
+        shap_breakdown: Decomposicao percentual legalmente auditavel (SHAP) por variavel.
+        ai_provider_used: Provedor de IA que gerou a correlacao.
+        ai_fallback_triggered: Booleano indicando se houve chaveamento para fallback.
     """
 
     card_id: str
@@ -32,12 +39,16 @@ class RiskCardDTO(BaseModel):
     o_que_mudou_ultimos_meses: str
     contexto_organizacional: str
     acao_sugerida: str
-    fontes_consultadas: List[str]
+    fontes_consultadas: list[str]
     status: str
     created_at: datetime
+    risk_score: float = 0.0
+    shap_breakdown: list[dict[str, Any]] = Field(default_factory=list)
+    ai_provider_used: str = "xgboost+gemini-1.5-pro"
+    ai_fallback_triggered: bool = False
 
 
-class ResolveRiskCardRequestDTO(BaseModel):
+class ResolveRiskCardRequestDTO(ApiModel):
     """Payload de decisao humana (1-clique) do analista de RH sobre o card de risco.
 
     Atributos:
@@ -49,9 +60,20 @@ class ResolveRiskCardRequestDTO(BaseModel):
         justification_notes: Justificativa registrada em caso de descarte.
     """
 
-    action_type: str = Field(..., description="APROVAR_PGR | AJUSTAR_ACAO | DESCARTAR")
-    reviewer_name: str
-    adjusted_action_text: Optional[str] = None
-    responsible_person: Optional[str] = None
-    deadline_days: int = Field(default=60, ge=15, le=180)
-    justification_notes: Optional[str] = None
+    action_type: Literal["APROVAR_PGR", "AJUSTAR_ACAO", "DESCARTAR"]
+    reviewer_name: str = Field(..., min_length=2)
+    adjusted_action_text: str | None = None
+    responsible_person: str | None = None
+    deadline_days: int = Field(default=60, ge=0, le=180)
+    justification_notes: str | None = None
+
+    @model_validator(mode="after")
+    def _check_decision_requirements(self) -> "ResolveRiskCardRequestDTO":
+        """Ajuste exige o texto novo; descarte exige justificativa; aprovacao exige prazo."""
+        if self.action_type == "AJUSTAR_ACAO" and not (self.adjusted_action_text or "").strip():
+            raise ValueError("AJUSTAR_ACAO exige adjusted_action_text com a acao ajustada.")
+        if self.action_type == "DESCARTAR" and len((self.justification_notes or "").strip()) < 5:
+            raise ValueError("DESCARTAR exige justification_notes (minimo de 5 caracteres).")
+        if self.action_type != "DESCARTAR" and self.deadline_days < MIN_DEADLINE_DAYS:
+            raise ValueError(f"deadline_days deve ser de pelo menos {MIN_DEADLINE_DAYS} dias.")
+        return self

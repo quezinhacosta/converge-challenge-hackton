@@ -17,7 +17,9 @@ dependencies = [
     "pandas>=2.2.0",
     "numpy>=1.26.0",
     "python-multipart>=0.0.9",
-    "requests>=2.32.0"
+    "requests>=2.32.0",
+    "strands-agents[openai]>=1.64.0",
+    "python-dotenv>=1.0.0"
 ]
 
 [project.optional-dependencies]
@@ -41,7 +43,11 @@ select = [
     "B",
     "UP"
 ]
-ignore = []
+ignore = [
+    "E501",  # line length permitido em docstrings e descricoes textuais longas
+    "B008",  # Depends() padrao do FastAPI em assinaturas de endpoint
+    "B904",  # raise HTTPException em endpoints da camada de apresentacao
+]
 
 [tool.ruff.format]
 quote-style = "double"
