@@ -1,7 +1,7 @@
 """Entidades de dominio para o Inventario de Riscos e Plano de Acao do PGR (NR-1)."""
 
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import List, Optional
 
 from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
@@ -44,7 +44,7 @@ class PgrRiskItem:
     responsible_person: str
     deadline_date: date
     reassessment_interval_days: int = 60
-    registered_at: datetime = field(default_factory=datetime.utcnow)
+    registered_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     is_reopened: bool = False
     closure_date: Optional[date] = None
     closure_notes: Optional[str] = None

@@ -55,7 +55,7 @@ class RiskCard:
     suggested_action: str
     status: CardStatus = CardStatus.ABERTO
     consulted_sources: List[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     resolved_at: Optional[datetime] = None
     reviewer_name: Optional[str] = None
     resolution_notes: Optional[str] = None
