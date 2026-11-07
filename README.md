@@ -191,7 +191,7 @@ converge-challenge-hackton/
 |   |   `-- seed_synthetic_data.py   # Geracao da empresa ficticia (~150 colaboradores, 7 cenarios)
 |   `-- tests/
 |       `-- unit/                    # Testes de entidades e guardrails eticos
-`-- frontend/                        # Next.js / TypeScript / Tailwind CSS
+`-- frontend/                        # Angular 17+ / TypeScript / Tailwind CSS
     |-- package.json                 # Dependencias do Node
     |-- tsconfig.json                # Configuracao do compilador TypeScript
     `-- src/
@@ -226,10 +226,10 @@ mypy app scripts
 pytest tests/ -v
 ```
 
-### Frontend (Node.js 20+)
+### Frontend (Angular 17+ / Node.js 20+)
 ```bash
 cd frontend
 npm install
 npm run type-check
-npm run dev
+npm start
 ```
