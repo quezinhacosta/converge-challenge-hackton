@@ -1,7 +1,7 @@
 """Endpoints de consulta de areas e sinais operacionais agregados."""
 
 from typing import Any, Dict, List
-from fastapi import APIRouter, Depends, HTTPException, status
+from app.presentation.compat import APIRouter, Depends, HTTPException, status
 
 from app.application.dtos.signal_dto import AreaHistoryComparisonDTO
 from app.presentation.deps import PulsoAppContainer, get_container

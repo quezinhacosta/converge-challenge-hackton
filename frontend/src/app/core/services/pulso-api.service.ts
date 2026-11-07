@@ -22,8 +22,8 @@ export class PulsoApiService {
    */
   listAreas(): Observable<AreaInfo[]> {
     return this.http.get<AreaInfo[]>(`${this.baseUrl}/areas`).pipe(
-      catchError(() =>
-        of([
+      catchError(() => {
+        const fallbackAreas: AreaInfo[] = [
           { id: 'area_fin', name: 'Financeiro', headcount: 18, managerName: 'Roberto Prado', isAnonymized: false },
           { id: 'area_atend', name: 'Atendimento ao Cliente', headcount: 32, managerName: 'Juliana Costa', isAnonymized: false },
           { id: 'area_log', name: 'Logística', headcount: 28, managerName: 'Fernando Dias', isAnonymized: false },
@@ -31,8 +31,9 @@ export class PulsoApiService {
           { id: 'area_des', name: 'Design de Produto', headcount: 3, managerName: 'Luciana Mello', isAnonymized: true },
           { id: 'area_eng', name: 'Engenharia de Software', headcount: 30, managerName: 'Beatriz Neves', isAnonymized: false },
           { id: 'area_rh', name: 'Recursos Humanos', headcount: 8, managerName: 'Camila Guimarães', isAnonymized: false },
-        ])
-      )
+        ];
+        return of(fallbackAreas);
+      })
     );
   }
 
@@ -43,7 +44,7 @@ export class PulsoApiService {
     return this.http.get<AreaHistoryComparison>(`${this.baseUrl}/areas/${areaId}/signals`).pipe(
       catchError(() => {
         if (areaId === 'area_des') {
-          return of({
+          const fallbackDesign: AreaHistoryComparison = {
             areaId: 'area_des',
             areaName: 'Design de Produto',
             headcount: 3,
@@ -53,9 +54,10 @@ export class PulsoApiService {
             pedidosDemissaoPeriodo: 0,
             mediaEmpresaPedidosDemissao: 1.0,
             eventosContextoRecentes: [],
-          });
+          };
+          return of(fallbackDesign);
         }
-        return of({
+        const fallbackAtend: AreaHistoryComparison = {
           areaId: 'area_atend',
           areaName: 'Atendimento ao Cliente',
           headcount: 32,
@@ -67,7 +69,8 @@ export class PulsoApiService {
           notaCargaTrabalhoAtual: 2.4,
           notaCargaTrabalhoAnterior: 3.9,
           eventosContextoRecentes: ['15/08/2026: Implantação de nova meta agressiva de atendimentos por hora (+35%).'],
-        });
+        };
+        return of(fallbackAtend);
       })
     );
   }
@@ -77,8 +80,8 @@ export class PulsoApiService {
    */
   listActiveRiskCards(): Observable<RiskCard[]> {
     return this.http.get<RiskCard[]>(`${this.baseUrl}/risk-cards/active`).pipe(
-      catchError(() =>
-        of([
+      catchError(() => {
+        const fallbackCards: RiskCard[] = [
           {
             cardId: 'card-atend-01',
             areaId: 'area_atend',
@@ -113,8 +116,9 @@ export class PulsoApiService {
             status: 'ABERTO',
             createdAt: new Date().toISOString(),
           },
-        ])
-      )
+        ];
+        return of(fallbackCards);
+      })
     );
   }
 
@@ -123,8 +127,8 @@ export class PulsoApiService {
    */
   resolveRiskCard(cardId: string, payload: ResolveRiskCardPayload): Observable<PgrInventoryItem> {
     return this.http.post<PgrInventoryItem>(`${this.baseUrl}/risk-cards/${cardId}/resolve`, payload).pipe(
-      catchError(() =>
-        of({
+      catchError(() => {
+        const fallbackItem: PgrInventoryItem = {
           itemId: `pgr-${cardId}`,
           areaId: 'area_atend',
           areaName: 'Atendimento ao Cliente',
@@ -139,8 +143,9 @@ export class PulsoApiService {
           registeredAt: new Date().toISOString(),
           isReopened: false,
           auditLog: [`Decisão '${payload.actionType}' homologada por ${payload.reviewerName}.`],
-        })
-      )
+        };
+        return of(fallbackItem);
+      })
     );
   }
 

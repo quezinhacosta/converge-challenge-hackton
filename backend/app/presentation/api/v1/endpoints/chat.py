@@ -1,6 +1,6 @@
 """Endpoints para interacao do RH com o agente Pulso em linguagem natural."""
 
-from fastapi import APIRouter, Depends, status
+from app.presentation.compat import APIRouter, Depends, status
 
 from app.application.dtos.chat_dto import ChatQueryRequestDTO, ChatQueryResponseDTO
 from app.presentation.deps import PulsoAppContainer, get_container
