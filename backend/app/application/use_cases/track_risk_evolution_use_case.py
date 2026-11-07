@@ -40,9 +40,13 @@ class TrackRiskEvolutionUseCase:
         # Simulacao da reavaliacao de 60 dias (Caso 7 do Pitch: melhora confirmada)
         # Em producao, consulta metricas dos meses t+1 e t+2
         houve_melhora = True
+        # ATENCAO: valores fixos de demonstracao (os dados sinteticos nao tem meses futuros).
+        # O rastro de auditoria marca isso para nao parecer medicao real.
+        reducao_atestados_pct = 35.0
         resumo = (
-            f"Apos a acao implementada em {item.area_name}, observou-se reducao de 35% nos dias de atestado, "
-            f"normalizacao das horas extras para a media setorial e elevacao da nota de clima para 3.8."
+            f"[Simulacao de demonstracao] Apos a acao implementada em {item.area_name}, "
+            f"observou-se reducao de 35% nos dias de atestado, normalizacao das horas extras "
+            f"para a media setorial e elevacao da nota de clima para 3.8."
         )
 
         if houve_melhora:
@@ -52,7 +56,8 @@ class TrackRiskEvolutionUseCase:
             )
             item.is_reopened = False
             item.audit_log.append(
-                f"Ciclo encerrado com sucesso em {date.today().strftime('%d/%m/%Y')}."
+                f"Ciclo encerrado em {date.today().strftime('%d/%m/%Y')} "
+                "(reavaliacao simulada para demonstracao)."
             )
             self.pgr_repository.save(item)
 
@@ -71,4 +76,5 @@ class TrackRiskEvolutionUseCase:
             houve_melhora_indicadores=houve_melhora,
             status_final=status_final,
             resumo_evolucao=resumo,
+            reducao_atestados_pct=reducao_atestados_pct,
         )

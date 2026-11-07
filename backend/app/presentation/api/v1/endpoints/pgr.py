@@ -1,6 +1,5 @@
 """Endpoints do Inventario de Riscos e Plano de Acao do PGR (NR-1)."""
 
-
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.application.dtos.pgr_dto import PgrInventoryItemDTO, ReassessmentEvaluationDTO

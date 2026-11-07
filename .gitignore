@@ -38,3 +38,6 @@ Thumbs.db
 .env.local
 .env.*.local
 .angular/
+
+# Cache de respostas da IA para a demo
+.llm_demo_cache.json

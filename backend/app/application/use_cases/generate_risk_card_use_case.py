@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime
 from typing import Any, Protocol
+from uuid import uuid4
 
 from app.application.dtos.risk_card_dto import RiskCardDTO
 from app.domain.entities.risk_card import CardStatus, RiskCard
@@ -98,7 +99,7 @@ class GenerateRiskCardUseCase:
         fallback_triggered = bool(ai_meta.get("fallback_triggered", False))
 
         card = RiskCard(
-            id=f"card_{area.id}_{int(datetime.now().timestamp())}",
+            id=f"card_{area.id}_{uuid4().hex[:10]}",
             area_id=area.id,
             area_name=area.name,
             area_headcount=area.headcount,

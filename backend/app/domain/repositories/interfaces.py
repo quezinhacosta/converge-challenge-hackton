@@ -61,6 +61,11 @@ class RiskCardRepository(ABC):
         """Lista todos os cards abertos aguardando analise humana do RH."""
         pass
 
+    @abstractmethod
+    def list_all(self) -> list[RiskCard]:
+        """Lista todos os cards, em qualquer status."""
+        pass
+
 
 class PgrInventoryRepository(ABC):
     """Interface abstrata para controle do inventario de riscos do PGR e plano de acao da NR-1."""

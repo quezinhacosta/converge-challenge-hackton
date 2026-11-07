@@ -11,10 +11,15 @@ Qualquer erro (rede, timeout, JSON invalido) sobe como excecao para o FailoverMa
 que chaveia para o proximo provedor ou para o motor deterministico local.
 """
 
+import json
 import logging
 import re
+import time
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 from datetime import date
+from pathlib import Path
 from typing import Any, TypeVar
 
 from pydantic import BaseModel
@@ -38,6 +43,9 @@ T = TypeVar("T", bound=BaseModel)
 R = TypeVar("R")
 
 _RETRIES = 1
+_FAST_FAILURE_SECONDS = 8.0
+# Uma chamada por vez a Featherless (o plano limita concorrencia); daemon nao trava o shutdown.
+_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="pulso-llm")
 # Modelos servidos em vLLM as vezes degeneram em "!!!!!!..."; removemos essas sequencias.
 _DEGENERATE_RUN = re.compile(r"([^\w\s])\1{7,}")
 
@@ -128,12 +136,15 @@ class StrandsFeatherlessProvider(LLMProviderProtocol):
                     "api_key": self.settings.api_key,
                     "base_url": self.settings.base_url,
                     "timeout": self.settings.timeout_seconds,
-                    "max_retries": 1,
+                    "max_retries": 0,
                 },
                 model_id=self.settings.model_id,
                 params={
                     "temperature": self.settings.temperature,
                     "max_tokens": self.settings.max_tokens,
+                    # Penalidades leves evitam a degeneracao em "!!!!..." vista na Featherless.
+                    "frequency_penalty": 0.3,
+                    "presence_penalty": 0.1,
                 },
             )
         return self._model
@@ -150,15 +161,25 @@ class StrandsFeatherlessProvider(LLMProviderProtocol):
         )
 
     def _with_retry(self, task: Callable[[], R], label: str) -> R:
-        """Uma nova tentativa com agente novo: cobre degeneracao intermitente do modelo."""
+        """Nova tentativa so quando a falha foi rapida (ex.: resposta vazia).
+
+        Falhas lentas (degeneracao ate o limite de tokens, timeout) sobem direto para o
+        FailoverManager, para a demo nunca ficar minutos esperando.
+        """
         last_error: Exception | None = None
         for attempt in range(1 + _RETRIES):
+            started = time.perf_counter()
             try:
                 return task()
             except Exception as exc:  # noqa: BLE001 - sobe para o FailoverManager no fim
                 last_error = exc
-                logger.warning("%s falhou (tentativa %s): %s", label, attempt + 1, exc)
-        raise RuntimeError(f"{label} falhou apos {1 + _RETRIES} tentativas: {last_error}")
+                elapsed = time.perf_counter() - started
+                logger.warning(
+                    "%s falhou (tentativa %s, %.1fs): %s", label, attempt + 1, elapsed, exc
+                )
+                if elapsed > _FAST_FAILURE_SECONDS:
+                    break
+        raise RuntimeError(f"{label} falhou: {last_error}")
 
     def _run_structured(self, system_prompt: str, prompt: str, output_model: type[T]) -> T:
         """Executa um agente especialista e devolve a saida validada pelo Pydantic."""
@@ -202,6 +223,23 @@ class StrandsFeatherlessProvider(LLMProviderProtocol):
             f"Eventos de contexto:\n{events_text}\n"
         )
 
+        cache_key = f"{area_name}|{factor}|{metrics_summary}"
+        cached = self._read_demo_cache(cache_key)
+        if cached is not None:
+            return cached
+
+        # Orcamento total: se a Featherless ficar lenta, o FailoverManager assume na hora.
+        # A thread continua e, se terminar, grava a resposta no cache de demo.
+        future = _EXECUTOR.submit(self._specialists_pipeline, base_prompt, cache_key)
+        try:
+            return future.result(timeout=self.settings.budget_seconds)
+        except FutureTimeout as exc:
+            raise RuntimeError(
+                f"Agentes passaram do orcamento de {self.settings.budget_seconds:.0f}s"
+            ) from exc
+
+    def _specialists_pipeline(self, base_prompt: str, cache_key: str) -> tuple[str, str]:
+        """Historiador -> Regulatorio. Roda numa thread para respeitar o orcamento de tempo."""
         hypothesis = self._run_structured(HISTORIADOR_PROMPT, base_prompt, ContextHypothesis)
         assessment = self._run_structured(
             REGULATORIO_PROMPT,
@@ -214,7 +252,35 @@ class StrandsFeatherlessProvider(LLMProviderProtocol):
             f"{assessment.medida_sugerida} Acompanhamento: {assessment.indicador_acompanhamento}. "
             f"Base: {assessment.referencia_nr1}"
         )
+        self._write_demo_cache(cache_key, hypothesis_text, action_text)
         return hypothesis_text, action_text
+
+    # ------------------------------------------------------------------ cache de demo
+
+    def _read_demo_cache(self, key: str) -> tuple[str, str] | None:
+        """Com PULSO_LLM_DEMO_CACHE definido, reaproveita a ultima resposta boa da IA."""
+        path = self.settings.demo_cache_path
+        if not path or not Path(path).exists():
+            return None
+        try:
+            entry = json.loads(Path(path).read_text(encoding="utf-8")).get(key)
+        except (OSError, ValueError):
+            return None
+        if not entry:
+            return None
+        return str(entry[0]), str(entry[1])
+
+    def _write_demo_cache(self, key: str, hypothesis: str, action: str) -> None:
+        path = self.settings.demo_cache_path
+        if not path:
+            return
+        try:
+            file = Path(path)
+            data = json.loads(file.read_text(encoding="utf-8")) if file.exists() else {}
+            data[key] = [hypothesis, action]
+            file.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        except (OSError, ValueError) as exc:
+            logger.warning("Nao foi possivel gravar o cache de demo: %s", exc)
 
     def generate_chat_reply(self, query_text: str, context_data: dict[str, Any]) -> str:
         """Agente de chat com ferramentas por area. O guardrail roda antes, no caso de uso."""

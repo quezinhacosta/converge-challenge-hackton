@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from app.application.dtos.compat import BaseModel, Field
+from app.application.dtos.compat import ApiModel, BaseModel, Field
 
 
 class AreaMetricsDTO(BaseModel):
@@ -33,7 +33,7 @@ class AreaMetricsDTO(BaseModel):
     nota_pesquisa_pulso: float | None = None
 
 
-class AreaHistoryComparisonDTO(BaseModel):
+class AreaHistoryComparisonDTO(ApiModel):
     """Comparativo entre os indicadores recentes da area e a media corporativa."""
 
     area_id: str

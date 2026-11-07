@@ -72,6 +72,19 @@ def test_specialists_compose_hypothesis_and_action() -> None:
     assert "1.5.5.2.2" in action
 
 
+def test_demo_cache_reuses_first_good_answer(tmp_path: Any) -> None:
+    import dataclasses
+
+    provider = _FakeStrandsProvider()
+    provider.settings = dataclasses.replace(
+        provider.settings, demo_cache_path=str(tmp_path / "cache.json")
+    )
+    first = provider.generate_hypothesis_and_action("Atendimento", "m", [], "", "SOBRECARGA_METAS")
+    second = provider.generate_hypothesis_and_action("Atendimento", "m", [], "", "SOBRECARGA_METAS")
+    assert first == second
+    assert provider.calls == ["ContextHypothesis", "RegulatoryAssessment"]
+
+
 def test_harassment_never_reaches_llm() -> None:
     provider = _FakeStrandsProvider()
     _, action = provider.generate_hypothesis_and_action("Vendas", "", [], "", "ASSEDIO")

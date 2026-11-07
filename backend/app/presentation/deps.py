@@ -15,6 +15,7 @@ from app.application.use_cases.process_rh_chat_query_use_case import (
 from app.application.use_cases.register_pgr_action_use_case import (
     RegisterPgrActionUseCase,
 )
+from app.application.use_cases.run_area_analysis_use_case import RunAreaAnalysisUseCase
 from app.application.use_cases.track_risk_evolution_use_case import (
     TrackRiskEvolutionUseCase,
 )
@@ -56,7 +57,9 @@ class PulsoAppContainer:
         )
 
         # Componentes de infraestrutura
-        self.guardrail = PrivacyAndEthicsGuardrail()
+        self.guardrail = PrivacyAndEthicsGuardrail(
+            known_area_terms=[a.name for a in self.area_repo.list_all()]
+        )
         self.collect_signals_uc = CollectAndAggregateSignalsUseCase(
             self.area_repo, self.signal_repo, self.guardrail
         )
@@ -87,6 +90,9 @@ class PulsoAppContainer:
             self.pgr_repo, self.risk_card_repo, self.signal_repo
         )
         self.chat_uc = ProcessRhChatQueryUseCase(self.guardrail, self.llm_agent)
+        self.run_analysis_uc = RunAreaAnalysisUseCase(
+            self.area_repo, self.risk_card_repo, self.analyze_risks_uc, self.generate_card_uc
+        )
 
 
 container = PulsoAppContainer()

@@ -1,12 +1,16 @@
 """DTOs para manipulacao dos cards de atencao do RH e aprovacao de acoes."""
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
-from app.application.dtos.compat import BaseModel, Field
+from pydantic import model_validator
+
+from app.application.dtos.compat import ApiModel, Field
+
+MIN_DEADLINE_DAYS = 15
 
 
-class RiskCardDTO(BaseModel):
+class RiskCardDTO(ApiModel):
     """Representacao de um ponto focal emitido pelo Pulso para decisao do RH.
 
     Atributos:
@@ -46,7 +50,7 @@ class RiskCardDTO(BaseModel):
     ai_fallback_triggered: bool = False
 
 
-class ResolveRiskCardRequestDTO(BaseModel):
+class ResolveRiskCardRequestDTO(ApiModel):
     """Payload de decisao humana (1-clique) do analista de RH sobre o card de risco.
 
     Atributos:
@@ -58,9 +62,20 @@ class ResolveRiskCardRequestDTO(BaseModel):
         justification_notes: Justificativa registrada em caso de descarte.
     """
 
-    action_type: str = Field(..., description="APROVAR_PGR | AJUSTAR_ACAO | DESCARTAR")
-    reviewer_name: str
+    action_type: Literal["APROVAR_PGR", "AJUSTAR_ACAO", "DESCARTAR"]
+    reviewer_name: str = Field(..., min_length=2)
     adjusted_action_text: str | None = None
     responsible_person: str | None = None
-    deadline_days: int = Field(default=60, ge=15, le=180)
+    deadline_days: int = Field(default=60, ge=0, le=180)
     justification_notes: str | None = None
+
+    @model_validator(mode="after")
+    def _check_decision_requirements(self) -> "ResolveRiskCardRequestDTO":
+        """Ajuste exige o texto novo; descarte exige justificativa; aprovacao exige prazo."""
+        if self.action_type == "AJUSTAR_ACAO" and not (self.adjusted_action_text or "").strip():
+            raise ValueError("AJUSTAR_ACAO exige adjusted_action_text com a acao ajustada.")
+        if self.action_type == "DESCARTAR" and len((self.justification_notes or "").strip()) < 5:
+            raise ValueError("DESCARTAR exige justification_notes (minimo de 5 caracteres).")
+        if self.action_type != "DESCARTAR" and self.deadline_days < MIN_DEADLINE_DAYS:
+            raise ValueError(f"deadline_days deve ser de pelo menos {MIN_DEADLINE_DAYS} dias.")
+        return self

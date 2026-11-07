@@ -75,6 +75,9 @@ class InMemoryRiskCardRepository(RiskCardRepository):
     def get_by_id(self, card_id: str) -> RiskCard | None:
         return self._cards.get(card_id)
 
+    def list_all(self) -> list[RiskCard]:
+        return list(self._cards.values())
+
     def list_active(self) -> list[RiskCard]:
         return [c for c in self._cards.values() if c.status.value == "ABERTO"]
 

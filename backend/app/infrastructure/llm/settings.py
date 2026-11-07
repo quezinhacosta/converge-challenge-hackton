@@ -40,6 +40,8 @@ class LlmSettings:
     max_tokens: int
     timeout_seconds: float
     enabled: bool
+    demo_cache_path: str | None = None
+    budget_seconds: float = 40.0
 
     @property
     def is_usable(self) -> bool:
@@ -56,7 +58,9 @@ def load_llm_settings() -> LlmSettings:
         base_url=os.getenv("FEATHERLESS_BASE_URL", DEFAULT_BASE_URL),
         model_id=os.getenv("PULSO_LLM_MODEL", DEFAULT_MODEL_ID),
         temperature=float(os.getenv("PULSO_LLM_TEMPERATURE", "0.2")),
-        max_tokens=int(os.getenv("PULSO_LLM_MAX_TOKENS", "600")),
-        timeout_seconds=float(os.getenv("PULSO_LLM_TIMEOUT", "45")),
+        max_tokens=int(os.getenv("PULSO_LLM_MAX_TOKENS", "400")),
+        timeout_seconds=float(os.getenv("PULSO_LLM_TIMEOUT", "25")),
         enabled=_as_bool(os.getenv("PULSO_LLM_ENABLED"), default=bool(api_key)),
+        demo_cache_path=os.getenv("PULSO_LLM_DEMO_CACHE") or None,
+        budget_seconds=float(os.getenv("PULSO_LLM_BUDGET", "40")),
     )

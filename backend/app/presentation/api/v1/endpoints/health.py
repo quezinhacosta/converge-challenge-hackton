@@ -1,6 +1,5 @@
 """Endpoint de verificacao de integridade e liveness da API do Pulso."""
 
-
 from fastapi import APIRouter
 
 router = APIRouter()

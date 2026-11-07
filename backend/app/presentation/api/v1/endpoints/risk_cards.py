@@ -1,10 +1,10 @@
 """Endpoints de gestao dos cards de atencao e ponto focal do RH."""
 
-
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.application.dtos.pgr_dto import PgrInventoryItemDTO
 from app.application.dtos.risk_card_dto import ResolveRiskCardRequestDTO, RiskCardDTO
+from app.application.use_cases.register_pgr_action_use_case import CardStateError
 from app.presentation.deps import PulsoAppContainer, get_container
 
 router = APIRouter()
@@ -52,5 +52,7 @@ def resolve_risk_card(
     """Deliberacao humana (1-clique) do RH: Aprovar no PGR, Ajustar Acao ou Descartar."""
     try:
         return container.register_pgr_uc.execute(card_id, payload)
+    except CardStateError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e)) from e
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e

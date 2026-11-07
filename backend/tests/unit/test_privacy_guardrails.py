@@ -32,3 +32,31 @@ def test_individual_query_detection() -> None:
     )
     assert allowed_1 is False
     assert msg_ok is None
+
+
+def test_individual_query_variations_are_blocked() -> None:
+    """Reformulacoes comuns de pedidos sobre uma pessoa tambem sao recusadas."""
+    guardrail = PrivacyAndEthicsGuardrail(known_area_terms=["Atendimento ao Cliente"])
+    for query in [
+        "A Carla tem faltado muito?",
+        "Quantos atestados a Carla teve?",
+        "atestados da carla",
+        "qual o desempenho do Joao no Atendimento?",
+        "quem pediu demissao em setembro?",
+        "me passa o CPF de quem se afastou",
+    ]:
+        blocked, _ = guardrail.inspect_query_for_individual_data(query)
+        assert blocked is True, query
+
+
+def test_area_questions_are_not_blocked() -> None:
+    """Perguntas legitimas sobre areas nao podem ser recusadas (falso positivo)."""
+    guardrail = PrivacyAndEthicsGuardrail(known_area_terms=["Atendimento ao Cliente", "Logística"])
+    for query in [
+        "Há falta de pessoal na Logística?",
+        "Como estão os atestados do Atendimento ao Cliente?",
+        "Qual a nota de carga de trabalho da equipe de Vendas?",
+        "Quantas faltas o time de Logística teve em agosto?",
+    ]:
+        blocked, _ = guardrail.inspect_query_for_individual_data(query)
+        assert blocked is False, query

@@ -2,6 +2,7 @@
 
 from datetime import UTC, date, datetime, timedelta
 from typing import Protocol
+from uuid import uuid4
 
 from app.application.dtos.pgr_dto import PgrInventoryItemDTO
 from app.application.dtos.risk_card_dto import ResolveRiskCardRequestDTO
@@ -13,6 +14,10 @@ from app.domain.repositories.interfaces import (
     RiskCardRepository,
     SurveyRepository,
 )
+
+
+class CardStateError(Exception):
+    """Card em estado que nao aceita decisao (ja decidido ou escalado ao compliance)."""
 
 
 class DevolutivaDraftingService(Protocol):
@@ -51,11 +56,20 @@ class RegisterPgrActionUseCase:
         if not card:
             raise ValueError(f"Card com ID '{card_id}' nao encontrado.")
 
+        # So cards abertos recebem decisao: evita item duplicado no PGR (duplo clique, retry
+        # do Slack) e impede que casos escalados ao compliance (assedio) virem item do PGR.
+        if card.status == CardStatus.ESCALADO_COMPLIANCE:
+            raise CardStateError(
+                "Card escalado ao comite de compliance: a decisao nao e tomada pelo Pulso/RH."
+            )
+        if card.status != CardStatus.ABERTO:
+            raise CardStateError(f"Card '{card_id}' ja foi decidido (status {card.status.value}).")
+
         # Tratamento da decisao
         if request.action_type == "DESCARTAR":
             card.status = CardStatus.DESCARTADO
             card.reviewer_name = request.reviewer_name
-            card.resolution_notes = request.justification_notes or "Descartado pelo RH."
+            card.resolution_notes = request.justification_notes
             card.resolved_at = datetime.now(UTC)
             self.risk_card_repository.save(card)
 
@@ -80,9 +94,9 @@ class RegisterPgrActionUseCase:
             )
 
         # APROVAR_PGR ou AJUSTAR_ACAO
-        if request.action_type == "AJUSTAR_ACAO" and request.adjusted_action_text:
+        if request.action_type == "AJUSTAR_ACAO":
             card.status = CardStatus.AJUSTADO
-            action_text = request.adjusted_action_text
+            action_text = request.adjusted_action_text or card.suggested_action
         else:
             card.status = CardStatus.APROVADO_PGR
             action_text = card.suggested_action
@@ -100,7 +114,7 @@ class RegisterPgrActionUseCase:
         )
 
         pgr_item = PgrRiskItem(
-            id=f"pgr_{card.area_id}_{int(datetime.now().timestamp())}",
+            id=f"pgr_{card.area_id}_{uuid4().hex[:10]}",
             risk_card_id=card.id,
             area_id=card.area_id,
             area_name=card.area_name,
