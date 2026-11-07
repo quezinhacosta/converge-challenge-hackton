@@ -9,28 +9,11 @@ Implementa os 4 endpoints estruturais requisitados:
 Mantem tambem a integracao nativa com os endpoints /api/v1/... consumidos pelo frontend vitAI.
 """
 
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
 import uuid
+from datetime import UTC, datetime
 
-from app.presentation.compat import CORSMiddleware, FastAPI, HTTPException, status
+from app.presentation.compat import FastAPI, HTTPException, status
 from app.presentation.deps import get_container
-from app.presentation.api.v1.endpoints import areas as areas_v1
-from app.presentation.api.v1.endpoints import chat as chat_v1
-from app.presentation.api.v1.endpoints import closing as closing_v1
-from app.presentation.api.v1.endpoints import health as health_v1
-from app.presentation.api.v1.endpoints import pgr as pgr_v1
-from app.presentation.api.v1.endpoints import risk_cards as risk_cards_v1
-
-from app.schemas import (
-    AreaData,
-    CasoRiskCard,
-    ChatQueryRequest,
-    ChatQueryResponse,
-    DecisaoRequest,
-    DecisaoResponse,
-    FechamentoSummaryResponse,
-)
 from app.protections import (
     calcular_score_e_pesos_shap,
     inspecionar_busca_nominativa,
@@ -41,10 +24,19 @@ from app.pulso_agents import (
     AgenteHistoriador,
     AgenteRegulatorio,
 )
+from app.schemas import (
+    AreaData,
+    CasoRiskCard,
+    ChatQueryRequest,
+    ChatQueryResponse,
+    DecisaoRequest,
+    DecisaoResponse,
+    FechamentoSummaryResponse,
+)
 
 # Armazenamento em memoria para a integracao da Pessoa B e Pessoa A
-STORE_AREAS: Dict[str, AreaData] = {}
-STORE_CASOS: Dict[str, CasoRiskCard] = {}
+STORE_AREAS: dict[str, AreaData] = {}
+STORE_CASOS: dict[str, CasoRiskCard] = {}
 
 # Instanciacao dos 3 agentes
 historiador = AgenteHistoriador()
@@ -52,7 +44,7 @@ regulatorio = AgenteRegulatorio()
 comunicacao = AgenteComunicacao()
 
 
-def carregar_areas_sinteticas() -> Dict[str, AreaData]:
+def carregar_areas_sinteticas() -> dict[str, AreaData]:
     """Inicializa as 7 areas corporativas da empresa ficticia com metricas e eventos."""
     areas = [
         AreaData(
@@ -198,7 +190,7 @@ init_store()
 def executar_fechamento_mensal() -> FechamentoSummaryResponse:
     """Executa a esteira de fechamento nas 7 areas sinteticas."""
     init_store()
-    casos_processados: List[CasoRiskCard] = []
+    casos_processados: list[CasoRiskCard] = []
     elegiveis_count = 0
     bloqueadas_count = 0
 
@@ -233,7 +225,7 @@ def executar_fechamento_mensal() -> FechamentoSummaryResponse:
                 perguntas_escuta_gestor=[],
                 status="BLOCKED_PRIVACY",
                 fontes=["cadastro_rh", "politica_lgpd"],
-                data_geracao=datetime.now(timezone.utc).isoformat(),
+                data_geracao=datetime.now(UTC).isoformat(),
             )
             STORE_CASOS[caso_id] = card_bloqueado
             casos_processados.append(card_bloqueado)
@@ -293,7 +285,7 @@ def executar_fechamento_mensal() -> FechamentoSummaryResponse:
             medida_nr1=dados_nr1["medida_sugerida"],
         )
 
-        caso_id = f"caso_{area.area_id}_{datetime.now(timezone.utc).strftime('%Y%m')}"
+        caso_id = f"caso_{area.area_id}_{datetime.now(UTC).strftime('%Y%m')}"
         card = CasoRiskCard(
             caso_id=caso_id,
             area_id=area.area_id,
@@ -313,7 +305,7 @@ def executar_fechamento_mensal() -> FechamentoSummaryResponse:
             perguntas_escuta_gestor=perguntas_1on1,
             status=status_card,
             fontes=["ponto", "folha", "desligamentos", "pesquisa_pulso", "eventos_contexto"],
-            data_geracao=datetime.now(timezone.utc).isoformat(),
+            data_geracao=datetime.now(UTC).isoformat(),
         )
         STORE_CASOS[caso_id] = card
         casos_processados.append(card)
@@ -361,7 +353,7 @@ def registrar_decisao_rh(caso_id: str, payload: DecisaoRequest) -> DecisaoRespon
     acao_normalizada = payload.acao.upper().strip()
     status_anterior = caso.status
 
-    protocolo_gro = f"GRO-NR1-{datetime.now(timezone.utc).strftime('%Y%m')}-{uuid.uuid4().hex[:6].upper()}"
+    protocolo_gro = f"GRO-NR1-{datetime.now(UTC).strftime('%Y%m')}-{uuid.uuid4().hex[:6].upper()}"
 
     if acao_normalizada in ["APROVADO", "APROVAR"]:
         caso.status = "APROVADO"
@@ -390,7 +382,7 @@ def registrar_decisao_rh(caso_id: str, payload: DecisaoRequest) -> DecisaoRespon
         "texto_ajustado": payload.acao_ajustada_texto,
         "prazo_dias": payload.prazo_dias,
         "protocolo_gro": protocolo_gro,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
     try:
@@ -428,7 +420,7 @@ def consultar_chat_copiloto(payload: ChatQueryRequest) -> ChatQueryResponse:
         )
 
     texto_lower = texto.lower()
-    areas_mencionadas: List[str] = []
+    areas_mencionadas: list[str] = []
 
     for aid, a in STORE_AREAS.items():
         if a.area_name.lower() in texto_lower or aid in texto_lower:
@@ -490,67 +482,10 @@ def consultar_chat_copiloto(payload: ChatQueryRequest) -> ChatQueryResponse:
 
 
 def create_app() -> FastAPI:
-    """Instancia a aplicacao principal vitAI FastAPI com rotas diretas e modulares."""
-    app = FastAPI(
-        title="vitAI API - Gestao de Riscos Psicossociais (NR-1)",
-        description=(
-            "Digital Worker de Inteligencia Psicossocial e Conformidade com a NR-1 "
-            "(Portaria MTE nº 1.419/2024 / GRO e PGR). Converge Challenge | Time Booleanas."
-        ),
-        version="0.2.0",
-        docs_url="/docs",
-        redoc_url="/redoc",
-    )
+    """Alias de compatibilidade: nunca expor o STORE_* legado por HTTP."""
+    from app.presentation.main import create_application
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-    # 1. ROTA POST /fechamento
-    app.post(
-        "/fechamento",
-        response_model=FechamentoSummaryResponse,
-        status_code=status.HTTP_200_OK,
-        tags=["Pessoa B - Core Fechamento"],
-    )(executar_fechamento_mensal)
-
-    # 2. ROTA GET /areas/{area_id}
-    app.get(
-        "/areas/{area_id}",
-        response_model=AreaData,
-        status_code=status.HTTP_200_OK,
-        tags=["Pessoa B - Areas"],
-    )(obter_dados_area)
-
-    # 3. ROTA POST /casos/{caso_id}/decisao
-    app.post(
-        "/casos/{caso_id}/decisao",
-        response_model=DecisaoResponse,
-        status_code=status.HTTP_200_OK,
-        tags=["Pessoa B - Deliberacao Humana"],
-    )(registrar_decisao_rh)
-
-    # 4. ROTA POST /chat/query
-    app.post(
-        "/chat/query",
-        response_model=ChatQueryResponse,
-        status_code=status.HTTP_200_OK,
-        tags=["Pessoa B - Copiloto Chat"],
-    )(consultar_chat_copiloto)
-
-    # Integracao com a API v1 consumida pelo Frontend Angular vitAI
-    app.include_router(health_v1.router, prefix="/api/v1/health", tags=["Health"])
-    app.include_router(areas_v1.router, prefix="/api/v1/areas", tags=["Areas & Sinais"])
-    app.include_router(risk_cards_v1.router, prefix="/api/v1/risk-cards", tags=["Cards de Atencao"])
-    app.include_router(pgr_v1.router, prefix="/api/v1/pgr", tags=["PGR / NR-1"])
-    app.include_router(chat_v1.router, prefix="/api/v1/chat", tags=["Chat do Agente"])
-    app.include_router(closing_v1.router, prefix="/api/v1/fechamento", tags=["Fechamento"])
-
-    return app
+    return create_application()
 
 
 app = create_app()

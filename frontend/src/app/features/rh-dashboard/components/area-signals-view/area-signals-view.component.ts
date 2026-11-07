@@ -38,7 +38,7 @@ import { AreaHistoryComparison } from '../../../../core/models/signals.model';
 
             <p class="text-sm text-slate-700 leading-relaxed">
               Esta equipe possui <strong>{{ comparison.headcount }} colaboradores</strong> (quórum inferior ao limite de segurança de <strong>5 pessoas</strong>).
-              Para impedir a identificação indireta de indivíduos por dedução ou exclusão estatística, o Pulso oculta automaticamente as métricas agregadas desta área.
+              Para impedir a identificação indireta de indivíduos por dedução ou exclusão estatística, o VytAI oculta automaticamente as métricas agregadas desta área.
             </p>
 
             <div class="mt-3 rounded-xl border border-amber-200 bg-white/80 p-3.5 text-xs text-amber-900 space-y-1.5">
@@ -145,10 +145,10 @@ import { AreaHistoryComparison } from '../../../../core/models/signals.model';
             </p>
           </div>
 
-          <!-- Card de Pesquisa Pulso (Nota de Carga) -->
+          <!-- Card de Pesquisa VytAI (Nota de Carga) -->
           <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4" *ngIf="comparison.notaCargaTrabalhoAtual">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold text-slate-600">Nota de Carga na Pesquisa Pulso</span>
+              <span class="text-xs font-semibold text-slate-600">Nota de Carga na Pesquisa VytAI</span>
               <span class="text-sm font-bold font-mono" [ngClass]="comparison.notaCargaTrabalhoAtual < 3 ? 'text-rose-600' : 'text-emerald-600'">
                 {{ comparison.notaCargaTrabalhoAtual }} / 5.0
                 <span class="text-xs font-normal text-slate-400 line-through" *ngIf="comparison.notaCargaTrabalhoAnterior">

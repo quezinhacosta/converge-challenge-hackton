@@ -42,6 +42,7 @@ class RunAreaAnalysisUseCase:
         level = _value(analysis["risk_level"])
         result: dict[str, Any] = {
             "areaId": analysis["area_id"],
+            "analysisStatus": analysis.get("analysis_status", "ELEGIVEL"),
             "areaName": analysis["area_name"],
             "riskLevel": level,
             "factor": _value(analysis["factor"]),
@@ -52,7 +53,7 @@ class RunAreaAnalysisUseCase:
             "cardStatus": "SEM_CARD",
             "cardId": None,
         }
-        if result["isAnonymized"] or level == RiskLevel.VERDE.value:
+        if level is None or result["isAnonymized"] or level == RiskLevel.VERDE.value:
             return result
 
         pending = [

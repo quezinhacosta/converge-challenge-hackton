@@ -30,7 +30,7 @@ export interface ChatMessage {
           </div>
           <div>
             <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              Copilot Pulso NR-1
+              Copilot VytAI NR-1
               <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.2 text-[10px] font-semibold text-emerald-800">
                 Online
               </span>
@@ -100,7 +100,7 @@ export interface ChatMessage {
             <span class="mt-1 block text-right text-[10px] text-indigo-200 font-mono">{{ msg.timestamp }}</span>
           </div>
 
-          <!-- Mensagem do Pulso: Caso Bloqueado por Guardrail Ético / LGPD -->
+          <!-- Mensagem do VytAI: Caso Bloqueado por Guardrail Ético / LGPD -->
           <div
             *ngIf="msg.sender === 'pulso' && msg.isRefusal"
             class="max-w-[90%] rounded-2xl rounded-tl-sm border border-amber-300 bg-amber-50/80 p-4 shadow-xs space-y-2"
@@ -141,7 +141,7 @@ export interface ChatMessage {
             </div>
           </div>
 
-          <!-- Mensagem do Pulso: Resposta Normal / Corporativa -->
+          <!-- Mensagem do VytAI: Resposta Normal / Corporativa -->
           <div
             *ngIf="msg.sender === 'pulso' && !msg.isRefusal"
             class="max-w-[90%] rounded-2xl rounded-tl-sm border border-slate-200/90 bg-white p-4 shadow-xs space-y-2"
@@ -152,7 +152,7 @@ export interface ChatMessage {
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                 </svg>
               </div>
-              <span class="text-[11px] font-bold text-slate-800">Resposta Pulso (Agente NR-1)</span>
+              <span class="text-[11px] font-bold text-slate-800">Resposta VytAI (Agente NR-1)</span>
             </div>
 
             <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">
@@ -177,7 +177,7 @@ export interface ChatMessage {
             <div class="h-2 w-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.2s]"></div>
             <div class="h-2 w-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.4s]"></div>
           </div>
-          <span>Pulso cruzando dados de ponto, folha e guardrails de conformidade...</span>
+          <span>VytAI cruzando dados de ponto, folha e guardrails de conformidade...</span>
         </div>
       </div>
 

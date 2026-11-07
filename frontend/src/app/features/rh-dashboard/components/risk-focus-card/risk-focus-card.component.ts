@@ -143,7 +143,7 @@ import { RiskCard, ResolveRiskCardPayload } from '../../../../core/models/risk-c
             </div>
 
             <div class="rounded-lg bg-white p-3 border border-slate-200/70 shadow-xs">
-              <span class="block text-[11px] font-medium text-slate-500">Nota Pesquisa Pulso</span>
+              <span class="block text-[11px] font-medium text-slate-500">Nota Pesquisa VytAI</span>
               <div class="mt-1 flex items-baseline gap-1">
                 <span class="text-xl font-bold font-mono text-rose-600">2.4</span>
                 <span class="text-[10px] text-slate-400 line-through">3.9</span>
@@ -217,7 +217,7 @@ import { RiskCard, ResolveRiskCardPayload } from '../../../../core/models/risk-c
             <div class="space-y-1">
               <div class="flex items-center gap-2">
                 <h5 class="text-xs font-bold uppercase tracking-wider text-indigo-900">
-                  Hipótese de Contexto Organizacional (Digital Worker Pulso)
+                  Hipótese de Contexto Organizacional (Digital Worker VytAI)
                 </h5>
                 <span class="rounded bg-indigo-100 px-1.5 py-0.2 text-[10px] font-semibold text-indigo-700">
                   Correlação Temporal

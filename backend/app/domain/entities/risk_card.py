@@ -2,13 +2,13 @@
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
 
 
-class CardStatus(str, Enum):
+class CardStatus(StrEnum):
     """Estado de tramitacao e decisao humana sobre o ponto focal."""
 
     ABERTO = "ABERTO"  # Gerado pelo Pulso, aguardando analise do RH
@@ -67,3 +67,6 @@ class RiskCard:
     shap_breakdown: list[dict[str, Any]] = field(default_factory=list)
     ai_provider_used: str = "xgboost+gemini-1.5-pro"
     ai_fallback_triggered: bool = False
+
+    fontes_documentais: list[dict[str, Any]] = field(default_factory=list)
+    evidencia_documental_suficiente: bool | None = None

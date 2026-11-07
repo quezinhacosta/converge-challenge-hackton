@@ -44,7 +44,17 @@ class PulsoApiError(ToolError):
 def _request(method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
     url = f"{API_URL}{path}"
     try:
-        response = httpx.request(method, url, json=payload, timeout=TIMEOUT_SECONDS)
+        # Este processo stdio e de um unico principal. Nao compartilhar entre usuarios.
+        headers = {}
+        token = os.getenv("VYTAI_API_ACCESS_TOKEN")
+        empresa = os.getenv("VYTAI_EMPRESA_ID")
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        if empresa:
+            headers["X-Empresa-Id"] = empresa
+        response = httpx.request(
+            method, url, json=payload, headers=headers, timeout=TIMEOUT_SECONDS
+        )
     except httpx.HTTPError as exc:
         raise PulsoApiError(
             f"API do Pulso indisponivel em {API_URL}. Inicie o backend (uvicorn). Detalhe: {exc}"
@@ -176,6 +186,8 @@ def main() -> None:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
+    if args.http and os.getenv("VYTAI_MODE", "production") != "demo":
+        parser.error("MCP HTTP multiusuario requer transporte autenticado; use stdio por usuario.")
 
     # Em stdio, stdout e o canal do protocolo: logs vao para stderr.
     logging.basicConfig(level=logging.WARNING)

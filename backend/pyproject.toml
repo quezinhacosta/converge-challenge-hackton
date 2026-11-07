@@ -11,7 +11,7 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi>=0.111.0",
+    "fastapi>=0.121.0,<1",
     "uvicorn[standard]>=0.30.0",
     "pydantic>=2.7.0",
     "pandas>=2.2.0",
@@ -19,7 +19,12 @@ dependencies = [
     "python-multipart>=0.0.9",
     "requests>=2.32.0",
     "strands-agents[openai]>=1.64.0",
-    "python-dotenv>=1.0.0"
+    "python-dotenv>=1.0.0",
+    "SQLAlchemy>=2.0,<2.1",
+    "alembic>=1.13,<2",
+    "psycopg[binary]>=3.2,<4",
+    "PyJWT[crypto]>=2.10,<3",
+    "pypdf>=6,<7"
 ]
 
 [project.optional-dependencies]

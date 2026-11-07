@@ -2,7 +2,6 @@
 
 from typing import Any, Protocol
 
-from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
 from app.domain.repositories.interfaces import (
     AreaRepository,
     SignalRepository,
@@ -69,8 +68,9 @@ class AnalyzePsychosocialRisksUseCase:
                 "area_id": area.id,
                 "area_name": area.name,
                 "area_headcount": area.headcount,
-                "risk_level": RiskLevel.VERDE,
-                "factor": PsychosocialRiskFactor.ESTAVEL_SEM_FATOR,
+                "risk_level": None,
+                "analysis_status": "BLOQUEADO_PRIVACIDADE",
+                "factor": None,
                 "evidence_summary": (
                     "Area com menos de 5 pessoas: dados ocultados para evitar identificacao."
                 ),
@@ -78,7 +78,7 @@ class AnalyzePsychosocialRisksUseCase:
                 "context_events": [],
                 "is_anonymized": True,
                 "shap_breakdown": [],
-                "risk_score": 0.0,
+                "risk_score": None,
                 "ai_execution_metadata": {},
             }
 
@@ -92,17 +92,18 @@ class AnalyzePsychosocialRisksUseCase:
             for e in events
         ]
 
-        if not metrics_history:
+        if len(metrics_history) < 2:
             return {
                 "area_id": area.id,
                 "area_name": area.name,
-                "risk_level": RiskLevel.VERDE.value,
-                "factor": PsychosocialRiskFactor.ESTAVEL_SEM_FATOR.value,
+                "risk_level": None,
+                "analysis_status": "DADOS_INSUFICIENTES",
+                "factor": None,
                 "evidence_summary": "Sem historico suficiente para avaliacao.",
                 "suggested_action": "Continuar monitoramento.",
                 "context_events": event_dicts,
                 "shap_breakdown": [],
-                "risk_score": 0.0,
+                "risk_score": None,
             }
 
         current = metrics_history[0]
@@ -133,7 +134,11 @@ class AnalyzePsychosocialRisksUseCase:
             "pedidos_demissao_periodo": current.resignation_requests_count,
             "denuncias_contagem": sum(m.harassment_complaints_count for m in metrics_history[:2]),
             "media_empresa_pedidos_demissao": 1.0,
-            "queda_nota_clima": 1.5 if variacao_dias > 30 else 0.0,
+            "queda_nota_clima": max(
+                0.0,
+                (prev_list[0].pulse_survey_workload_score or 0.0)
+                - (current.pulse_survey_workload_score or 0.0),
+            ),
         }
 
         reasoner_result = self.reasoner.correlate_and_classify(

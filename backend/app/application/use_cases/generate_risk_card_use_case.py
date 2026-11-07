@@ -89,7 +89,7 @@ class GenerateRiskCardUseCase:
             "desligamentos",
             "pesquisa pulso",
             "eventos_contexto",
-            "xgboost_shap",
+            "regras_transparentes_v1",
         ]
 
         risk_score = float(analysis_result.get("risk_score", 0.0))

@@ -42,7 +42,9 @@ class PulsoAgentLLM:
         """
         self.api_key = api_key
         self.model_name = model_name
-        self.ml_engine = xgboost_engine or XGBoostRiskEngine()
+        from app.infrastructure.scoring.transparent_risk_engine import TransparentRiskEngine
+
+        self.ml_engine = xgboost_engine or TransparentRiskEngine()
         self.failover_manager = failover_manager or FailoverManager()
         self.devolutiva_writer = devolutiva_writer
 
@@ -147,4 +149,10 @@ class PulsoAgentLLM:
     def generate_team_response(self, query_text: str) -> tuple[str, list[str]]:
         """Gera resposta sobre equipes no chat mantendo compatibilidade com use cases existentes."""
         reply, _ = self.failover_manager.generate_chat_reply(query_text, {})
-        return reply, ["ponto", "folha", "desligamentos", "pesquisa_pulso", "xgboost_shap"]
+        return reply, [
+            "ponto",
+            "folha",
+            "desligamentos",
+            "pesquisa_pulso",
+            "regras_transparentes_v1",
+        ]
