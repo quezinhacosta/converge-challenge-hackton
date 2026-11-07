@@ -1,7 +1,6 @@
 """Caso de uso para comparacao historica, correlacao com contexto e classificacao de risco NR-1."""
 
-from typing import List, Protocol
-from app.domain.entities.risk_card import RiskCard
+from typing import Any, Dict, Protocol
 from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
 from app.domain.repositories.interfaces import (
     AreaRepository,
@@ -16,7 +15,7 @@ class PsychosocialRiskReasoner(Protocol):
     def correlate_and_classify(
         self,
         area_name: str,
-        history_delta: dict,
+        history_delta: Dict[str, Any],
         context_events: list,
         survey_themes: list,
     ) -> tuple[RiskLevel, PsychosocialRiskFactor, str, str]:
@@ -44,28 +43,73 @@ class AnalyzePsychosocialRisksUseCase:
         survey_repository: SurveyRepository,
         reasoner: PsychosocialRiskReasoner,
     ) -> None:
-        """Inicializa o caso de uso analitico.
-
-        Argumentos:
-            area_repository: Repositorio de equipes.
-            signal_repository: Repositorio de sinais de ponto, folha, atestados e desfalques.
-            survey_repository: Repositorio de pesquisas pulso anonimas.
-            reasoner: Servico de correlacao e enquadramento de regras da NR-1.
-        """
+        """Inicializa o caso de uso analitico."""
         self.area_repository = area_repository
         self.signal_repository = signal_repository
         self.survey_repository = survey_repository
         self.reasoner = reasoner
 
-    def execute(self, area_id: str) -> dict:
+    def execute(self, area_id: str) -> Dict[str, Any]:
         """Analisa os riscos psicossociais da area para a competencia corrente.
 
         Argumentos:
             area_id: Identificador da area em avaliacao.
 
         Retorna:
-            dict: Nivel de risco, fator psicossocial associado, evidencias e correlacoes.
+            Dict[str, Any]: Nivel de risco, fator psicossocial associado, evidencias e correlacoes.
         """
-        raise NotImplementedError(
-            "AnalyzePsychosocialRisksUseCase.execute e um stub de interface estrutural."
+        area = self.area_repository.get_by_id(area_id)
+        if not area:
+            raise ValueError(f"Area '{area_id}' nao encontrada.")
+
+        metrics_history = self.signal_repository.get_metrics_history(area_id, months=6)
+        events = self.signal_repository.get_context_events(area_id)
+        survey_summary = self.survey_repository.get_latest_summary(area_id)
+
+        survey_themes = survey_summary.summarized_themes if survey_summary else []
+        event_dicts = [
+            {"date": e.event_date.isoformat(), "type": e.event_type.value, "desc": e.description}
+            for e in events
+        ]
+
+        if not metrics_history:
+            return {
+                "area_id": area.id,
+                "area_name": area.name,
+                "risk_level": RiskLevel.VERDE.value,
+                "factor": PsychosocialRiskFactor.ESTAVEL_SEM_FATOR.value,
+                "evidence_summary": "Sem historico suficiente para avaliacao.",
+                "suggested_action": "Continuar monitoramento.",
+                "context_events": event_dicts,
+            }
+
+        current = metrics_history[0]
+        prev_list = metrics_history[1:] if len(metrics_history) > 1 else metrics_history
+        avg_days = sum(m.certificate_days_count for m in prev_list) / len(prev_list) if prev_list else current.certificate_days_count
+        avg_he = sum(m.overtime_hours_avg for m in prev_list) / len(prev_list) if prev_list else current.overtime_hours_avg
+
+        variacao_dias = round(((current.certificate_days_count - avg_days) / avg_days) * 100, 1) if avg_days > 0 else 0.0
+        variacao_he = round(((current.overtime_hours_avg - avg_he) / avg_he) * 100, 1) if avg_he > 0 else 0.0
+
+        history_delta = {
+            "variacao_dias_atestado_pct": variacao_dias,
+            "variacao_horas_extras_pct": variacao_he,
+            "pedidos_demissao_periodo": current.resignation_requests_count,
+            "denuncias_contagem": sum(m.harassment_complaints_count for m in metrics_history[:2]),
+        }
+
+        level, factor, evidence, action = self.reasoner.correlate_and_classify(
+            area.name, history_delta, event_dicts, survey_themes
         )
+
+        return {
+            "area_id": area.id,
+            "area_name": area.name,
+            "area_headcount": area.headcount,
+            "risk_level": level,
+            "factor": factor,
+            "evidence_summary": evidence,
+            "suggested_action": action,
+            "context_events": event_dicts,
+            "history_delta": history_delta,
+        }

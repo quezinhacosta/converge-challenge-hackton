@@ -2,7 +2,7 @@
 
 from datetime import date
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from app.application.dtos.compat import BaseModel, Field
 
 
 class AreaMetricsDTO(BaseModel):

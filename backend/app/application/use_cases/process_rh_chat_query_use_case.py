@@ -1,14 +1,13 @@
 """Caso de uso para processamento de perguntas do RH no chat com aplicacao dos guardrails eticos."""
 
-from typing import Protocol
+from typing import Protocol, Tuple
 from app.application.dtos.chat_dto import ChatQueryRequestDTO, ChatQueryResponseDTO
-from app.domain.repositories.interfaces import AreaRepository, SignalRepository
 
 
 class EthicalGuardrailValidator(Protocol):
     """Protocolo de deteccao de violacao de privacidade (pedidos individuais / quebra de LGPD)."""
 
-    def inspect_query(self, query_text: str) -> tuple[bool, str | None]:
+    def inspect_query_for_individual_data(self, query_text: str) -> Tuple[bool, str | None]:
         """Avalia se a consulta do usuario solicita dados de individuos ou rankings pessoais."""
         ...
 
@@ -35,24 +34,30 @@ class ProcessRhChatQueryUseCase:
         guardrail_validator: EthicalGuardrailValidator,
         chat_service: AgentChatService,
     ) -> None:
-        """Inicializa o caso de uso.
-
-        Argumentos:
-            guardrail_validator: Validador deterministico e semantico de privacidade.
-            chat_service: Servico de raciocinio em laco de ferramentas para areas.
-        """
+        """Inicializa o caso de uso."""
         self.guardrail_validator = guardrail_validator
         self.chat_service = chat_service
 
     def execute(self, request: ChatQueryRequestDTO) -> ChatQueryResponseDTO:
-        """Processa a mensagem do usuario no chat, aplicando guardrails antes de consultar ferramentas.
+        """Processa a mensagem do usuario no chat, aplicando guardrails antes de consultar ferramentas."""
+        is_blocked, refusal_reason = self.guardrail_validator.inspect_query_for_individual_data(
+            request.query_text
+        )
 
-        Argumentos:
-            request: DTO contendo o texto da mensagem e dados do usuario.
+        # Caso 5 do Pitch: Tentativa de pedir dados de individuo barrada
+        if is_blocked and refusal_reason:
+            return ChatQueryResponseDTO(
+                reply_text=refusal_reason,
+                is_refusal=True,
+                refusal_reason="LGPD / Foco exclusivo em coletivos e areas (NR-1)",
+                sources_used=["guardrail_privacidade_lgpd"],
+            )
 
-        Retorna:
-            ChatQueryResponseDTO: Resposta autorizada sobre times ou recusa justificada.
-        """
-        raise NotImplementedError(
-            "ProcessRhChatQueryUseCase.execute e um stub de interface estrutural."
+        # Consulta permitida sobre areas/times
+        reply_text, sources = self.chat_service.generate_team_response(request.query_text)
+        return ChatQueryResponseDTO(
+            reply_text=reply_text,
+            is_refusal=False,
+            refusal_reason=None,
+            sources_used=sources,
         )
