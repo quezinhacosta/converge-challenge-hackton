@@ -22,6 +22,9 @@ from app.infrastructure.guardrails.privacy_guardrail import (
     PrivacyAndEthicsGuardrail,
 )
 from app.infrastructure.llm.pulso_agent import PulsoAgentLLM
+from app.infrastructure.llm.resilience.failover_manager import FailoverManager
+from app.infrastructure.llm.resilience.gemini_provider import GeminiProvider
+from app.infrastructure.llm.resilience.strands_provider import StrandsFeatherlessProvider
 from app.infrastructure.repositories.in_memory_pulso_repositories import (
     InMemoryAreaRepository,
     InMemoryPgrInventoryRepository,
@@ -29,6 +32,7 @@ from app.infrastructure.repositories.in_memory_pulso_repositories import (
     InMemorySignalRepository,
     InMemorySurveyRepository,
 )
+from app.infrastructure.tools.strands_area_tools import build_area_tools
 from scripts.seed_synthetic_data import seed_in_memory_repositories
 
 
@@ -53,12 +57,23 @@ class PulsoAppContainer:
 
         # Componentes de infraestrutura
         self.guardrail = PrivacyAndEthicsGuardrail()
-        self.llm_agent = PulsoAgentLLM()
-
-        # Casos de uso
         self.collect_signals_uc = CollectAndAggregateSignalsUseCase(
             self.area_repo, self.signal_repo, self.guardrail
         )
+
+        # Camada 2: agentes Strands na Featherless (primario), Gemini (secundario), regras (local)
+        self.llm_provider = StrandsFeatherlessProvider(
+            chat_tools=build_area_tools(self.area_repo, self.collect_signals_uc)
+        )
+        self.llm_agent = PulsoAgentLLM(
+            failover_manager=FailoverManager(
+                primary_provider=self.llm_provider,
+                secondary_provider=GeminiProvider(),
+            ),
+            devolutiva_writer=self.llm_provider,
+        )
+
+        # Casos de uso
         self.analyze_risks_uc = AnalyzePsychosocialRisksUseCase(
             self.area_repo, self.signal_repo, self.survey_repo, self.llm_agent
         )

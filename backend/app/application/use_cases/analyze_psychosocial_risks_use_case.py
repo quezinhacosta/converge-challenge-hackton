@@ -63,6 +63,25 @@ class AnalyzePsychosocialRisksUseCase:
         if not area:
             raise ValueError(f"Area '{area_id}' nao encontrada.")
 
+        # Guardrail LGPD: grupos com menos de 5 pessoas nunca sao analisados nem enviados ao LLM.
+        if not area.is_eligible_for_analytics:
+            return {
+                "area_id": area.id,
+                "area_name": area.name,
+                "area_headcount": area.headcount,
+                "risk_level": RiskLevel.VERDE,
+                "factor": PsychosocialRiskFactor.ESTAVEL_SEM_FATOR,
+                "evidence_summary": (
+                    "Area com menos de 5 pessoas: dados ocultados para evitar identificacao."
+                ),
+                "suggested_action": "Agregar a area ao nivel organizacional superior.",
+                "context_events": [],
+                "is_anonymized": True,
+                "shap_breakdown": [],
+                "risk_score": 0.0,
+                "ai_execution_metadata": {},
+            }
+
         metrics_history = self.signal_repository.get_metrics_history(area_id, months=6)
         events = self.signal_repository.get_context_events(area_id)
         survey_summary = self.survey_repository.get_latest_summary(area_id)

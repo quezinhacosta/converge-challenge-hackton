@@ -5,6 +5,7 @@ Integracao da Arquitetura em 2 Camadas:
     - Camada 2: Failover Manager Multi-Provider (Gemini com fallback deterministico e Circuit Breaker).
 """
 
+import logging
 from typing import Any
 
 from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
@@ -13,6 +14,8 @@ from app.infrastructure.llm.resilience.failover_manager import (
     FailoverManager,
 )
 from app.infrastructure.ml.xgboost_risk_engine import RiskPredictionResult, XGBoostRiskEngine
+
+logger = logging.getLogger(__name__)
 
 
 class PulsoAgentLLM:
@@ -30,12 +33,18 @@ class PulsoAgentLLM:
         model_name: str = "gemini-1.5-pro",
         xgboost_engine: XGBoostRiskEngine | None = None,
         failover_manager: FailoverManager | None = None,
+        devolutiva_writer: Any | None = None,
     ) -> None:
-        """Inicializa os motores da Camada 1 (ML) e Camada 2 (LLM Failover)."""
+        """Inicializa os motores da Camada 1 (ML) e Camada 2 (LLM Failover).
+
+        devolutiva_writer: provedor com generate_devolutiva(area, acao) e is_available();
+        se ausente ou com falha, a devolutiva usa o texto deterministico.
+        """
         self.api_key = api_key
         self.model_name = model_name
         self.ml_engine = xgboost_engine or XGBoostRiskEngine()
         self.failover_manager = failover_manager or FailoverManager()
+        self.devolutiva_writer = devolutiva_writer
 
     def correlate_and_classify(
         self,
@@ -116,6 +125,12 @@ class PulsoAgentLLM:
 
     def generate_devolutiva_text(self, area_name: str, action_description: str) -> str:
         """Gera o texto de devolutiva ('Voce falou, a empresa fez') em linguagem acolhedora."""
+        writer = self.devolutiva_writer
+        if writer is not None and writer.is_available():
+            try:
+                return str(writer.generate_devolutiva(area_name, action_description))
+            except Exception as exc:  # noqa: BLE001 - qualquer falha cai no texto local
+                logger.warning("Devolutiva via LLM falhou, usando texto local: %s", exc)
         return (
             f"Equipe {area_name}: Apos ouvirmos suas percepcoes nos check-ins recentes, "
             f"a lideranca e o RH formalizaram a seguinte medida de cuidado: {action_description}."
