@@ -1,7 +1,7 @@
 """Entidade de dominio representando o Ponto Focal de Atencao (Card de Risco) emitido ao RH."""
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import List, Optional
 

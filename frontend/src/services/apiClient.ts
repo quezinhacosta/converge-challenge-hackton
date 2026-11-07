@@ -1,38 +1,44 @@
 /**
- * Interface do cliente de integracao com a API FastAPI do PayTrust.
+ * Interface do cliente de integracao com a API FastAPI do Pulso.
  */
 
-import { BatchAuditSummary, AnomalyReport } from '../types/payroll';
-import { AbsenceRecord, SubstitutionRule } from '../types/absence';
+import { AreaInfo, PgrInventoryItem } from '../types/nr1';
+import { AreaHistoryComparison } from '../types/signals';
+import { ResolveRiskCardPayload, RiskCard } from '../types/riskCard';
 
-export interface PayTrustApiClient {
+export interface PulsoApiClient {
   /**
-   * Envia lote de folha para auditoria preditiva via modelo Isolation Forest.
+   * Consulta todas as areas com seus indicadores de headcount e anonimizacao.
    */
-  auditBatch(file: File): Promise<BatchAuditSummary>;
-
-  /**
-   * Recupera anomalias pendentes aguardando revisao humana em 1 clique pelo DP.
-   */
-  getPendingAnomalies(): Promise<AnomalyReport[]>;
+  listAreas(): Promise<AreaInfo[]>;
 
   /**
-   * Resolve uma anomalia (Human-in-the-Loop: aprovar liberacao ou rejeitar pagamento).
+   * Obtem comparativo historico e eventos de contexto de uma area especifica.
    */
-  resolveAnomaly(anomalyId: string, approved: boolean, note: string): Promise<void>;
+  getAreaSignals(areaId: string): Promise<AreaHistoryComparison>;
 
   /**
-   * Envia atestado medico para extracao e validacao automatica via OCR Vision.
+   * Lista os cards de atencao em aberto aguardando decisao do RH.
    */
-  uploadMedicalCertificate(employeeId: string, file: File): Promise<AbsenceRecord>;
+  listActiveRiskCards(): Promise<RiskCard[]>;
 
   /**
-   * Calcula a diferenca salarial proporcional por substituicao conforme a Sumula 159 do TST.
+   * Executa a decisao humana em 1 clique (Aprovar, Ajustar ou Descartar).
    */
-  calculateSubstitutionDifferential(params: {
-    substituteId: string;
-    replacedId: string;
-    startDate: string;
-    endDate: string;
-  }): Promise<SubstitutionRule>;
+  resolveRiskCard(cardId: string, payload: ResolveRiskCardPayload): Promise<PgrInventoryItem>;
+
+  /**
+   * Consulta o inventario formal de riscos do PGR (NR-1).
+   */
+  getPgrInventory(): Promise<PgrInventoryItem[]>;
+
+  /**
+   * Envia pergunta ao agente Pulso no chat (com verificacao de guardrail etico).
+   */
+  sendChatQuery(queryText: string): Promise<{
+    replyText: string;
+    isRefusal: boolean;
+    refusalReason?: string;
+    sourcesUsed: string[];
+  }>;
 }
