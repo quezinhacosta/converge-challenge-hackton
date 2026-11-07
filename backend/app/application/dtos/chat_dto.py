@@ -1,10 +1,9 @@
 """DTOs para a interacao do RH com o agente Pulso no chat corporativo."""
 
-from typing import List, Optional
-from app.application.dtos.compat import BaseModel, Field
+from app.application.dtos.compat import ApiModel, Field
 
 
-class ChatQueryRequestDTO(BaseModel):
+class ChatQueryRequestDTO(ApiModel):
     """Pergunta ou solicitacao enviada pelo RH ao agente Pulso no chat.
 
     Exemplos:
@@ -17,7 +16,7 @@ class ChatQueryRequestDTO(BaseModel):
     query_text: str = Field(..., min_length=2)
 
 
-class ChatQueryResponseDTO(BaseModel):
+class ChatQueryResponseDTO(ApiModel):
     """Resposta gerada pelo agente Pulso respeitando estritamente os limites eticos.
 
     Atributos:
@@ -29,5 +28,5 @@ class ChatQueryResponseDTO(BaseModel):
 
     reply_text: str
     is_refusal: bool = False
-    refusal_reason: Optional[str] = None
-    sources_used: List[str] = Field(default_factory=list)
+    refusal_reason: str | None = None
+    sources_used: list[str] = Field(default_factory=list)

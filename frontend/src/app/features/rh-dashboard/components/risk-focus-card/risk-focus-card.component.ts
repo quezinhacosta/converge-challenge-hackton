@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+  git import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RiskCard, ResolveRiskCardPayload } from '../../../../core/models/risk-card.model';
@@ -29,7 +29,7 @@ import { RiskCard, ResolveRiskCardPayload } from '../../../../core/models/risk-c
       ></div>
 
       <div class="p-6 pl-7 space-y-5">
-        <!-- Header: Severidade, Área, Headcount e Status -->
+        <!-- Header: Severidade, Área, Headcount, Score XGBoost e Provedor de IA -->
         <header class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div class="flex flex-wrap items-center gap-2.5">
             <!-- Pílula de Severidade com Dot Pulsante -->
@@ -52,6 +52,14 @@ import { RiskCard, ResolveRiskCardPayload } from '../../../../core/models/risk-c
               Risco {{ card.riskLevel === 'VERMELHO' ? 'Crítico (Alto)' : (card.riskLevel === 'AMARELO' ? 'Moderado (Médio)' : 'Estável') }}
             </span>
 
+            <!-- Score Matemático do XGBoost -->
+            <span
+              *ngIf="card.riskScore"
+              class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2.5 py-1 text-xs font-mono font-bold text-slate-800 border border-slate-200"
+            >
+              Score ML: {{ card.riskScore }} / 100
+            </span>
+
             <!-- Badge Fator de Risco da NR-1 -->
             <span class="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200">
               <svg class="h-3.5 w-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -61,13 +69,20 @@ import { RiskCard, ResolveRiskCardPayload } from '../../../../core/models/risk-c
             </span>
           </div>
 
-          <div class="flex items-center gap-2 text-xs text-slate-500">
-            <span class="inline-flex items-center gap-1 font-mono text-slate-400">
-              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <!-- Indicador do Provedor de IA e Resiliência -->
+            <span
+              class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium"
+              [ngClass]="card.aiFallbackTriggered ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-slate-100 text-slate-600'"
+              [title]="card.aiFallbackTriggered ? 'Plano de contingência ativado: IA substituída automaticamente sem interrupção' : 'Execução nominal'"
+            >
+              <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
               </svg>
-              Card ID: {{ card.cardId }}
+              {{ card.aiProviderUsed || 'xgboost + gemini-1.5-pro' }}
+              <span *ngIf="card.aiFallbackTriggered" class="font-bold text-amber-900">(Failover Ativo)</span>
             </span>
+
             <span
               class="rounded-full px-2.5 py-0.5 font-semibold"
               [ngClass]="{
@@ -93,7 +108,7 @@ import { RiskCard, ResolveRiskCardPayload } from '../../../../core/models/risk-c
           </p>
         </div>
 
-        <!-- Bloco de Evidências em Grid Visual com Fontes Tabulares -->
+        <!-- Bloco 1: Evidências Objetivas Consolidadas (Deltas vs Histórico) -->
         <section class="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4">
           <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
             <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -103,7 +118,6 @@ import { RiskCard, ResolveRiskCardPayload } from '../../../../core/models/risk-c
           </h4>
 
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <!-- Métrica 1: Atestados -->
             <div class="rounded-lg bg-white p-3 border border-slate-200/70 shadow-xs">
               <span class="block text-[11px] font-medium text-slate-500">Dias de Atestado</span>
               <div class="mt-1 flex items-baseline gap-1">
@@ -112,7 +126,6 @@ import { RiskCard, ResolveRiskCardPayload } from '../../../../core/models/risk-c
               </div>
             </div>
 
-            <!-- Métrica 2: Horas Extras -->
             <div class="rounded-lg bg-white p-3 border border-slate-200/70 shadow-xs">
               <span class="block text-[11px] font-medium text-slate-500">Horas Extras</span>
               <div class="mt-1 flex items-baseline gap-1">
@@ -121,7 +134,6 @@ import { RiskCard, ResolveRiskCardPayload } from '../../../../core/models/risk-c
               </div>
             </div>
 
-            <!-- Métrica 3: Pedidos de Demissão -->
             <div class="rounded-lg bg-white p-3 border border-slate-200/70 shadow-xs">
               <span class="block text-[11px] font-medium text-slate-500">Saídas Voluntárias</span>
               <div class="mt-1 flex items-baseline gap-1">
@@ -130,7 +142,6 @@ import { RiskCard, ResolveRiskCardPayload } from '../../../../core/models/risk-c
               </div>
             </div>
 
-            <!-- Métrica 4: Nota de Carga / Clima -->
             <div class="rounded-lg bg-white p-3 border border-slate-200/70 shadow-xs">
               <span class="block text-[11px] font-medium text-slate-500">Nota Pesquisa Pulso</span>
               <div class="mt-1 flex items-baseline gap-1">
@@ -146,7 +157,56 @@ import { RiskCard, ResolveRiskCardPayload } from '../../../../core/models/risk-c
           </p>
         </section>
 
-        <!-- Hipótese de Contexto (Motor de IA / Correlação Temporal) -->
+        <!-- Bloco 2: Explicabilidade Legal e Decomposição SHAP (O "Cérebro Matemático" XGBoost) -->
+        <section
+          *ngIf="card.shapBreakdown && card.shapBreakdown.length > 0"
+          class="rounded-xl border border-indigo-200/80 bg-indigo-50/40 p-4 space-y-3"
+        >
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-xs">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+              </span>
+              <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-950">
+                Auditoria de Explicabilidade Legal (SHAP / NR-1)
+              </h4>
+            </div>
+            <span class="rounded bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-800">
+              Modelo: XGBoost v1.2 &bull; Sem Caixa-Preta
+            </span>
+          </div>
+
+          <p class="text-[11px] text-slate-600">
+            Decomposição de Shapley exigida pelo MTE para comprovação de nexo causal sem alucinações:
+          </p>
+
+          <!-- Barras de Decomposição das Contribuições de Shapley -->
+          <div class="space-y-2.5 pt-1">
+            <div *ngFor="let item of card.shapBreakdown" class="space-y-1">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-semibold text-slate-800 flex items-center gap-1.5">
+                  <span class="h-1.5 w-1.5 rounded-full bg-indigo-500"></span>
+                  {{ item.display_name }}
+                  <span class="text-[10px] font-normal text-slate-500">({{ item.observed_value }})</span>
+                </span>
+                <span class="font-bold font-mono text-indigo-700">
+                  {{ item.contribution_pct }}% do risco
+                </span>
+              </div>
+              <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                <div
+                  class="h-full rounded-full transition-all duration-700"
+                  [ngClass]="item.contribution_pct > 30 ? 'bg-rose-500' : (item.contribution_pct > 20 ? 'bg-indigo-600' : 'bg-amber-500')"
+                  [style.width.%]="item.contribution_pct"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Bloco 3: Hipótese de Contexto (Motor de IA / Correlação Temporal) -->
         <section class="rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-50/70 via-white to-indigo-50/40 p-4">
           <div class="flex items-start gap-3">
             <div class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-xs">
@@ -170,7 +230,7 @@ import { RiskCard, ResolveRiskCardPayload } from '../../../../core/models/risk-c
           </div>
         </section>
 
-        <!-- Ação Sugerida pelo Agente com Reavaliação Programada -->
+        <!-- Bloco 4: Ação Sugerida pelo Agente com Reavaliação Programada -->
         <section class="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
           <div class="flex items-start gap-3">
             <div class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-xs">

@@ -7,11 +7,9 @@ Empresa Ficticia:
     - Cobre com precisao cirurgica os 7 casos de demonstracao do pitch.
 """
 
-from datetime import date, datetime, timezone
-from typing import Any, Dict, List
+from datetime import UTC, date, datetime
 
 from app.domain.entities.area import Area
-from app.domain.entities.pgr_inventory import PgrRiskItem
 from app.domain.entities.risk_card import CardStatus, RiskCard
 from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
 from app.domain.entities.signals import (
@@ -29,7 +27,7 @@ from app.infrastructure.repositories.in_memory_pulso_repositories import (
 )
 
 
-def get_synthetic_areas() -> List[Area]:
+def get_synthetic_areas() -> list[Area]:
     """Retorna o cadastro das 7 areas da empresa ficticia."""
     return [
         Area(
@@ -84,7 +82,7 @@ def get_synthetic_areas() -> List[Area]:
     ]
 
 
-def get_synthetic_context_events() -> List[ContextEvent]:
+def get_synthetic_context_events() -> list[ContextEvent]:
     """Retorna eventos corporativos de contexto que justificam as variacoes nos times."""
     return [
         # Caso 2: Nova meta de atendimentos implantada em agosto
@@ -114,9 +112,9 @@ def get_synthetic_context_events() -> List[ContextEvent]:
     ]
 
 
-def get_synthetic_metrics() -> List[AreaMonthlyMetrics]:
+def get_synthetic_metrics() -> list[AreaMonthlyMetrics]:
     """Retorna a serie historica de 6 meses para todas as areas."""
-    metrics: List[AreaMonthlyMetrics] = []
+    metrics: list[AreaMonthlyMetrics] = []
 
     # Competencias: Maio a Outubro de 2026
     periods = [
@@ -308,7 +306,7 @@ def get_synthetic_metrics() -> List[AreaMonthlyMetrics]:
     return metrics
 
 
-def get_synthetic_surveys() -> List[SurveySummary]:
+def get_synthetic_surveys() -> list[SurveySummary]:
     """Retorna os resultados sumarizados das pesquisas pulso anonimas."""
     return [
         SurveySummary(
@@ -345,7 +343,7 @@ def get_synthetic_surveys() -> List[SurveySummary]:
     ]
 
 
-def get_synthetic_initial_cards() -> List[RiskCard]:
+def get_synthetic_initial_cards() -> list[RiskCard]:
     """Retorna os cards que o Pulso emite para demonstracao no pitch."""
     return [
         # Caso 2: Atendimento ao Cliente (Card Vermelho)
@@ -375,7 +373,40 @@ def get_synthetic_initial_cards() -> List[RiskCard]:
                 "pesquisa pulso de outubro",
             ],
             status=CardStatus.ABERTO,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            risk_score=92.4,
+            shap_breakdown=[
+                {
+                    "feature_name": "delta_atestados",
+                    "display_name": "Aumento em Dias de Atestado (+45%)",
+                    "contribution_pct": 38.0,
+                    "observed_value": "+45% vs historico trimestral",
+                    "direction": "AGRAVANTE",
+                },
+                {
+                    "feature_name": "queda_nota_clima",
+                    "display_name": "Queda na Avaliacao de Carga / Clima",
+                    "contribution_pct": 27.0,
+                    "observed_value": "Queda de 3.9 para 2.4",
+                    "direction": "AGRAVANTE",
+                },
+                {
+                    "feature_name": "delta_horas_extras",
+                    "display_name": "Sobrecarga em Horas Extras (+60%)",
+                    "contribution_pct": 24.0,
+                    "observed_value": "+60% vs media basal",
+                    "direction": "AGRAVANTE",
+                },
+                {
+                    "feature_name": "razao_turnover",
+                    "display_name": "Pedidos de Demissao Voluntaria",
+                    "contribution_pct": 11.0,
+                    "observed_value": "4 saidas (media empresa: 1)",
+                    "direction": "AGRAVANTE",
+                },
+            ],
+            ai_provider_used="xgboost+gemini-1.5-pro",
+            ai_fallback_triggered=False,
         ),
         # Caso 3: Logistica (Card Amarelo)
         RiskCard(
@@ -397,7 +428,33 @@ def get_synthetic_initial_cards() -> List[RiskCard]:
             ),
             consulted_sources=["desligamentos", "pesquisa direcionada", "eventos_contexto"],
             status=CardStatus.ABERTO,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            risk_score=68.0,
+            shap_breakdown=[
+                {
+                    "feature_name": "razao_turnover",
+                    "display_name": "Concentracao de Pedidos de Demissao",
+                    "contribution_pct": 65.0,
+                    "observed_value": "5 pedidos apos troca de lideranca",
+                    "direction": "AGRAVANTE",
+                },
+                {
+                    "feature_name": "queda_suporte_lideranca",
+                    "display_name": "Queda no Suporte da Lideranca (Pesquisa)",
+                    "contribution_pct": 25.0,
+                    "observed_value": "Queda de 3.9 para 2.7",
+                    "direction": "AGRAVANTE",
+                },
+                {
+                    "feature_name": "variacao_atestados",
+                    "display_name": "Variacao Residual em Atestados",
+                    "contribution_pct": 10.0,
+                    "observed_value": "+5%",
+                    "direction": "AGRAVANTE",
+                },
+            ],
+            ai_provider_used="xgboost+gemini-1.5-pro",
+            ai_fallback_triggered=False,
         ),
         # Caso 4: Vendas (Escalonamento para Compliance)
         RiskCard(
@@ -419,7 +476,26 @@ def get_synthetic_initial_cards() -> List[RiskCard]:
             ),
             consulted_sources=["canal_denuncias_contagem"],
             status=CardStatus.ESCALADO_COMPLIANCE,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            risk_score=96.0,
+            shap_breakdown=[
+                {
+                    "feature_name": "denuncias_compliance",
+                    "display_name": "Concentracao de Denuncias no Canal de Etica",
+                    "contribution_pct": 85.0,
+                    "observed_value": "3 denuncias em 2 meses",
+                    "direction": "AGRAVANTE",
+                },
+                {
+                    "feature_name": "impacto_secundario",
+                    "display_name": "Impacto Secundario em Atestados",
+                    "contribution_pct": 15.0,
+                    "observed_value": "+12% atestados",
+                    "direction": "AGRAVANTE",
+                },
+            ],
+            ai_provider_used="xgboost+rule-based-compliance",
+            ai_fallback_triggered=False,
         ),
     ]
 
@@ -430,7 +506,7 @@ def seed_in_memory_repositories(
     risk_card_repo: InMemoryRiskCardRepository,
     pgr_repo: InMemoryPgrInventoryRepository,
     survey_repo: InMemorySurveyRepository,
-) -> Dict[str, int]:
+) -> dict[str, int]:
     """Popula os repositorios em memoria com a massa de dados dos 7 casos de demonstracao."""
     areas = get_synthetic_areas()
     for area in areas:

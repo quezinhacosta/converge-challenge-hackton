@@ -1,6 +1,7 @@
 """Camada de compatibilidade transparente para FastAPI e roteadores."""
 
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 try:
     from fastapi import APIRouter as _FastAPIRouter
@@ -36,18 +37,20 @@ except ImportError:
 
     class APIRouter:  # type: ignore[no-redef]
         def __init__(self, *args: Any, **kwargs: Any) -> None:
-            self.routes: List[Dict[str, Any]] = []
+            self.routes: list[dict[str, Any]] = []
 
         def get(self, path: str, *args: Any, **kwargs: Any) -> Callable:
             def decorator(func: Callable) -> Callable:
                 self.routes.append({"method": "GET", "path": path, "func": func})
                 return func
+
             return decorator
 
         def post(self, path: str, *args: Any, **kwargs: Any) -> Callable:
             def decorator(func: Callable) -> Callable:
                 self.routes.append({"method": "POST", "path": path, "func": func})
                 return func
+
             return decorator
 
         def include_router(self, router: Any, *args: Any, **kwargs: Any) -> None:
@@ -55,7 +58,7 @@ except ImportError:
 
     class FastAPI:  # type: ignore[no-redef]
         def __init__(self, *args: Any, **kwargs: Any) -> None:
-            self.routes: List[Dict[str, Any]] = []
+            self.routes: list[dict[str, Any]] = []
 
         def add_middleware(self, *args: Any, **kwargs: Any) -> None:
             pass
@@ -66,5 +69,5 @@ except ImportError:
     class CORSMiddleware:  # type: ignore[no-redef]
         pass
 
-    def Depends(dependency: Optional[Callable] = None) -> Any:  # type: ignore[no-redef]
+    def Depends(dependency: Callable | None = None) -> Any:  # type: ignore[no-redef]
         return dependency() if dependency else None

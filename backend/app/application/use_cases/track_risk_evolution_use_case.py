@@ -1,6 +1,7 @@
 """Caso de uso para medicao de eficacia e acompanhamento pos-acao (Etapa 9 do Pulso)."""
 
 from datetime import date
+
 from app.application.dtos.pgr_dto import ReassessmentEvaluationDTO
 from app.domain.repositories.interfaces import (
     PgrInventoryRepository,
@@ -39,22 +40,33 @@ class TrackRiskEvolutionUseCase:
         # Simulacao da reavaliacao de 60 dias (Caso 7 do Pitch: melhora confirmada)
         # Em producao, consulta metricas dos meses t+1 e t+2
         houve_melhora = True
+        # ATENCAO: valores fixos de demonstracao (os dados sinteticos nao tem meses futuros).
+        # O rastro de auditoria marca isso para nao parecer medicao real.
+        reducao_atestados_pct = 35.0
         resumo = (
-            f"Apos a acao implementada em {item.area_name}, observou-se reducao de 35% nos dias de atestado, "
-            f"normalizacao das horas extras para a media setorial e elevacao da nota de clima para 3.8."
+            f"[Simulacao de demonstracao] Apos a acao implementada em {item.area_name}, "
+            f"observou-se reducao de 35% nos dias de atestado, normalizacao das horas extras "
+            f"para a media setorial e elevacao da nota de clima para 3.8."
         )
 
         if houve_melhora:
             item.closure_date = date.today()
-            item.closure_notes = "Acao eficaz. Indicadores reestabelecidos aos niveis basais da organizacao."
+            item.closure_notes = (
+                "Acao eficaz. Indicadores reestabelecidos aos niveis basais da organizacao."
+            )
             item.is_reopened = False
-            item.audit_log.append(f"Ciclo encerrado com sucesso em {date.today().strftime('%d/%m/%Y')}.")
+            item.audit_log.append(
+                f"Ciclo encerrado em {date.today().strftime('%d/%m/%Y')} "
+                "(reavaliacao simulada para demonstracao)."
+            )
             self.pgr_repository.save(item)
 
             status_final = "FECHADO"
         else:
             item.is_reopened = True
-            item.audit_log.append(f"Reaberto em {date.today().strftime('%d/%m/%Y')} por ausencia de melhora.")
+            item.audit_log.append(
+                f"Reaberto em {date.today().strftime('%d/%m/%Y')} por ausencia de melhora."
+            )
             self.pgr_repository.save(item)
             status_final = "REABERTO"
 
@@ -64,4 +76,5 @@ class TrackRiskEvolutionUseCase:
             houve_melhora_indicadores=houve_melhora,
             status_final=status_final,
             resumo_evolucao=resumo,
+            reducao_atestados_pct=reducao_atestados_pct,
         )

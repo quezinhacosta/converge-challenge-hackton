@@ -2,7 +2,6 @@
 
 from abc import ABC, abstractmethod
 from datetime import date
-from typing import List, Optional
 
 from app.domain.entities.area import Area
 from app.domain.entities.pgr_inventory import PgrRiskItem
@@ -15,12 +14,12 @@ class AreaRepository(ABC):
     """Interface abstrata para consulta de areas e contagem de colaboradores."""
 
     @abstractmethod
-    def get_by_id(self, area_id: str) -> Optional[Area]:
+    def get_by_id(self, area_id: str) -> Area | None:
         """Recupera os dados cadastrais da area."""
         pass
 
     @abstractmethod
-    def list_all(self) -> List[Area]:
+    def list_all(self) -> list[Area]:
         """Lista todas as areas da organizacao."""
         pass
 
@@ -29,17 +28,17 @@ class SignalRepository(ABC):
     """Interface abstrata para consulta de sinais operacionais agregados e eventos de contexto."""
 
     @abstractmethod
-    def get_metrics_history(self, area_id: str, months: int = 6) -> List[AreaMonthlyMetrics]:
+    def get_metrics_history(self, area_id: str, months: int = 6) -> list[AreaMonthlyMetrics]:
         """Recupera o historico recente de metricas agregadas da area (ultimos 3 a 6 meses)."""
         pass
 
     @abstractmethod
-    def get_company_average_metrics(self, period: date) -> Optional[AreaMonthlyMetrics]:
+    def get_company_average_metrics(self, period: date) -> AreaMonthlyMetrics | None:
         """Calcula ou recupera a media consolidada da empresa para comparativo relativo."""
         pass
 
     @abstractmethod
-    def get_context_events(self, area_id: str) -> List[ContextEvent]:
+    def get_context_events(self, area_id: str) -> list[ContextEvent]:
         """Recupera eventos organizacionais (troca de gestor, nova meta) associados a area."""
         pass
 
@@ -53,13 +52,18 @@ class RiskCardRepository(ABC):
         pass
 
     @abstractmethod
-    def get_by_id(self, card_id: str) -> Optional[RiskCard]:
+    def get_by_id(self, card_id: str) -> RiskCard | None:
         """Recupera um card pelo seu identificador unico."""
         pass
 
     @abstractmethod
-    def list_active(self) -> List[RiskCard]:
+    def list_active(self) -> list[RiskCard]:
         """Lista todos os cards abertos aguardando analise humana do RH."""
+        pass
+
+    @abstractmethod
+    def list_all(self) -> list[RiskCard]:
+        """Lista todos os cards, em qualquer status."""
         pass
 
 
@@ -72,12 +76,12 @@ class PgrInventoryRepository(ABC):
         pass
 
     @abstractmethod
-    def list_all(self) -> List[PgrRiskItem]:
+    def list_all(self) -> list[PgrRiskItem]:
         """Lista todos os itens registrados no inventario de riscos ocupacionais."""
         pass
 
     @abstractmethod
-    def get_by_id(self, item_id: str) -> Optional[PgrRiskItem]:
+    def get_by_id(self, item_id: str) -> PgrRiskItem | None:
         """Recupera um item do PGR por identificador."""
         pass
 
@@ -86,7 +90,7 @@ class SurveyRepository(ABC):
     """Interface abstrata para sintese de pesquisas pulso e comunicados de devolutiva."""
 
     @abstractmethod
-    def get_latest_summary(self, area_id: str) -> Optional[SurveySummary]:
+    def get_latest_summary(self, area_id: str) -> SurveySummary | None:
         """Recupera a sintese anonima mais recente da pesquisa pulso da area."""
         pass
 

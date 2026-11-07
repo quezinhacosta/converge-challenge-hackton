@@ -1,7 +1,9 @@
 """Caso de uso para redigir o Ponto Focal de Atencao e escalar para o RH (Etapas 6 e 7 do Pulso)."""
 
-from datetime import datetime, timezone
-from typing import Any, Dict, Protocol
+from datetime import UTC, datetime
+from typing import Any, Protocol
+from uuid import uuid4
+
 from app.application.dtos.risk_card_dto import RiskCardDTO
 from app.domain.entities.risk_card import CardStatus, RiskCard
 from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
@@ -28,7 +30,7 @@ class GenerateRiskCardUseCase:
 
     Etapa 6 - Gerar o Ponto Focal:
         Escreve o card de atencao em linguagem simples, compilando evidencias quantitativas,
-        contexto organizacional, hipotese de fator de risco e proposta de acao.
+        contexto organizacional, explicabilidade SHAP, hipotese de fator de risco e proposta de acao.
     Etapa 7 - Escalar e Parar:
         Envia o card ao painel do RH responsavel e interrompe a automacao.
         Nada e registrado como decisao formal sem aprovacao previa humana.
@@ -45,12 +47,12 @@ class GenerateRiskCardUseCase:
         self.risk_card_repository = risk_card_repository
         self.content_generator = content_generator
 
-    def execute(self, area_id: str, analysis_result: Dict[str, Any]) -> RiskCardDTO:
+    def execute(self, area_id: str, analysis_result: dict[str, Any]) -> RiskCardDTO:
         """Gera o ponto focal e disponibiliza para apreciacao do RH.
 
         Argumentos:
             area_id: Identificador da area.
-            analysis_result: Resultado das etapas de comparacao e classificacao.
+            analysis_result: Resultado das etapas de comparacao e classificacao com XGBoost/SHAP.
 
         Retorna:
             RiskCardDTO: Card estruturado aguardando deliberacao humana.
@@ -81,10 +83,23 @@ class GenerateRiskCardUseCase:
         if factor == PsychosocialRiskFactor.ASSEDIO:
             status = CardStatus.ESCALADO_COMPLIANCE
 
-        sources = ["ponto", "folha", "desligamentos", "pesquisa pulso", "eventos_contexto"]
+        sources = [
+            "ponto",
+            "folha",
+            "desligamentos",
+            "pesquisa pulso",
+            "eventos_contexto",
+            "xgboost_shap",
+        ]
+
+        risk_score = float(analysis_result.get("risk_score", 0.0))
+        shap_breakdown = analysis_result.get("shap_breakdown", [])
+        ai_meta = analysis_result.get("ai_execution_metadata", {})
+        provider_used = ai_meta.get("provider_used", "xgboost+gemini-1.5-pro")
+        fallback_triggered = bool(ai_meta.get("fallback_triggered", False))
 
         card = RiskCard(
-            id=f"card_{area.id}_{int(datetime.now().timestamp())}",
+            id=f"card_{area.id}_{uuid4().hex[:10]}",
             area_id=area.id,
             area_name=area.name,
             area_headcount=area.headcount,
@@ -95,22 +110,30 @@ class GenerateRiskCardUseCase:
             suggested_action=action,
             status=status,
             consulted_sources=sources,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            risk_score=risk_score,
+            shap_breakdown=shap_breakdown,
+            ai_provider_used=provider_used,
+            ai_fallback_triggered=fallback_triggered,
         )
 
-        saved = self.risk_card_repository.save(card)
+        self.risk_card_repository.save(card)
 
         return RiskCardDTO(
-            card_id=saved.id,
-            area_id=saved.area_id,
-            area_name=saved.area_name,
-            area_headcount=saved.area_headcount,
-            risk_level=saved.risk_level.value,
-            fator_risco_provavel=saved.probable_risk_factor.value,
-            o_que_mudou_ultimos_meses=saved.evidence_summary,
-            contexto_organizacional=saved.context_description,
-            acao_sugerida=saved.suggested_action,
-            fontes_consultadas=saved.consulted_sources,
-            status=saved.status.value,
-            created_at=saved.created_at,
+            card_id=card.id,
+            area_id=card.area_id,
+            area_name=card.area_name,
+            area_headcount=card.area_headcount,
+            risk_level=card.risk_level.value,
+            fator_risco_provavel=card.probable_risk_factor.value,
+            o_que_mudou_ultimos_meses=card.evidence_summary,
+            contexto_organizacional=card.context_description,
+            acao_sugerida=card.suggested_action,
+            fontes_consultadas=card.consulted_sources,
+            status=card.status.value,
+            created_at=card.created_at,
+            risk_score=card.risk_score,
+            shap_breakdown=card.shap_breakdown,
+            ai_provider_used=card.ai_provider_used,
+            ai_fallback_triggered=card.ai_fallback_triggered,
         )

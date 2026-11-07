@@ -1,13 +1,14 @@
 """Caso de uso para processamento de perguntas do RH no chat com aplicacao dos guardrails eticos."""
 
-from typing import Protocol, Tuple
+from typing import Protocol
+
 from app.application.dtos.chat_dto import ChatQueryRequestDTO, ChatQueryResponseDTO
 
 
 class EthicalGuardrailValidator(Protocol):
     """Protocolo de deteccao de violacao de privacidade (pedidos individuais / quebra de LGPD)."""
 
-    def inspect_query_for_individual_data(self, query_text: str) -> Tuple[bool, str | None]:
+    def inspect_query_for_individual_data(self, query_text: str) -> tuple[bool, str | None]:
         """Avalia se a consulta do usuario solicita dados de individuos ou rankings pessoais."""
         ...
 
