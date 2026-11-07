@@ -27,7 +27,9 @@ class PulsoAgentTools:
             area_id: Identificador da area.
             meses: Quantidade de meses de historico.
         """
-        raise NotImplementedError("consultar_atestados_agregados e um stub de ferramenta estrutural.")
+        raise NotImplementedError(
+            "consultar_atestados_agregados e um stub de ferramenta estrutural."
+        )
 
     def consultar_desligamentos(self, area_id: str, meses: int = 6) -> Dict[str, Any]:
         """Consulta turnover, pedidos de demissao e temas agregados de saida para a area.
@@ -45,7 +47,9 @@ class PulsoAgentTools:
             area_id: Identificador da area.
             meses: Quantidade de meses de historico.
         """
-        raise NotImplementedError("consultar_denuncias_contagem e um stub de ferramenta estrutural.")
+        raise NotImplementedError(
+            "consultar_denuncias_contagem e um stub de ferramenta estrutural."
+        )
 
     def consultar_pesquisas(self, area_id: str) -> Dict[str, Any]:
         """Consulta notas medias de carga e comentarios sumarizados da pesquisa pulso anonima.

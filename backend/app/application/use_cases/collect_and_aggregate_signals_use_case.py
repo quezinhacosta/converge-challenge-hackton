@@ -52,7 +52,9 @@ class CollectAndAggregateSignalsUseCase:
 
         is_protected = self.anonymizer.is_group_protected(area.headcount)
         events = self.signal_repository.get_context_events(area_id)
-        event_descriptions = [f"{e.event_date.strftime('%d/%m/%Y')}: {e.description}" for e in events]
+        event_descriptions = [
+            f"{e.event_date.strftime('%d/%m/%Y')}: {e.description}" for e in events
+        ]
 
         # Se for grupo pequeno (< 5 pessoas), anonimiza por exclusao (Caso 6: Design)
         if not is_protected:
@@ -103,12 +105,18 @@ class CollectAndAggregateSignalsUseCase:
         )
 
         variacao_dias = (
-            round(((current_metric.certificate_days_count - avg_previous_days) / avg_previous_days) * 100, 1)
+            round(
+                ((current_metric.certificate_days_count - avg_previous_days) / avg_previous_days)
+                * 100,
+                1,
+            )
             if avg_previous_days > 0
             else 0.0
         )
         variacao_he = (
-            round(((current_metric.overtime_hours_avg - avg_previous_he) / avg_previous_he) * 100, 1)
+            round(
+                ((current_metric.overtime_hours_avg - avg_previous_he) / avg_previous_he) * 100, 1
+            )
             if avg_previous_he > 0
             else 0.0
         )

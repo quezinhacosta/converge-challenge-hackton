@@ -1,7 +1,7 @@
 """DTOs para manipulacao dos cards de atencao do RH e aprovacao de acoes."""
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from app.application.dtos.compat import BaseModel, Field
 
 
@@ -21,6 +21,10 @@ class RiskCardDTO(BaseModel):
         fontes_consultadas: Origem dos dados utilizados.
         status: Estado de tramitacao (ABERTO, APROVADO_PGR, AJUSTADO, DESCARTADO).
         created_at: Data e hora de emissao.
+        risk_score: Pontuacao quantitativa continua (0 a 100) do XGBoost.
+        shap_breakdown: Decomposicao percentual legalmente auditavel (SHAP) por variavel.
+        ai_provider_used: Provedor de IA que gerou a correlacao.
+        ai_fallback_triggered: Booleano indicando se houve chaveamento para fallback.
     """
 
     card_id: str
@@ -35,6 +39,10 @@ class RiskCardDTO(BaseModel):
     fontes_consultadas: List[str]
     status: str
     created_at: datetime
+    risk_score: float = 0.0
+    shap_breakdown: List[Dict[str, Any]] = Field(default_factory=list)
+    ai_provider_used: str = "xgboost+gemini-1.5-pro"
+    ai_fallback_triggered: bool = False
 
 
 class ResolveRiskCardRequestDTO(BaseModel):

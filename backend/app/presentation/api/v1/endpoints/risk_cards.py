@@ -30,6 +30,10 @@ def get_active_risk_cards(
             fontes_consultadas=c.consulted_sources,
             status=c.status.value,
             created_at=c.created_at,
+            risk_score=getattr(c, "risk_score", 0.0),
+            shap_breakdown=getattr(c, "shap_breakdown", []),
+            ai_provider_used=getattr(c, "ai_provider_used", "xgboost+gemini-1.5-pro"),
+            ai_fallback_triggered=getattr(c, "ai_fallback_triggered", False),
         )
         for c in active_cards
     ]

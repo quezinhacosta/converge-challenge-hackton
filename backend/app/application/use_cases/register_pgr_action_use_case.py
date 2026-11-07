@@ -17,9 +17,7 @@ from app.domain.repositories.interfaces import (
 class DevolutivaDraftingService(Protocol):
     """Protocolo para redacao da devolutiva de escuta ('Voce falou, a empresa fez')."""
 
-    def generate_devolutiva_text(
-        self, area_name: str, action_description: str
-    ) -> str:
+    def generate_devolutiva_text(self, area_name: str, action_description: str) -> str:
         """Redige o comunicado transparente para a equipe informando a mudanca acordada."""
         ...
 
@@ -75,7 +73,9 @@ class RegisterPgrActionUseCase:
                 is_reaberto=False,
                 data_encerramento=date.today(),
                 parecer_encerramento="Descartado na triagem inicial do RH.",
-                rastro_auditoria=[f"Descartado por {request.reviewer_name} em {datetime.now().isoformat()}"],
+                rastro_auditoria=[
+                    f"Descartado por {request.reviewer_name} em {datetime.now().isoformat()}"
+                ],
             )
 
         # APROVAR_PGR ou AJUSTAR_ACAO
@@ -117,7 +117,9 @@ class RegisterPgrActionUseCase:
         saved_item = self.pgr_repository.save(pgr_item)
 
         # Emissao da Devolutiva ("Voce falou, a empresa fez")
-        devolutiva_text = self.devolutiva_service.generate_devolutiva_text(card.area_name, action_text)
+        devolutiva_text = self.devolutiva_service.generate_devolutiva_text(
+            card.area_name, action_text
+        )
         devolutiva_msg = TeamDevolutivaMessage(
             id=f"dev_{saved_item.id}",
             area_id=card.area_id,

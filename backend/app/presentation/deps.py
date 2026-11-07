@@ -72,9 +72,7 @@ class PulsoAppContainer:
         self.track_evolution_uc = TrackRiskEvolutionUseCase(
             self.pgr_repo, self.risk_card_repo, self.signal_repo
         )
-        self.chat_uc = ProcessRhChatQueryUseCase(
-            self.guardrail, self.llm_agent
-        )
+        self.chat_uc = ProcessRhChatQueryUseCase(self.guardrail, self.llm_agent)
 
 
 container = PulsoAppContainer()

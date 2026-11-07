@@ -42,12 +42,14 @@ except ImportError:
             def decorator(func: Callable) -> Callable:
                 self.routes.append({"method": "GET", "path": path, "func": func})
                 return func
+
             return decorator
 
         def post(self, path: str, *args: Any, **kwargs: Any) -> Callable:
             def decorator(func: Callable) -> Callable:
                 self.routes.append({"method": "POST", "path": path, "func": func})
                 return func
+
             return decorator
 
         def include_router(self, router: Any, *args: Any, **kwargs: Any) -> None:

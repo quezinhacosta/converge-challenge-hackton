@@ -154,9 +154,42 @@ export class PulsoApiService {
               'a alta começa 2 semanas depois da nova meta de atendimentos por hora (implantada em agosto).',
             acaoSugerida:
               'revisar a meta com a liderança, conversa de escuta com o time mediada pelo RH, incluir o risco no inventário do PGR com reavaliação em 60 dias.',
-            fontesConsultadas: ['ponto', 'folha', 'desligamentos', 'pesquisa pulso de outubro'],
+            fontesConsultadas: ['ponto', 'folha', 'desligamentos', 'pesquisa pulso de outubro', 'xgboost_shap'],
             status: 'ABERTO',
             createdAt: new Date().toISOString(),
+            riskScore: 92.4,
+            shapBreakdown: [
+              {
+                feature_name: 'delta_atestados',
+                display_name: 'Aumento em Dias de Atestado (+45%)',
+                contribution_pct: 38.0,
+                observed_value: '+45% vs histórico trimestral',
+                direction: 'AGRAVANTE',
+              },
+              {
+                feature_name: 'queda_nota_clima',
+                display_name: 'Queda na Avaliação de Carga / Clima',
+                contribution_pct: 27.0,
+                observed_value: 'Queda de 3.9 para 2.4',
+                direction: 'AGRAVANTE',
+              },
+              {
+                feature_name: 'delta_horas_extras',
+                display_name: 'Sobrecarga em Horas Extras (+60%)',
+                contribution_pct: 24.0,
+                observed_value: '+60% sobrecarga contínua',
+                direction: 'AGRAVANTE',
+              },
+              {
+                feature_name: 'razao_turnover',
+                display_name: 'Pedidos de Demissão Voluntária',
+                contribution_pct: 11.0,
+                observed_value: '4 saídas (média empresa: 1)',
+                direction: 'AGRAVANTE',
+              },
+            ],
+            aiProviderUsed: 'xgboost + google-gemini-1.5-pro',
+            aiFallbackTriggered: false,
           },
           {
             cardId: 'card-log-01',
@@ -171,9 +204,35 @@ export class PulsoApiService {
               'pico de saídas começa logo após mudança de gestor da área ocorrida em setembro.',
             acaoSugerida:
               'disparar pesquisa direcionada à área sobre liderança e alinhamento com a nova gestão.',
-            fontesConsultadas: ['desligamentos', 'pesquisa direcionada', 'eventos_contexto'],
+            fontesConsultadas: ['desligamentos', 'pesquisa direcionada', 'eventos_contexto', 'xgboost_shap'],
             status: 'ABERTO',
             createdAt: new Date().toISOString(),
+            riskScore: 68.0,
+            shapBreakdown: [
+              {
+                feature_name: 'razao_turnover',
+                display_name: 'Concentração de Demissões Pós-Troca de Gestor',
+                contribution_pct: 65.0,
+                observed_value: '5 saídas voluntárias',
+                direction: 'AGRAVANTE',
+              },
+              {
+                feature_name: 'queda_suporte_lideranca',
+                display_name: 'Queda no Suporte da Liderança (Pesquisa)',
+                contribution_pct: 25.0,
+                observed_value: 'Queda de 3.9 para 2.7',
+                direction: 'AGRAVANTE',
+              },
+              {
+                feature_name: 'variacao_atestados',
+                display_name: 'Variação Residual em Atestados',
+                contribution_pct: 10.0,
+                observed_value: '+5% variação',
+                direction: 'AGRAVANTE',
+              },
+            ],
+            aiProviderUsed: 'xgboost + google-gemini-1.5-pro',
+            aiFallbackTriggered: false,
           },
           {
             cardId: 'card-vend-01',
@@ -188,9 +247,28 @@ export class PulsoApiService {
               'protocolo rigoroso de blindagem: escalonamento sigiloso ao comitê de Compliance sem leitura de teor pelo Digital Worker.',
             acaoSugerida:
               'encaminhar imediatamente para apuração formal do Comitê de Compliance e Ouvidoria.',
-            fontesConsultadas: ['canal_denuncias_etica', 'ouvidoria_protocolos'],
+            fontesConsultadas: ['canal_denuncias_etica', 'ouvidoria_protocolos', 'xgboost_shap'],
             status: 'ABERTO',
             createdAt: new Date().toISOString(),
+            riskScore: 96.0,
+            shapBreakdown: [
+              {
+                feature_name: 'denuncias_compliance',
+                display_name: 'Concentração no Canal de Denúncias',
+                contribution_pct: 85.0,
+                observed_value: '3 relatos formais',
+                direction: 'AGRAVANTE',
+              },
+              {
+                feature_name: 'impacto_secundario',
+                display_name: 'Impacto Secundário em Ponto/Folha',
+                contribution_pct: 15.0,
+                observed_value: '+12% atestados',
+                direction: 'AGRAVANTE',
+              },
+            ],
+            aiProviderUsed: 'xgboost + local-contingency-engine',
+            aiFallbackTriggered: false,
           },
         ];
         return of(fallbackCards);

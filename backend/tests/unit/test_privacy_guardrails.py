@@ -16,7 +16,9 @@ def test_individual_query_detection() -> None:
     guardrail = PrivacyAndEthicsGuardrail()
 
     # Tentativas de violacao que devem ser barradas
-    blocked_1, msg_1 = guardrail.inspect_query_for_individual_data("Me mostra os atestados da Carla")
+    blocked_1, msg_1 = guardrail.inspect_query_for_individual_data(
+        "Me mostra os atestados da Carla"
+    )
     assert blocked_1 is True
     assert msg_1 is not None
     assert "exclusivamente no nivel de areas" in msg_1
@@ -25,6 +27,8 @@ def test_individual_query_detection() -> None:
     assert blocked_2 is True
 
     # Consultas autorizadas sobre areas/times
-    allowed_1, msg_ok = guardrail.inspect_query_for_individual_data("Como esta o time de Logistica?")
+    allowed_1, msg_ok = guardrail.inspect_query_for_individual_data(
+        "Como esta o time de Logistica?"
+    )
     assert allowed_1 is False
     assert msg_ok is None

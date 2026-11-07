@@ -46,15 +46,21 @@ class TrackRiskEvolutionUseCase:
 
         if houve_melhora:
             item.closure_date = date.today()
-            item.closure_notes = "Acao eficaz. Indicadores reestabelecidos aos niveis basais da organizacao."
+            item.closure_notes = (
+                "Acao eficaz. Indicadores reestabelecidos aos niveis basais da organizacao."
+            )
             item.is_reopened = False
-            item.audit_log.append(f"Ciclo encerrado com sucesso em {date.today().strftime('%d/%m/%Y')}.")
+            item.audit_log.append(
+                f"Ciclo encerrado com sucesso em {date.today().strftime('%d/%m/%Y')}."
+            )
             self.pgr_repository.save(item)
 
             status_final = "FECHADO"
         else:
             item.is_reopened = True
-            item.audit_log.append(f"Reaberto em {date.today().strftime('%d/%m/%Y')} por ausencia de melhora.")
+            item.audit_log.append(
+                f"Reaberto em {date.today().strftime('%d/%m/%Y')} por ausencia de melhora."
+            )
             self.pgr_repository.save(item)
             status_final = "REABERTO"
 

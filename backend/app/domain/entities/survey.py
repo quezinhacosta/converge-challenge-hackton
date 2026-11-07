@@ -9,8 +9,8 @@ from typing import List, Optional
 class SurveyType(str, Enum):
     """Classificacao da pesquisa pulso aplicada aos colaboradores."""
 
-    CHECKIN_MENSAL = "CHECKIN_MENSAL"        # Escuta curta recorrente de 3 perguntas
-    DIRECIONADA_AREA = "DIRECIONADA_AREA"    # Disparada pontualmente quando um sinal acende na area
+    CHECKIN_MENSAL = "CHECKIN_MENSAL"  # Escuta curta recorrente de 3 perguntas
+    DIRECIONADA_AREA = "DIRECIONADA_AREA"  # Disparada pontualmente quando um sinal acende na area
 
 
 @dataclass

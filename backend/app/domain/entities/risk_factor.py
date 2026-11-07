@@ -6,8 +6,8 @@ from enum import Enum
 class RiskLevel(str, Enum):
     """Nivel de intensidade e duracao do sinal de risco identificado pelo Pulso."""
 
-    VERDE = "VERDE"        # Estavel ou sem desvios relevantes
-    AMARELO = "AMARELO"    # Sinal de alerta moderado ou correlacao inicial
+    VERDE = "VERDE"  # Estavel ou sem desvios relevantes
+    AMARELO = "AMARELO"  # Sinal de alerta moderado ou correlacao inicial
     VERMELHO = "VERMELHO"  # Sinal critico de alto risco / sobrecarga severa
 
 
