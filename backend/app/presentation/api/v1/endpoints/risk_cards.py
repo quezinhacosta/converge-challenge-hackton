@@ -1,7 +1,7 @@
 """Endpoints de gestao dos cards de atencao e ponto focal do RH."""
 
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from app.presentation.compat import APIRouter, Depends, HTTPException, status
 
 from app.application.dtos.pgr_dto import PgrInventoryItemDTO
 from app.application.dtos.risk_card_dto import ResolveRiskCardRequestDTO, RiskCardDTO

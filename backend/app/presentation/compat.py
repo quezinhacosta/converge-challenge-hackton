@@ -23,7 +23,9 @@ except ImportError:
 
     class _Status:
         HTTP_200_OK = 200
+        HTTP_400_BAD_REQUEST = 400
         HTTP_404_NOT_FOUND = 404
+        HTTP_500_INTERNAL_SERVER_ERROR = 500
         HTTP_501_NOT_IMPLEMENTED = 501
 
     status = _Status()  # type: ignore[assignment]
@@ -34,7 +36,7 @@ except ImportError:
             self.status_code = status_code
             self.detail = detail
 
-    class APIRouter:  # type: ignore[no-redef]
+    class _FallbackRouter:
         def __init__(self, *args: Any, **kwargs: Any) -> None:
             self.routes: List[Dict[str, Any]] = []
 
@@ -53,15 +55,12 @@ except ImportError:
         def include_router(self, router: Any, *args: Any, **kwargs: Any) -> None:
             self.routes.extend(getattr(router, "routes", []))
 
-    class FastAPI:  # type: ignore[no-redef]
-        def __init__(self, *args: Any, **kwargs: Any) -> None:
-            self.routes: List[Dict[str, Any]] = []
-
+    class _FallbackFastAPI(_FallbackRouter):
         def add_middleware(self, *args: Any, **kwargs: Any) -> None:
             pass
 
-        def include_router(self, router: Any, *args: Any, **kwargs: Any) -> None:
-            self.routes.extend(getattr(router, "routes", []))
+    APIRouter = _FallbackRouter  # type: ignore[misc,assignment]
+    FastAPI = _FallbackFastAPI  # type: ignore[misc,assignment]
 
     class CORSMiddleware:  # type: ignore[no-redef]
         pass

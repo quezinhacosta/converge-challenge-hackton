@@ -1,7 +1,7 @@
 """Endpoint de verificacao de integridade e liveness da API do Pulso."""
 
 from typing import Dict
-from fastapi import APIRouter
+from app.presentation.compat import APIRouter
 
 router = APIRouter()
 

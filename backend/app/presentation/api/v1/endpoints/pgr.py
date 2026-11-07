@@ -1,7 +1,7 @@
 """Endpoints do Inventario de Riscos e Plano de Acao do PGR (NR-1)."""
 
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from app.presentation.compat import APIRouter, Depends, HTTPException, status
 
 from app.application.dtos.pgr_dto import PgrInventoryItemDTO, ReassessmentEvaluationDTO
 from app.presentation.deps import PulsoAppContainer, get_container
