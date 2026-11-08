@@ -257,3 +257,10 @@ def test_rota_upload_erros_padronizados(cliente: TestClient) -> None:
     )
     assert sem_categoria.status_code == 422
     assert sem_categoria.json()["detail"]["codigo"] == "METADADOS_INVALIDOS"
+
+
+def test_rota_pendencias_responde_em_camel_case(cliente: TestClient) -> None:
+    r = cliente.get(f"{URL}/pendencias")
+    assert r.status_code == 200
+    pendencias = r.json()["pendencias"]
+    assert pendencias and {"tipo", "mensagem", "documentoId", "versaoId"} <= set(pendencias[0])

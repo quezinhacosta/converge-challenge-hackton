@@ -79,6 +79,11 @@ def servicos_da_requisicao(
 S = Depends(servicos_da_requisicao)
 
 
+def _camel(nome: str) -> str:
+    primeira, *resto = nome.split("_")
+    return primeira + "".join(p.title() for p in resto)
+
+
 def _executar(acao: Callable[[], T]) -> T:
     try:
         return acao()
@@ -277,7 +282,7 @@ def pendencias_da_base(
     return {
         "geradoEm": relatorio.gerado_em.isoformat(),
         "pendencias": [
-            {k: (v.isoformat() if isinstance(v, date) else v) for k, v in asdict(p).items()}
+            {_camel(k): (v.isoformat() if isinstance(v, date) else v) for k, v in asdict(p).items()}
             for p in relatorio.pendencias
         ],
     }
