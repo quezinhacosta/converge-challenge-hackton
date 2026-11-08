@@ -1,5 +1,5 @@
 // Substitua pelo endereco publico real do Web Service no Render antes do deploy.
 export const environment = {
   production: true,
-  apiUrl: 'https://SEU-SERVICO.onrender.com/api/v1',
+  apiUrl: 'https://pulso-backend-fjug.onrender.com/api/v1',
 };

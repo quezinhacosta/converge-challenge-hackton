@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.get("", response_model=list[dict[str, Any]], status_code=status.HTTP_200_OK)
 def list_company_areas(
-    container: PulsoAppContainer = Depends(get_container),
+    container: PulsoAppContainer = Depends(get_container, scope="function"),
 ) -> list[dict[str, Any]]:
     """Lista todas as areas da empresa informando headcount e status de anonimizacao."""
     areas = container.area_repo.list_all()
@@ -35,7 +35,7 @@ def list_company_areas(
 )
 def get_area_signals_and_context(
     area_id: str,
-    container: PulsoAppContainer = Depends(get_container),
+    container: PulsoAppContainer = Depends(get_container, scope="function"),
 ) -> AreaHistoryComparisonDTO:
     """Recupera a serie historica de metricas agregadas e eventos de contexto da area."""
     try:
@@ -47,7 +47,7 @@ def get_area_signals_and_context(
 @router.post("/{area_id}/analyze", response_model=dict[str, Any], status_code=status.HTTP_200_OK)
 def analyze_area(
     area_id: str,
-    container: PulsoAppContainer = Depends(get_container),
+    container: PulsoAppContainer = Depends(get_container, scope="function"),
 ) -> dict[str, Any]:
     """Roda o ciclo do Pulso na area e abre card se o nivel for amarelo ou vermelho."""
     try:

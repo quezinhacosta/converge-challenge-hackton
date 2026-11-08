@@ -22,9 +22,11 @@ def api(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     app.dependency_overrides[get_container] = lambda: container
     with TestClient(app) as client:
 
-        def fake_request(method: str, url: str, json: Any = None, timeout: float = 0) -> Any:
+        def fake_request(
+            method: str, url: str, json: Any = None, timeout: float = 0, headers: Any = None
+        ) -> Any:
             path = url.replace("http://localhost:8000", "")
-            return client.request(method, path, json=json)
+            return client.request(method, path, json=json, headers=headers)
 
         monkeypatch.setattr(mcp_server.httpx, "request", fake_request)
         yield client

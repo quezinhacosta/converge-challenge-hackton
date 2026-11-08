@@ -1,3 +1,4 @@
+import { Citacao } from './citation.model';
 /**
  * Modelos para os Cards de Ponto Focal de Atencao do RH com explicabilidade SHAP e resiliencia.
  */
@@ -15,6 +16,8 @@ export interface ShapContribution {
 }
 
 export interface RiskCard {
+  fontesDocumentais?: Citacao[];
+  evidenciaDocumentalSuficiente?: boolean | null;
   cardId: string;
   areaId: string;
   areaName: string;

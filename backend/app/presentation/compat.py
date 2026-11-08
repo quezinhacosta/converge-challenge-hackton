@@ -3,8 +3,9 @@
 import inspect
 import json
 import re
+from collections.abc import Callable
 from datetime import date, datetime
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 try:
     from fastapi import APIRouter as _FastAPIRouter
@@ -47,7 +48,7 @@ except ImportError:
 
     class _FallbackRouter:
         def __init__(self, *args: Any, **kwargs: Any) -> None:
-            self.routes: List[Dict[str, Any]] = []
+            self.routes: list[dict[str, Any]] = []
 
         def get(self, path: str, *args: Any, **kwargs: Any) -> Callable:
             def decorator(func: Callable) -> Callable:
@@ -79,7 +80,7 @@ except ImportError:
     class _FallbackFastAPI(_FallbackRouter):
         def __init__(self, *args: Any, **kwargs: Any) -> None:
             super().__init__(*args, **kwargs)
-            self.dependency_overrides: Dict[Any, Any] = {}
+            self.dependency_overrides: dict[Any, Any] = {}
             self.state: Any = type("_State", (), {})()
 
         def add_middleware(self, *args: Any, **kwargs: Any) -> None:
@@ -92,10 +93,10 @@ except ImportError:
         pass
 
     class DependsHolder:
-        def __init__(self, dependency: Optional[Callable] = None) -> None:
+        def __init__(self, dependency: Callable | None = None) -> None:
             self.dependency = dependency
 
-    def Depends(dependency: Optional[Callable] = None) -> Any:  # type: ignore[no-redef]
+    def Depends(dependency: Callable | None = None) -> Any:  # type: ignore[no-redef]
         return DependsHolder(dependency)
 
     class _TestResponse:
@@ -139,7 +140,7 @@ except ImportError:
                     path_params = match.groupdict()
                     handler = route["func"]
                     sig = inspect.signature(handler)
-                    call_args: Dict[str, Any] = {}
+                    call_args: dict[str, Any] = {}
 
                     try:
                         for param_name, param in sig.parameters.items():

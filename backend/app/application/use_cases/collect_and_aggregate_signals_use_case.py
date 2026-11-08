@@ -70,7 +70,7 @@ class CollectAndAggregateSignalsUseCase:
                 media_empresa_pedidos_demissao=1.0,
                 nota_carga_trabalho_atual=None,
                 nota_carga_trabalho_anterior=None,
-                eventos_contexto_recentes=event_descriptions,
+                eventos_contexto_recentes=[],
             )
 
         metrics_history = self.signal_repository.get_metrics_history(area_id, months=6)

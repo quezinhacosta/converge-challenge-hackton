@@ -56,12 +56,10 @@ class FailoverManager:
         primary_provider: LLMProviderProtocol | None = None,
         secondary_provider: LLMProviderProtocol | None = None,
         fallback_provider: LLMProviderProtocol | None = None,
-        local_lora_provider: LLMProviderProtocol | None = None,
     ) -> None:
         """Inicializa os provedores da cascata e seus circuit breakers."""
         self.primary = primary_provider or GeminiProvider()
         self.secondary = secondary_provider
-        self.local_lora = local_lora_provider
         self.fallback = fallback_provider or RuleBasedFallbackProvider()
 
         self.primary_circuit = CircuitBreaker(provider_name=self.primary.name)
@@ -125,25 +123,7 @@ class FailoverManager:
             except Exception as exc:
                 fail_reason += f" | Falha no provedor secundario: {str(exc)}"
 
-        # 3. Tentativa com o Provedor LoRA Local (Mistral-7B especializado em NR-1)
-        if self.local_lora and self.local_lora.is_available():
-            try:
-                hypothesis, action = self.local_lora.generate_hypothesis_and_action(
-                    area_name, metrics_summary, context_events, shap_narrative, factor
-                )
-                latency = (time.perf_counter() - start_time) * 1000.0
-                metadata = FailoverExecutionMetadata(
-                    provider_used=self.local_lora.name,
-                    fallback_triggered=True,
-                    failover_reason=fail_reason,
-                    circuit_state=self.primary_circuit.state.value,
-                    latency_ms=latency,
-                )
-                return hypothesis, action, metadata
-            except Exception as exc:
-                fail_reason += f" | Falha no provedor LoRA local: {str(exc)}"
-
-        # 4. Contingencia Absoluta: Provedor Terciario Deterministico Local (Zero Falhas)
+        # 3. Contingencia Absoluta: Provedor Terciario Deterministico Local (Zero Falhas)
         hypothesis, action = self.fallback.generate_hypothesis_and_action(
             area_name, metrics_summary, context_events, shap_narrative, factor
         )
@@ -183,22 +163,6 @@ class FailoverManager:
                 fail_reason = f"Provedor primario falhou no chat: {str(exc)}"
         else:
             fail_reason = f"Circuito do provedor primario '{self.primary_circuit.state.value}'."
-
-        # Tentativa com o Provedor LoRA Local
-        if self.local_lora and self.local_lora.is_available():
-            try:
-                reply = self.local_lora.generate_chat_reply(query_text, context_data)
-                latency = (time.perf_counter() - start_time) * 1000.0
-                metadata = FailoverExecutionMetadata(
-                    provider_used=self.local_lora.name,
-                    fallback_triggered=True,
-                    failover_reason=fail_reason,
-                    circuit_state=self.primary_circuit.state.value,
-                    latency_ms=latency,
-                )
-                return reply, metadata
-            except Exception as exc:
-                fail_reason += f" | Falha no provedor LoRA local: {str(exc)}"
 
         # Contingencia com o Fallback Local
         reply = self.fallback.generate_chat_reply(query_text, context_data)

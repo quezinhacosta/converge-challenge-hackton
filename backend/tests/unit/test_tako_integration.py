@@ -1,15 +1,12 @@
 """Testes unitarios para a integracao com a API da Tako (customer-api.8arm.io)."""
 
 from datetime import date
-from unittest.mock import MagicMock, patch
 
-from app.domain.entities.signals import AreaMonthlyMetrics
 from app.infrastructure.integrations.tako import TakoApiClient, TakoSyncService
 from app.infrastructure.repositories.in_memory_pulso_repositories import (
     InMemoryAreaRepository,
     InMemorySignalRepository,
 )
-from app.presentation.main import app
 
 
 def test_tako_api_client_initialization() -> None:
@@ -101,20 +98,29 @@ def test_tako_webhook_processing() -> None:
     assert "Holerite do contrato contract_789" in msg_payslip
 
 
-def test_tako_endpoints_in_fastapi() -> None:
-    # Testa via chamada de funcao ou TestClient se disponivel
-    from app.presentation.api.v1.endpoints.tako import get_tako_status, sync_tako_data, receive_tako_webhook
+def test_tako_endpoints_in_fastapi(monkeypatch) -> None:
+    from fastapi.testclient import TestClient
 
-    # 1. Status
-    status_res = get_tako_status()
-    assert status_res["service"] == "Tako Customer API Integration"
-    assert "POST /api/v1/auth/token" in status_res["supported_endpoints"]
+    from app.presentation.main import create_application
 
-    # 2. Sync
-    sync_res = sync_tako_data()
-    assert sync_res["status"] == "success"
-    assert sync_res["areas_synchronized"] > 0
+    base = "/api/v1/integrations/tako"
+    monkeypatch.setenv("VYTAI_MODE", "demo")
+    with TestClient(create_application()) as client:
+        status_res = client.get(f"{base}/status").json()
+        assert status_res["service"] == "Tako Customer API Integration"
+        assert "POST /api/v1/auth/token" in status_res["supported_endpoints"]
 
-    # 3. Webhook
-    webhook_res = receive_tako_webhook({"event": "eventTermination", "contractId": "c_999"})
-    assert webhook_res["status"] == "received"
+        sync_res = client.post(f"{base}/sync")
+        assert sync_res.status_code == 200, sync_res.text
+        assert sync_res.json()["areas_synchronized"] > 0
+
+        webhook_res = client.post(
+            f"{base}/webhook", json={"event": "eventTermination", "contractId": "c_999"}
+        )
+        assert webhook_res.json()["status"] == "received"
+
+    # Producao: sincronizar exige identidade; webhook sem verificacao de assinatura e recusado.
+    monkeypatch.setenv("VYTAI_MODE", "production")
+    with TestClient(create_application()) as client:
+        assert client.post(f"{base}/sync").status_code == 401
+        assert client.post(f"{base}/webhook", json={"event": "eventTermination"}).status_code in (401, 501)

@@ -3,7 +3,9 @@
 from datetime import datetime
 from typing import Any, Literal
 
+from app.application.dtos.citation_dto import CitacaoDTO
 from app.application.dtos.compat import ApiModel, Field, model_validator
+from app.domain.entities.risk_card import RiskCard
 
 MIN_DEADLINE_DAYS = 15
 
@@ -46,6 +48,32 @@ class RiskCardDTO(ApiModel):
     shap_breakdown: list[dict[str, Any]] = Field(default_factory=list)
     ai_provider_used: str = "xgboost+gemini-1.5-pro"
     ai_fallback_triggered: bool = False
+
+    fontes_documentais: list[CitacaoDTO] = Field(default_factory=list)
+    evidencia_documental_suficiente: bool | None = None
+
+    @classmethod
+    def from_entity(cls, card: RiskCard) -> "RiskCardDTO":
+        return cls(
+            card_id=card.id,
+            area_id=card.area_id,
+            area_name=card.area_name,
+            area_headcount=card.area_headcount,
+            risk_level=card.risk_level.value,
+            fator_risco_provavel=card.probable_risk_factor.value,
+            o_que_mudou_ultimos_meses=card.evidence_summary,
+            contexto_organizacional=card.context_description,
+            acao_sugerida=card.suggested_action,
+            fontes_consultadas=card.consulted_sources,
+            status=card.status.value,
+            created_at=card.created_at,
+            risk_score=card.risk_score,
+            shap_breakdown=card.shap_breakdown,
+            ai_provider_used=card.ai_provider_used,
+            ai_fallback_triggered=card.ai_fallback_triggered,
+            fontes_documentais=card.fontes_documentais,
+            evidencia_documental_suficiente=card.evidencia_documental_suficiente,
+        )
 
 
 class ResolveRiskCardRequestDTO(ApiModel):

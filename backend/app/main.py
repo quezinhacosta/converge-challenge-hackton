@@ -9,19 +9,21 @@ Implementa os 4 endpoints estruturais requisitados:
 Mantem tambem a integracao nativa com os endpoints /api/v1/... consumidos pelo frontend vitAI.
 """
 
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
 import uuid
+from datetime import UTC, datetime
 
-from app.presentation.compat import CORSMiddleware, FastAPI, HTTPException, status
+from app.presentation.compat import FastAPI, HTTPException, status
 from app.presentation.deps import get_container
-from app.presentation.api.v1.endpoints import areas as areas_v1
-from app.presentation.api.v1.endpoints import chat as chat_v1
-from app.presentation.api.v1.endpoints import closing as closing_v1
-from app.presentation.api.v1.endpoints import health as health_v1
-from app.presentation.api.v1.endpoints import pgr as pgr_v1
-from app.presentation.api.v1.endpoints import risk_cards as risk_cards_v1
-
+from app.protections import (
+    calcular_score_e_pesos_shap,
+    inspecionar_busca_nominativa,
+    verificar_quorum_anonimizacao,
+)
+from app.pulso_agents import (
+    AgenteComunicacao,
+    AgenteHistoriador,
+    AgenteRegulatorio,
+)
 from app.schemas import (
     AreaData,
     CasoRiskCard,
@@ -31,28 +33,10 @@ from app.schemas import (
     DecisaoResponse,
     FechamentoSummaryResponse,
 )
-from app.protections import (
-    calcular_score_e_pesos_shap,
-    inspecionar_busca_nominativa,
-    verificar_quorum_anonimizacao,
-)
-from app.infrastructure.ml.xgboost_risk_engine import (
-    BaseRiskEngine,
-    RiskEngineProtocol,
-    RiskPredictionResult,
-    ShapContribution,
-    get_active_risk_engine,
-    set_active_risk_engine,
-)
-from app.pulso_agents import (
-    AgenteComunicacao,
-    AgenteHistoriador,
-    AgenteRegulatorio,
-)
 
 # Armazenamento em memoria para a integracao da Pessoa B e Pessoa A
-STORE_AREAS: Dict[str, AreaData] = {}
-STORE_CASOS: Dict[str, CasoRiskCard] = {}
+STORE_AREAS: dict[str, AreaData] = {}
+STORE_CASOS: dict[str, CasoRiskCard] = {}
 
 # Instanciacao dos 3 agentes
 historiador = AgenteHistoriador()
@@ -60,7 +44,7 @@ regulatorio = AgenteRegulatorio()
 comunicacao = AgenteComunicacao()
 
 
-def carregar_areas_sinteticas() -> Dict[str, AreaData]:
+def carregar_areas_sinteticas() -> dict[str, AreaData]:
     """Inicializa as 7 areas corporativas da empresa ficticia com metricas e eventos."""
     areas = [
         AreaData(
@@ -206,7 +190,7 @@ init_store()
 def executar_fechamento_mensal() -> FechamentoSummaryResponse:
     """Executa a esteira de fechamento nas 7 areas sinteticas."""
     init_store()
-    casos_processados: List[CasoRiskCard] = []
+    casos_processados: list[CasoRiskCard] = []
     elegiveis_count = 0
     bloqueadas_count = 0
 
@@ -241,7 +225,7 @@ def executar_fechamento_mensal() -> FechamentoSummaryResponse:
                 perguntas_escuta_gestor=[],
                 status="BLOCKED_PRIVACY",
                 fontes=["cadastro_rh", "politica_lgpd"],
-                data_geracao=datetime.now(timezone.utc).isoformat(),
+                data_geracao=datetime.now(UTC).isoformat(),
             )
             STORE_CASOS[caso_id] = card_bloqueado
             casos_processados.append(card_bloqueado)
@@ -251,37 +235,29 @@ def executar_fechamento_mensal() -> FechamentoSummaryResponse:
         elegiveis_count += 1
         queda_clima = max(0.0, area.nota_clima_anterior - area.nota_clima_atual)
 
-        # Calculo do Score Matematico e Pesos SHAP via Motor Ativo (Pluggable)
-        engine = get_active_risk_engine()
-        ml_pred = engine.predict(
-            variacao_dias_atestado_pct=area.variacao_dias_atestado_pct,
+        # Calculo do Score Matematico e Pesos SHAP
+        score, nivel, pesos_shap, narrativa_shap = calcular_score_e_pesos_shap(
+            variacao_atestados_pct=area.variacao_dias_atestado_pct,
             variacao_horas_extras_pct=area.variacao_horas_extras_pct,
             pedidos_demissao=area.pedidos_demissao_periodo,
             media_empresa_pedidos_demissao=area.media_empresa_pedidos_demissao,
-            queda_nota_clima=queda_clima,
-            denuncias_compliance=3 if area.area_id == "area_vend" else 0,
+            queda_clima_absoluta=queda_clima,
         )
-        score = ml_pred.risk_score
-        nivel = ml_pred.risk_level.value
-        fator_base = ml_pred.probable_factor.value
-        pesos_shap = {
-            item.feature_name: item.contribution_pct for item in ml_pred.shap_breakdown
-        }
-        # Garante chaves canonicas para o contrato da Pessoa B
-        if "delta_atestados" in pesos_shap:
-            pesos_shap["atestados"] = pesos_shap["delta_atestados"]
-        if "queda_nota_clima" in pesos_shap:
-            pesos_shap["clima"] = pesos_shap["queda_nota_clima"]
-        if "delta_horas_extras" in pesos_shap:
-            pesos_shap["horas_extras"] = pesos_shap["delta_horas_extras"]
-        if "razao_turnover" in pesos_shap:
-            pesos_shap["turnover"] = pesos_shap["razao_turnover"]
-        narrativa_shap = ml_pred.audit_narrative
 
         # Caso 4 especial: Vendas tem canal confidencial com denuncias (Assedio)
-        if area.area_id == "area_vend" or fator_base == "Assedio Moral e Relacoes Socioprofissionais":
+        if area.area_id == "area_vend":
+            nivel = "VERMELHO"
+            score = 88.0
+            fator_base = "Assedio Moral e Relacoes Socioprofissionais"
             status_card = "ESCALADO_COMPLIANCE"
+        elif nivel == "VERMELHO":
+            fator_base = "Sobrecarga de Trabalho e Metas Excessivas"
+            status_card = "ABERTO"
+        elif nivel == "AMARELO":
+            fator_base = "Gestao e Conflitos de Lideranca"
+            status_card = "ABERTO"
         else:
+            fator_base = "Ambiente Estavel / Baixo Risco"
             status_card = "ABERTO"
 
         # 1. Agente Historiador
@@ -309,7 +285,7 @@ def executar_fechamento_mensal() -> FechamentoSummaryResponse:
             medida_nr1=dados_nr1["medida_sugerida"],
         )
 
-        caso_id = f"caso_{area.area_id}_{datetime.now(timezone.utc).strftime('%Y%m')}"
+        caso_id = f"caso_{area.area_id}_{datetime.now(UTC).strftime('%Y%m')}"
         card = CasoRiskCard(
             caso_id=caso_id,
             area_id=area.area_id,
@@ -329,7 +305,7 @@ def executar_fechamento_mensal() -> FechamentoSummaryResponse:
             perguntas_escuta_gestor=perguntas_1on1,
             status=status_card,
             fontes=["ponto", "folha", "desligamentos", "pesquisa_pulso", "eventos_contexto"],
-            data_geracao=datetime.now(timezone.utc).isoformat(),
+            data_geracao=datetime.now(UTC).isoformat(),
         )
         STORE_CASOS[caso_id] = card
         casos_processados.append(card)
@@ -377,7 +353,7 @@ def registrar_decisao_rh(caso_id: str, payload: DecisaoRequest) -> DecisaoRespon
     acao_normalizada = payload.acao.upper().strip()
     status_anterior = caso.status
 
-    protocolo_gro = f"GRO-NR1-{datetime.now(timezone.utc).strftime('%Y%m')}-{uuid.uuid4().hex[:6].upper()}"
+    protocolo_gro = f"GRO-NR1-{datetime.now(UTC).strftime('%Y%m')}-{uuid.uuid4().hex[:6].upper()}"
 
     if acao_normalizada in ["APROVADO", "APROVAR"]:
         caso.status = "APROVADO"
@@ -406,45 +382,15 @@ def registrar_decisao_rh(caso_id: str, payload: DecisaoRequest) -> DecisaoRespon
         "texto_ajustado": payload.acao_ajustada_texto,
         "prazo_dias": payload.prazo_dias,
         "protocolo_gro": protocolo_gro,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
     try:
         container = get_container()
         existing_card = container.risk_card_repo.get_by_id(caso_id)
-        if not existing_card:
-            for card_item in container.risk_card_repo.list_all():
-                if card_item.area_id == caso.area_id:
-                    existing_card = card_item
-                    break
-
         if existing_card:
-            from app.domain.entities.risk_card import CardStatus
-            if acao_normalizada in ["APROVADO", "APROVAR"]:
-                existing_card.status = CardStatus.APROVADO_PGR
-            elif acao_normalizada in ["AJUSTADO", "AJUSTAR"]:
-                existing_card.status = CardStatus.AJUSTADO
-            elif acao_normalizada in ["DESCARTADO", "DESCARTAR"]:
-                existing_card.status = CardStatus.DESCARTADO
+            existing_card.status = caso.status  # type: ignore[assignment]
             container.risk_card_repo.save(existing_card)
-
-            if registrado_pgr:
-                from app.domain.entities.pgr_inventory import PgrRiskItem
-                from datetime import date, timedelta
-                pgr_item = PgrRiskItem(
-                    id=f"pgr_{caso.area_id}_{uuid.uuid4().hex[:8]}",
-                    risk_card_id=existing_card.id,
-                    area_id=caso.area_id,
-                    area_name=caso.area_name,
-                    factor=existing_card.probable_risk_factor,
-                    severity_level=existing_card.risk_level,
-                    action_plan_description=caso.medida_nr1_sugerida,
-                    responsible_person=payload.revisor_nome,
-                    deadline_date=date.today() + timedelta(days=payload.prazo_dias or 60),
-                    reassessment_interval_days=payload.prazo_dias or 60,
-                    audit_log=[f"Homologado via deliberacao ({protocolo_gro}) por {payload.revisor_nome}"],
-                )
-                container.pgr_repo.save(pgr_item)
     except Exception:
         pass
 
@@ -474,7 +420,7 @@ def consultar_chat_copiloto(payload: ChatQueryRequest) -> ChatQueryResponse:
         )
 
     texto_lower = texto.lower()
-    areas_mencionadas: List[str] = []
+    areas_mencionadas: list[str] = []
 
     for aid, a in STORE_AREAS.items():
         if a.area_name.lower() in texto_lower or aid in texto_lower:
@@ -536,67 +482,10 @@ def consultar_chat_copiloto(payload: ChatQueryRequest) -> ChatQueryResponse:
 
 
 def create_app() -> FastAPI:
-    """Instancia a aplicacao principal vitAI FastAPI com rotas diretas e modulares."""
-    app = FastAPI(
-        title="vitAI API - Gestao de Riscos Psicossociais (NR-1)",
-        description=(
-            "Digital Worker de Inteligencia Psicossocial e Conformidade com a NR-1 "
-            "(Portaria MTE nº 1.419/2024 / GRO e PGR). Converge Challenge | Time Booleanas."
-        ),
-        version="0.2.0",
-        docs_url="/docs",
-        redoc_url="/redoc",
-    )
+    """Alias de compatibilidade: nunca expor o STORE_* legado por HTTP."""
+    from app.presentation.main import create_application
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-    # 1. ROTA POST /fechamento
-    app.post(
-        "/fechamento",
-        response_model=FechamentoSummaryResponse,
-        status_code=status.HTTP_200_OK,
-        tags=["Pessoa B - Core Fechamento"],
-    )(executar_fechamento_mensal)
-
-    # 2. ROTA GET /areas/{area_id}
-    app.get(
-        "/areas/{area_id}",
-        response_model=AreaData,
-        status_code=status.HTTP_200_OK,
-        tags=["Pessoa B - Areas"],
-    )(obter_dados_area)
-
-    # 3. ROTA POST /casos/{caso_id}/decisao
-    app.post(
-        "/casos/{caso_id}/decisao",
-        response_model=DecisaoResponse,
-        status_code=status.HTTP_200_OK,
-        tags=["Pessoa B - Deliberacao Humana"],
-    )(registrar_decisao_rh)
-
-    # 4. ROTA POST /chat/query
-    app.post(
-        "/chat/query",
-        response_model=ChatQueryResponse,
-        status_code=status.HTTP_200_OK,
-        tags=["Pessoa B - Copiloto Chat"],
-    )(consultar_chat_copiloto)
-
-    # Integracao com a API v1 consumida pelo Frontend Angular vitAI
-    app.include_router(health_v1.router, prefix="/api/v1/health", tags=["Health"])
-    app.include_router(areas_v1.router, prefix="/api/v1/areas", tags=["Areas & Sinais"])
-    app.include_router(risk_cards_v1.router, prefix="/api/v1/risk-cards", tags=["Cards de Atencao"])
-    app.include_router(pgr_v1.router, prefix="/api/v1/pgr", tags=["PGR / NR-1"])
-    app.include_router(chat_v1.router, prefix="/api/v1/chat", tags=["Chat do Agente"])
-    app.include_router(closing_v1.router, prefix="/api/v1/fechamento", tags=["Fechamento"])
-
-    return app
+    return create_application()
 
 
 app = create_app()

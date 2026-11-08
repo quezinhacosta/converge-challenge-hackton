@@ -1,5 +1,6 @@
 """DTOs para a interacao do RH com o agente Pulso no chat corporativo."""
 
+from app.application.dtos.citation_dto import CitacaoDTO
 from app.application.dtos.compat import ApiModel, Field
 
 
@@ -30,3 +31,5 @@ class ChatQueryResponseDTO(ApiModel):
     is_refusal: bool = False
     refusal_reason: str | None = None
     sources_used: list[str] = Field(default_factory=list)
+
+    citacoes: list[CitacaoDTO] = Field(default_factory=list)

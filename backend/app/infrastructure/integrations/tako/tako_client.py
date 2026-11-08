@@ -15,7 +15,7 @@ import os
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +27,10 @@ class TakoApiClient:
 
     def __init__(
         self,
-        base_url: Optional[str] = None,
-        organization_id: Optional[str] = None,
-        access_key: Optional[str] = None,
-        access_secret: Optional[str] = None,
+        base_url: str | None = None,
+        organization_id: str | None = None,
+        access_key: str | None = None,
+        access_secret: str | None = None,
         timeout_seconds: float = 8.0,
     ) -> None:
         self.base_url = (base_url or os.getenv("TAKO_API_BASE_URL", DEFAULT_TAKO_BASE_URL)).rstrip("/")
@@ -38,7 +38,7 @@ class TakoApiClient:
         self.access_key = access_key or os.getenv("TAKO_ACCESS_KEY")
         self.access_secret = access_secret or os.getenv("TAKO_ACCESS_SECRET")
         self.timeout_seconds = timeout_seconds
-        self._token: Optional[str] = None
+        self._token: str | None = None
 
     @property
     def has_credentials(self) -> bool:
@@ -49,9 +49,9 @@ class TakoApiClient:
         self,
         method: str,
         path: str,
-        data: Optional[Dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
         requires_auth: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Executa uma requisição HTTP para a API da Tako com tratamento de erro."""
         url = f"{self.base_url}{path}"
         headers = {
@@ -103,15 +103,15 @@ class TakoApiClient:
 
     def list_contracts(
         self,
-        status: Optional[str] = None,
+        status: str | None = None,
         page: int = 0,
         size: int = 100,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """POST /api/v1/organization/contracts
 
         Lista contratos da organização com filtro de status ('active', 'terminated').
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "pagination": {"page": page, "size": size},
         }
         if status:
@@ -119,7 +119,7 @@ class TakoApiClient:
 
         return self._make_request("POST", "/api/v1/organization/contracts", data=payload)
 
-    def get_contract_details(self, contract_id: str) -> Dict[str, Any]:
+    def get_contract_details(self, contract_id: str) -> dict[str, Any]:
         """GET /api/v1/organization/contracts/?contractId={contract_id}
 
         Recupera os detalhes de departamento, cargo, liderança (managerId) e dados do contrato.
@@ -127,7 +127,7 @@ class TakoApiClient:
         path = f"/api/v1/organization/contracts/?contractId={urllib.parse.quote(contract_id)}"
         return self._make_request("GET", path)
 
-    def get_payslips(self, contract_id: str, period: str) -> List[Dict[str, Any]]:
+    def get_payslips(self, contract_id: str, period: str) -> list[dict[str, Any]]:
         """GET /api/v2/contracts/{contractId}/payslips?period={period}
 
         Consulta os itens da folha de pagamento do colaborador na competência informada (ex: '2026-10').
@@ -139,7 +139,7 @@ class TakoApiClient:
             return res
         return res.get("items", res.get("data", []))
 
-    def get_vacation_details(self, contract_id: str, vacation_id: str) -> Dict[str, Any]:
+    def get_vacation_details(self, contract_id: str, vacation_id: str) -> dict[str, Any]:
         """GET /api/v2/contracts/{contractId}/vacations/{vacationId}
 
         Consulta dados de programação ou gozo de férias do colaborador.
@@ -147,7 +147,7 @@ class TakoApiClient:
         path = f"/api/v2/contracts/{urllib.parse.quote(contract_id)}/vacations/{urllib.parse.quote(vacation_id)}"
         return self._make_request("GET", path)
 
-    def get_webhook_public_keys(self) -> List[Dict[str, Any]]:
+    def get_webhook_public_keys(self) -> list[dict[str, Any]]:
         """GET /api/v1/webhook/public-keys
 
         Recupera as chaves RSA públicas da Tako para validação criptográfica de webhooks.

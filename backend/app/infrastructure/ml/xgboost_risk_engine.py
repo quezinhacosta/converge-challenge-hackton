@@ -7,16 +7,10 @@ Interpretabilidade Legal (SHAP):
     Para atender as auditorias da Portaria MTE nº 1.419/2024 (NR-1), o modelo nao
     opera como caixa-preta: ele decompoe a pontuacao exata atribuindo o peso percentual
     de cada variavel na geracao do risco.
-
-Extensibilidade para Novos Motores:
-    Disponibiliza o `RiskEngineProtocol` e `BaseRiskEngine` para plugar qualquer
-    modelo treinado de ML (XGBoost, LightGBM, Random Forest, PyTorch, etc.) via
-    `set_active_risk_engine(custom_engine)`.
 """
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Protocol, runtime_checkable
+from typing import Any
 
 from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
 
@@ -79,46 +73,8 @@ class RiskPredictionResult:
         }
 
 
-@runtime_checkable
-class RiskEngineProtocol(Protocol):
-    """Protocolo formal para qualquer motor de predicao de risco psicossocial (NR-1).
-
-    Qualquer modelo de ML que implemente o metodo `predict` compativel pode ser plugado
-    diretamente no vitAI sem necessidade de alterar rotas ou serializacao.
-    """
-
-    def predict(
-        self,
-        variacao_dias_atestado_pct: float,
-        variacao_horas_extras_pct: float,
-        pedidos_demissao: int,
-        media_empresa_pedidos_demissao: float,
-        queda_nota_clima: float,
-        denuncias_compliance: int = 0,
-    ) -> RiskPredictionResult:
-        """Executa a inferencia estatistica / ML de risco."""
-        ...
-
-
-class BaseRiskEngine(ABC):
-    """Classe base abstrata para novos motores de Machine Learning."""
-
-    @abstractmethod
-    def predict(
-        self,
-        variacao_dias_atestado_pct: float,
-        variacao_horas_extras_pct: float,
-        pedidos_demissao: int,
-        media_empresa_pedidos_demissao: float,
-        queda_nota_clima: float,
-        denuncias_compliance: int = 0,
-    ) -> RiskPredictionResult:
-        """Executa a inferencia estatistica sobre as features tabulares."""
-        raise NotImplementedError
-
-
-class XGBoostRiskEngine(BaseRiskEngine):
-    """Motor preditivo tabular padrao em Python simulando modelo XGBoost treinado com SHAP Explainer.
+class XGBoostRiskEngine:
+    """Motor preditivo tabular em Python simulando modelo XGBoost treinado com SHAP Explainer.
 
     Vantagens Arquiteturais:
         - Determinismo e Latencia Zero (< 5ms de execucao).
@@ -298,23 +254,3 @@ class XGBoostRiskEngine(BaseRiskEngine):
             shap_breakdown=shap_items,
             audit_narrative=narrative,
         )
-
-
-# Instancia singleton ativa por padrao
-_ACTIVE_ENGINE: RiskEngineProtocol = XGBoostRiskEngine()
-
-
-def get_active_risk_engine() -> RiskEngineProtocol:
-    """Retorna a instancia do motor atualmente ativo no backend vitAI."""
-    global _ACTIVE_ENGINE
-    return _ACTIVE_ENGINE
-
-
-def set_active_risk_engine(engine: RiskEngineProtocol) -> None:
-    """Registra um motor customizado para ser utilizado por toda a esteira do backend vitAI.
-
-    Argumentos:
-        engine: Qualquer classe que implemente `RiskEngineProtocol` ou herde de `BaseRiskEngine`.
-    """
-    global _ACTIVE_ENGINE
-    _ACTIVE_ENGINE = engine

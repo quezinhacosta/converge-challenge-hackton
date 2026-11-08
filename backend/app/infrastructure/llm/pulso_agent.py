@@ -13,12 +13,7 @@ from app.infrastructure.llm.resilience.failover_manager import (
     FailoverExecutionMetadata,
     FailoverManager,
 )
-from app.infrastructure.ml.xgboost_risk_engine import (
-    RiskEngineProtocol,
-    RiskPredictionResult,
-    XGBoostRiskEngine,
-    get_active_risk_engine,
-)
+from app.infrastructure.ml.xgboost_risk_engine import RiskPredictionResult, XGBoostRiskEngine
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +31,7 @@ class PulsoAgentLLM:
         self,
         api_key: str | None = None,
         model_name: str = "gemini-1.5-pro",
-        xgboost_engine: RiskEngineProtocol | None = None,
+        xgboost_engine: XGBoostRiskEngine | None = None,
         failover_manager: FailoverManager | None = None,
         devolutiva_writer: Any | None = None,
     ) -> None:
@@ -47,7 +42,9 @@ class PulsoAgentLLM:
         """
         self.api_key = api_key
         self.model_name = model_name
-        self.ml_engine = xgboost_engine or get_active_risk_engine()
+        from app.infrastructure.scoring.transparent_risk_engine import TransparentRiskEngine
+
+        self.ml_engine = xgboost_engine or TransparentRiskEngine()
         self.failover_manager = failover_manager or FailoverManager()
         self.devolutiva_writer = devolutiva_writer
 
@@ -152,4 +149,10 @@ class PulsoAgentLLM:
     def generate_team_response(self, query_text: str) -> tuple[str, list[str]]:
         """Gera resposta sobre equipes no chat mantendo compatibilidade com use cases existentes."""
         reply, _ = self.failover_manager.generate_chat_reply(query_text, {})
-        return reply, ["ponto", "folha", "desligamentos", "pesquisa_pulso", "xgboost_shap"]
+        return reply, [
+            "ponto",
+            "folha",
+            "desligamentos",
+            "pesquisa_pulso",
+            "regras_transparentes_v1",
+        ]

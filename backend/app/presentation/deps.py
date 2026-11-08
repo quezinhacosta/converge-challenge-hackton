@@ -1,5 +1,12 @@
 """Provedor de dependencias e estado em memoria para a API do Pulso."""
 
+from collections.abc import Iterator
+from typing import Any
+
+from fastapi import Depends, Request
+from sqlalchemy.orm import Session
+
+from app.application.contracts.identity import ContextoAutorizado
 from app.application.use_cases.analyze_psychosocial_risks_use_case import (
     AnalyzePsychosocialRisksUseCase,
 )
@@ -25,7 +32,6 @@ from app.infrastructure.guardrails.privacy_guardrail import (
 from app.infrastructure.llm.pulso_agent import PulsoAgentLLM
 from app.infrastructure.llm.resilience.failover_manager import FailoverManager
 from app.infrastructure.llm.resilience.gemini_provider import GeminiProvider
-from app.infrastructure.llm.resilience.mistral_lora_provider import MistralLoraProvider
 from app.infrastructure.llm.resilience.strands_provider import StrandsFeatherlessProvider
 from app.infrastructure.repositories.in_memory_pulso_repositories import (
     InMemoryAreaRepository,
@@ -35,27 +41,42 @@ from app.infrastructure.repositories.in_memory_pulso_repositories import (
     InMemorySurveyRepository,
 )
 from app.infrastructure.tools.strands_area_tools import build_area_tools
+from app.presentation.security import request_session, runtime_context
 from scripts.seed_synthetic_data import seed_in_memory_repositories
 
 
 class PulsoAppContainer:
     """Container singleton contendo repositorios em memoria populados e casos de uso."""
 
-    def __init__(self) -> None:
-        self.area_repo = InMemoryAreaRepository()
-        self.signal_repo = InMemorySignalRepository()
-        self.risk_card_repo = InMemoryRiskCardRepository()
-        self.pgr_repo = InMemoryPgrInventoryRepository()
-        self.survey_repo = InMemorySurveyRepository()
-
-        # Popular base sintetica dos 7 cenarios
-        self.seed_summary = seed_in_memory_repositories(
-            self.area_repo,
-            self.signal_repo,
-            self.risk_card_repo,
-            self.pgr_repo,
-            self.survey_repo,
-        )
+    def __init__(
+        self,
+        repositories: Any = None,
+        seed: bool = True,
+        context: ContextoAutorizado | None = None,
+        session: Session | None = None,
+        knowledge: Any = None,
+    ) -> None:
+        self.knowledge = knowledge
+        self.context = context
+        self.session = session
+        if repositories is None:
+            self.area_repo = InMemoryAreaRepository()
+            self.signal_repo = InMemorySignalRepository()
+            self.risk_card_repo = InMemoryRiskCardRepository()
+            self.pgr_repo = InMemoryPgrInventoryRepository()
+            self.survey_repo = InMemorySurveyRepository()
+        else:
+            for name in ("area_repo", "signal_repo", "risk_card_repo", "pgr_repo", "survey_repo"):
+                setattr(self, name, getattr(repositories, name))
+        self.seed_summary = None
+        if seed:
+            self.seed_summary = seed_in_memory_repositories(
+                self.area_repo,
+                self.signal_repo,
+                self.risk_card_repo,
+                self.pgr_repo,
+                self.survey_repo,
+            )
 
         # Componentes de infraestrutura
         self.guardrail = PrivacyAndEthicsGuardrail(
@@ -65,16 +86,22 @@ class PulsoAppContainer:
             self.area_repo, self.signal_repo, self.guardrail
         )
 
-        # Camada 2: agentes Strands na Featherless (primario), Gemini (secundario), Mistral 7B LoRA (local especializado), regras (local)
+        # Camada 2: agentes Strands na Featherless (primario), Gemini (secundario), regras (local)
+        operational_tools = []
+        if context is not None and "RH" in context.papeis:
+            from app.infrastructure.persistence.database import get_engine
+            from app.rh_actions.tools import build_rh_tools
+
+            operational_tools = build_rh_tools(context, lambda: Session(get_engine()))
         self.llm_provider = StrandsFeatherlessProvider(
-            chat_tools=build_area_tools(self.area_repo, self.collect_signals_uc)
+            chat_tools=operational_tools
+            + build_area_tools(self.area_repo, self.collect_signals_uc)
+            + list(knowledge.chat_tools if knowledge else ())
         )
-        self.mistral_lora_provider = MistralLoraProvider()
         self.llm_agent = PulsoAgentLLM(
             failover_manager=FailoverManager(
                 primary_provider=self.llm_provider,
                 secondary_provider=GeminiProvider(),
-                local_lora_provider=self.mistral_lora_provider if self.mistral_lora_provider.is_available() else None,
             ),
             devolutiva_writer=self.llm_provider,
         )
@@ -98,9 +125,27 @@ class PulsoAppContainer:
         )
 
 
-container = PulsoAppContainer()
+container = PulsoAppContainer()  # Apenas fixture/demo; nunca selecionado em producao.
 
 
-def get_container() -> PulsoAppContainer:
-    """Retorna a instancia singleton do container da aplicacao."""
-    return container
+def get_container(
+    request: Request,
+    ctx: ContextoAutorizado | None = Depends(runtime_context),
+    session: Session | None = Depends(request_session, scope="function"),
+) -> Iterator[PulsoAppContainer]:
+    """Um container por requisicao autenticada; transacao fecha em request_session."""
+    if ctx is None:
+        yield container
+        return
+    from app.infrastructure.persistence.repositories import RepositoryBundle
+    from app.presentation.knowledge_integration import get_knowledge_services
+
+    assert session is not None
+    knowledge = get_knowledge_services(request, ctx, session)
+    yield PulsoAppContainer(
+        RepositoryBundle(session, ctx.empresa_id),
+        seed=False,
+        context=ctx,
+        session=session,
+        knowledge=knowledge,
+    )
