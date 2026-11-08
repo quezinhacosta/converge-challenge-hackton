@@ -2,6 +2,7 @@
 
 import os
 from collections.abc import Iterator
+from uuid import UUID, uuid4
 
 from fastapi import Depends, Header
 from fastapi.security import HTTPAuthorizationCredentials
@@ -18,8 +19,23 @@ def runtime_context(
     empresa: str | None = Header(default=None, alias="X-Empresa-Id"),
 ) -> ContextoAutorizado | None:
     if os.getenv("VYTAI_MODE", "production") == "demo" and credential is None:
-        return None
+        return contexto_demo()
     return get_authorized_context(credential, empresa)
+
+
+def contexto_demo() -> ContextoAutorizado | None:
+    """Modo demo: RH ficticio de uma empresa sintetica (python -m app.digital_worker.demo).
+
+    So vale com VYTAI_MODE=demo e as duas variaveis definidas; sem elas, demo segue anonimo.
+    Nunca usar com dados reais: qualquer visitante age como esse RH.
+    """
+    empresa = os.getenv("VYTAI_DEMO_EMPRESA_ID", "").strip()
+    usuario = os.getenv("VYTAI_DEMO_USUARIO_ID", "").strip()
+    if not empresa or not usuario:
+        return None
+    return ContextoAutorizado(
+        UUID(empresa), UUID(usuario), frozenset({"RH"}), frozenset({"RH"}), f"demo-{uuid4()}"
+    )
 
 
 def request_session(

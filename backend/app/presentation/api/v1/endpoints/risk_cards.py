@@ -53,8 +53,49 @@ def resolve_risk_card_and_register_pgr(
                     "acao": payload.action_type,
                 },
             )
+            _registrar_decisao_como_memoria(container, card_id, payload)
         return result
     except CardStateError as e:
         raise HTTPException(status_code=409, detail=str(e)) from e
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+
+
+_DECISAO_MEMORIA = {
+    "APROVAR_PGR": "APROVADA",
+    "AJUSTAR_ACAO": "AJUSTADA",
+    "DESCARTAR": "DESCARTADA",
+}
+
+
+def _registrar_decisao_como_memoria(
+    container: PulsoAppContainer, card_id: str, payload: ResolveRiskCardRequestDTO
+) -> None:
+    """A decisao do RH vira documento citavel (PLANO_ACAO_ANTERIOR) para os proximos ciclos.
+
+    Roda num savepoint: se a memoria falhar (ex.: texto com dado pessoal bloqueado na triagem),
+    a decisao e a auditoria continuam valendo. Nao inclui o nome do responsavel.
+    """
+    import logging
+    from datetime import date
+
+    assistente = getattr(container.knowledge, "assistente", None)
+    card = container.risk_card_repo.get_by_id(card_id)
+    if assistente is None or card is None or container.session is None:
+        return
+    fator = getattr(card.probable_risk_factor, "value", card.probable_risk_factor)
+    if fator == "ASSEDIO":
+        return
+    try:
+        with container.session.begin_nested():
+            assistente.registrar_decisao(
+                container.context,
+                area_nome=card.area_name,
+                fator=str(fator),
+                periodo=f"{date.today():%m/%Y}",
+                decisao=_DECISAO_MEMORIA[payload.action_type],
+                acao=payload.adjusted_action_text or card.suggested_action,
+                justificativa=payload.justification_notes,
+            )
+    except Exception:  # noqa: BLE001 - memoria e acessoria; nunca derruba a decisao do RH
+        logging.getLogger(__name__).warning("Decisao %s nao virou memoria.", card_id, exc_info=True)

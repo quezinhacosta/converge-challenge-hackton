@@ -127,6 +127,10 @@ def create_application(knowledge_integration: KnowledgeIntegration | None = None
     app.include_router(closing_v1.router, prefix="/api/v1/fechamento", tags=["Fechamento"])
     app.include_router(tako_v1.router, prefix="/api/v1/integrations/tako", tags=["Integracao Tako"])
 
+    from app.digital_worker.api import router as digital_worker_router
+
+    app.include_router(digital_worker_router, prefix="/api/v1/worker", tags=["Digital Worker"])
+
     from app.presentation.knowledge_integration import unavailable_router
 
     app.state.knowledge_integration = knowledge_integration
