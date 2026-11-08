@@ -33,6 +33,13 @@ def contexto_demo() -> ContextoAutorizado | None:
     usuario = os.getenv("VYTAI_DEMO_USUARIO_ID", "").strip()
     if not empresa or not usuario:
         return None
+    from app.digital_worker.identidade_demo import EMPRESA_DEMO, USUARIO_DEMO
+
+    if UUID(empresa) != EMPRESA_DEMO or UUID(usuario) != USUARIO_DEMO:
+        raise RuntimeError(
+            "Modo demo so aceita a empresa sintetica de app.digital_worker.demo; "
+            "nunca aponte VYTAI_DEMO_* para uma empresa real."
+        )
     return ContextoAutorizado(
         UUID(empresa), UUID(usuario), frozenset({"RH"}), frozenset({"RH"}), f"demo-{uuid4()}"
     )

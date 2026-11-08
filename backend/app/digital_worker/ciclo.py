@@ -39,11 +39,11 @@ LIMITE_OBJETIVO = 1500
 NOME_FATOR = {
     "SOBRECARGA_METAS": "sobrecarga e metas",
     "JORNADAS_LONGAS": "jornadas longas",
-    "LIDERANCA_CONFLITO": "conflito com a lideranca",
-    "ASSEDIO": "assedio",
+    "LIDERANCA_CONFLITO": "conflito com a liderança",
+    "ASSEDIO": "assédio",
     "FALTA_CLAREZA_PAPEL": "falta de clareza de papel",
     "FALTA_AUTONOMIA": "falta de autonomia",
-    "INSEGURANCA_TRABALHO": "inseguranca no trabalho",
+    "INSEGURANCA_TRABALHO": "insegurança no trabalho",
 }
 
 
@@ -101,18 +101,18 @@ def montar_objetivo(card: Any, investigacao: Any | None) -> str:
     fator = _valor(card.probable_risk_factor)
     partes = [
         f"Card {_valor(card.risk_level)} de {NOME_FATOR.get(fator, fator)} em {card.area_name}, "
-        "aberto pelo fechamento do VytAI. Revisar com a lideranca e decidir a acao do PGR."
+        "aberto pelo fechamento do VytAI. Revisar com a liderança e decidir a ação do PGR."
     ]
     if investigacao is None:
-        partes.append("Base de conhecimento indisponivel nesta execucao.")
+        partes.append("Base de conhecimento indisponível nesta execução.")
     else:
         trechos = {t.ref: t for t in investigacao.trechos()}
         if investigacao.acoes_disponiveis:
             nomes = sorted({t.titulo_documento for t in investigacao.acoes_disponiveis})
-            partes.append("A empresa ja oferece: " + "; ".join(nomes) + ".")
+            partes.append("A empresa já oferece: " + "; ".join(nomes) + ".")
         if investigacao.planos_anteriores:
             nomes = sorted({t.titulo for t in investigacao.planos_anteriores})
-            partes.append("Ja foi tentado antes: " + "; ".join(nomes) + ".")
+            partes.append("Já foi tentado antes: " + "; ".join(nomes) + ".")
         if investigacao.lacunas:
             partes.append("Lacunas na base: " + " ".join(investigacao.lacunas))
         if trechos:
@@ -174,7 +174,7 @@ def executar_ciclo(
                     objective=montar_objetivo(card, investigacao),
                     source_card_id=card.id,
                     first_task=TaskPayload(
-                        title=f"Revisar o card de {card.area_name} com a lideranca"[:160],
+                        title=f"Revisar o card de {card.area_name} com a liderança"[:160],
                         due_at=agora + PRAZO_PRIMEIRA_TAREFA,
                     ),
                 ),

@@ -22,7 +22,8 @@ def get_engine() -> Engine:
         pool_size=3,
         max_overflow=2,
         hide_parameters=True,
-        connect_args={"sslmode": "require"},
+        # Producao/Supabase: require (padrao). So desenvolvimento local usa DATABASE_SSLMODE=disable.
+        connect_args={"sslmode": os.getenv("DATABASE_SSLMODE", "require")},
     )
 
     @event.listens_for(engine, "connect")

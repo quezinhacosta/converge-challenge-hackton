@@ -9,21 +9,17 @@ para o modo demo (VYTAI_MODE=demo + VYTAI_DEMO_EMPRESA_ID + VYTAI_DEMO_USUARIO_I
 
 import os
 from datetime import date
-from uuid import UUID, uuid5
 
 from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.orm import Session
 
 from app.application.contracts.identity import ContextoAutorizado
+from app.digital_worker.identidade_demo import EMPRESA_DEMO, USUARIO_DEMO
 from app.infrastructure.persistence.repositories import RepositoryBundle
 from app.knowledge.domain import CategoriaDocumento, ErroConhecimento
 from app.knowledge.dtos import CadastroTextoRequest
 from app.knowledge.integration import criar_servicos_documentais
 from app.presentation.deps import PulsoAppContainer
-
-BASE = UUID("5f0c1a2e-7d1b-4f3e-9a51-6d0e7c2b9a10")
-EMPRESA_DEMO = uuid5(BASE, "empresa-demo")
-USUARIO_DEMO = uuid5(BASE, "rh-demo")
 
 DOCUMENTOS = [
     (

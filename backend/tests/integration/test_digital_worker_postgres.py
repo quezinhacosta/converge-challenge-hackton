@@ -77,7 +77,7 @@ def test_ciclo_prepara_propostas_sem_duplicar_e_respeita_compliance(engine):
                 t.interventions.c.id == vermelho["intervencaoId"]
             )
         ).scalar_one()
-        assert "A empresa ja oferece" in objetivo and "Fontes:" in objetivo
+        assert "A empresa já oferece" in objetivo and "Fontes:" in objetivo
 
 
 def test_demo_sem_login_e_decisao_vira_memoria(engine, monkeypatch):
