@@ -70,9 +70,9 @@ def build_area_tools(
         if area_id is None:
             return {"erro": f"Area '{area}' nao encontrada. Use listar_areas."}
         data = _to_dict(collect_signals_use_case.execute(area_id))
-        if data.get("is_anonymized"):
+        if data.get("is_anonymized") or data.get("isAnonymized"):
             return {
-                "area": data.get("area_name"),
+                "area": data.get("area_name") or data.get("areaName"),
                 "dados_ocultos_lgpd": True,
                 "motivo": "Area com menos de 5 pessoas; dados agregados ao nivel superior.",
             }

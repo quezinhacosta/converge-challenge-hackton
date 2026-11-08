@@ -4,8 +4,10 @@ from collections.abc import Iterator
 
 import pytest
 
-pytest.importorskip("fastapi.testclient")
-from fastapi.testclient import TestClient
+try:
+    from fastapi.testclient import TestClient
+except ImportError:
+    from app.presentation.compat import TestClient
 
 from app.presentation.deps import PulsoAppContainer, get_container
 from app.presentation.main import create_application

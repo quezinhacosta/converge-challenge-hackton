@@ -5,6 +5,7 @@ from app.presentation.compat import APIRouter, Depends, HTTPException, status
 
 from app.application.dtos.pgr_dto import PgrInventoryItemDTO
 from app.application.dtos.risk_card_dto import ResolveRiskCardRequestDTO, RiskCardDTO
+from app.application.use_cases.register_pgr_action_use_case import CardStateError
 from app.presentation.deps import PulsoAppContainer, get_container
 
 router = APIRouter()
@@ -42,7 +43,7 @@ def get_active_risk_cards(
 @router.post(
     "/{card_id}/resolve",
     response_model=PgrInventoryItemDTO,
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
 )
 def resolve_risk_card_and_register_pgr(
     card_id: str,
@@ -51,6 +52,17 @@ def resolve_risk_card_and_register_pgr(
 ) -> PgrInventoryItemDTO:
     """Registra a deliberacao humana (aprovar/ajustar) e gera o item no PGR (NR-1)."""
     try:
-        return container.register_pgr_uc.execute(card_id, payload)
+        result = container.register_pgr_uc.execute(card_id, payload)
+        # Sincroniza com STORE_CASOS da Pessoa B se presente
+        try:
+            from app.main import STORE_CASOS
+            for k, c in STORE_CASOS.items():
+                if card_id in k or (hasattr(result, "area_id") and c.area_id == result.area_id):
+                    c.status = payload.action_type
+        except Exception:
+            pass
+        return result
+    except CardStateError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))

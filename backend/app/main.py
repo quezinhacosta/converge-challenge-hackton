@@ -412,9 +412,39 @@ def registrar_decisao_rh(caso_id: str, payload: DecisaoRequest) -> DecisaoRespon
     try:
         container = get_container()
         existing_card = container.risk_card_repo.get_by_id(caso_id)
+        if not existing_card:
+            for card_item in container.risk_card_repo.list_all():
+                if card_item.area_id == caso.area_id:
+                    existing_card = card_item
+                    break
+
         if existing_card:
-            existing_card.status = caso.status  # type: ignore[assignment]
+            from app.domain.entities.risk_card import CardStatus
+            if acao_normalizada in ["APROVADO", "APROVAR"]:
+                existing_card.status = CardStatus.APROVADO_PGR
+            elif acao_normalizada in ["AJUSTADO", "AJUSTAR"]:
+                existing_card.status = CardStatus.AJUSTADO
+            elif acao_normalizada in ["DESCARTADO", "DESCARTAR"]:
+                existing_card.status = CardStatus.DESCARTADO
             container.risk_card_repo.save(existing_card)
+
+            if registrado_pgr:
+                from app.domain.entities.pgr_inventory import PgrRiskItem
+                from datetime import date, timedelta
+                pgr_item = PgrRiskItem(
+                    id=f"pgr_{caso.area_id}_{uuid.uuid4().hex[:8]}",
+                    risk_card_id=existing_card.id,
+                    area_id=caso.area_id,
+                    area_name=caso.area_name,
+                    factor=existing_card.probable_risk_factor,
+                    severity_level=existing_card.risk_level,
+                    action_plan_description=caso.medida_nr1_sugerida,
+                    responsible_person=payload.revisor_nome,
+                    deadline_date=date.today() + timedelta(days=payload.prazo_dias or 60),
+                    reassessment_interval_days=payload.prazo_dias or 60,
+                    audit_log=[f"Homologado via deliberacao ({protocolo_gro}) por {payload.revisor_nome}"],
+                )
+                container.pgr_repo.save(pgr_item)
     except Exception:
         pass
 
