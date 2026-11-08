@@ -265,3 +265,8 @@ npx ng build --configuration production
 ```
 
 O backend atual usa repositorios em memoria: reinicios perdem as decisoes e os registros. Consulte as limitacoes atuais do plano Free no Render antes de usar esta demonstracao em producao: https://render.com/docs/free
+
+
+### Ações do RH — VytAI
+
+A fila operacional em `/acoes-rh` prepara intervenções, registra aprovação humana, executa tarefas e acompanha evidências. Slack e Google Agenda têm adaptadores com destinos permitidos, desligados por padrão. Consulte [configuração, limites e integração documental](docs/rh/ACOES_RH.md) antes de ativar o worker na nuvem.

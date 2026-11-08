@@ -18,6 +18,9 @@ export class PulsoApiService {
   health(): Observable<{status: string; mode: string}> {
     return this.http.get<{status: string; mode: string}>(`${this.baseUrl}/health`);
   }
+  closeCycle(): Observable<unknown[]> {
+    return this.http.post<unknown[]>(`${this.baseUrl}/fechamento`, {});
+  }
   listAreas(): Observable<AreaInfo[]> {
     return this.http.get<AreaInfo[]>(`${this.baseUrl}/areas`);
   }

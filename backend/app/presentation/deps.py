@@ -87,8 +87,15 @@ class PulsoAppContainer:
         )
 
         # Camada 2: agentes Strands na Featherless (primario), Gemini (secundario), regras (local)
+        operational_tools = []
+        if context is not None and "RH" in context.papeis:
+            from app.infrastructure.persistence.database import get_engine
+            from app.rh_actions.tools import build_rh_tools
+
+            operational_tools = build_rh_tools(context, lambda: Session(get_engine()))
         self.llm_provider = StrandsFeatherlessProvider(
-            chat_tools=build_area_tools(self.area_repo, self.collect_signals_uc)
+            chat_tools=operational_tools
+            + build_area_tools(self.area_repo, self.collect_signals_uc)
             + list(knowledge.chat_tools if knowledge else ())
         )
         self.llm_agent = PulsoAgentLLM(

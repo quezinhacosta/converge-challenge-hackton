@@ -6,6 +6,8 @@ Disponibiliza:
 """
 
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import HTTPException, Request
 
@@ -29,6 +31,9 @@ from app.presentation.api.v1.endpoints import (
 )
 from app.presentation.compat import CORSMiddleware, FastAPI
 from app.presentation.knowledge_integration import KnowledgeIntegration
+from app.rh_actions.api import router as rh_actions_router
+from app.rh_actions.contracts import ActionError
+from app.rh_actions.worker import embedded_worker
 
 
 def create_application(knowledge_integration: KnowledgeIntegration | None = None) -> FastAPI:
@@ -37,7 +42,14 @@ def create_application(knowledge_integration: KnowledgeIntegration | None = None
     Retorna:
         FastAPI: Instancia ASGI da API do VytAI totalmente configurada.
     """
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        with embedded_worker():
+            yield
+
     app = FastAPI(
+        lifespan=lifespan,
         title="VytAI API - Gestao de Riscos Psicossociais (NR-1)",
         description=(
             "Digital Worker de Gestao de Riscos Psicossociais (NR-1 / Portaria MTE nº 1.419/2024) "
@@ -64,6 +76,13 @@ def create_application(knowledge_integration: KnowledgeIntegration | None = None
             },
         )
 
+    @app.exception_handler(ActionError)
+    async def action_failure(request: Request, exc: ActionError) -> JSONResponse:
+        return JSONResponse(
+            status_code=exc.status, content={"detail": {"code": exc.code, "message": exc.message}}
+        )
+
+    app.include_router(rh_actions_router, prefix="/api/v1/rh", tags=["Operacao do RH"])
     allowed_origins = [
         origin.strip()
         for origin in os.getenv(
