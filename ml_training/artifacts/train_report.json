@@ -1,0 +1,20 @@
+{
+  "metrics": {
+    "mae": 4.73,
+    "rmse": 7.38,
+    "r2": 0.9626,
+    "severity_accuracy": 94.0
+  },
+  "n_samples_total": 1500,
+  "n_samples_train": 1200,
+  "n_samples_test": 300,
+  "feature_importances": {
+    "variacao_dias_atestado_pct": 0.6119,
+    "variacao_horas_extras_pct": 0.0006,
+    "pedidos_demissao": 0.0182,
+    "media_empresa_pedidos_demissao": 0.0,
+    "queda_nota_clima": 0.3618,
+    "denuncias_compliance": 0.0076
+  },
+  "trained_at": "2026-11-08T02:20:10.212938+00:00"
+}
