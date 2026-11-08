@@ -1,80 +1,80 @@
-# Fine-Tuning do Llama-3.1-8B-Instruct (vitAI NR-1 Agent)
+# Fine-Tuning do Mistral-7B-Instruct-v0.3 (vitAI NR-1 Agent)
 
-Pipeline completo para ajuste fino supervisionado (SFT) do modelo **`meta-llama/Llama-3.1-8B-Instruct`** utilizando **QLoRA (4-bit NF4) + PEFT + TRL**, salvando exclusivamente a **camada de ajustes (LoRA Adapters)**.
+Pipeline completo para ajuste fino supervisionado (SFT) do modelo **`mistralai/Mistral-7B-Instruct-v0.3`** utilizando **QLoRA (4-bit NF4) + PEFT + TRL**, salvando exclusivamente a **camada de ajustes (LoRA Adapters)**.
+
+Link oficial do modelo: **[https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3)**
 
 ---
 
-## 1. Estrutura dos Arquivos
+## 1. Vantagens do Mistral-7B-Instruct-v0.3
+
+- **Licença Aberta Apache 2.0**: Não exige aprovação manual nem termos restritos da Meta. O download é público e imediato.
+- **Janela de Contexto de 32k Tokens**: Suporta históricos longos e múltiplos cenários de auditoria.
+- **Suporte Nativo a Chamada de Funções e Ferramentas (Function Calling)** via v3 Tokenizer.
+- **Excelente Eficiência de VRAM**: Roda com QLoRA 4-bit ocupando em torno de 6 a 8 GB de memória de vídeo, ideal para GPUs como RTX 3060, 3080, 4070, 4080, 4090, A10 ou T4.
+
+---
+
+## 2. Estrutura dos Arquivos
 
 ```
 ml_training/
-├── requirements.txt            # Dependencias PyTorch, Transformers, PEFT, TRL, BitsAndBytes
-├── generate_llama_dataset.py   # Gerador de instrucoes no formato ChatML do Llama 3.1
-├── train_llama.py              # Script principal de fine-tuning QLoRA (salva em lora_adapters/)
-├── run_inference.py            # Teste de inferencia carregando modelo base + LoRA adapter
-├── train_dataset.jsonl         # Dataset de treino gerado (1.020 conversas estruturadas)
-├── val_dataset.jsonl           # Dataset de validacao gerado (180 conversas estruturadas)
-├── lora_adapters/              # Diretorio de saida com a camada de ajustes (criado no treino)
-│   ├── adapter_config.json     # Hiperparametros do LoRA (rank, alpha, target modules)
+├── requirements.txt              # Dependencias PyTorch, Transformers, PEFT, TRL, BitsAndBytes, mistral_common
+├── generate_mistral_dataset.py   # Gerador de instrucoes no padrao de chat do Mistral
+├── train_mistral.py              # Script principal de fine-tuning QLoRA (salva em lora_adapters/)
+├── run_inference.py              # Teste de inferencia carregando modelo base + LoRA adapter
+├── train_dataset.jsonl           # 1.020 amostras de treino formatadas em ChatML
+├── val_dataset.jsonl             # 180 amostras de validacao formatadas em ChatML
+├── lora_adapters/                # Diretorio onde a camada de ajustes sera salva:
+│   ├── adapter_config.json       # Hiperparametros do LoRA (rank, alpha, target modules)
 │   └── adapter_model.safetensors # Pesos treinados da camada de ajuste
-└── README.md                   # Este guia
+└── README.md                     # Este guia
 ```
 
 ---
 
-## 2. Passo 1: Acesso ao Modelo no Hugging Face (Gated Model)
+## 3. Passo 1: Instalação das Dependências
 
-O modelo `meta-llama/Llama-3.1-8B-Instruct` exige concordância com os termos de licença da Meta:
-
-1. Acesse: **https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct**
-2. Clique em **"Agree and access repository"** (a aprovação costuma ser imediata).
-3. Vá em **https://huggingface.co/settings/tokens** e crie um token do tipo `Read`.
-4. No terminal da sua máquina, exporte o token:
-   ```bash
-   export HF_TOKEN="seu_token_aqui"
-   ```
-   *(Ou execute `huggingface-cli login` e cole o token quando solicitado)*.
-
----
-
-## 3. Passo 2: Instalação das Dependências
-
-Instale os pacotes com suporte a CUDA e quantização de 4 bits:
+No seu ambiente Python com suporte a GPU NVIDIA CUDA:
 
 ```bash
 cd ml_training
 pip install -r requirements.txt
 ```
 
-> **Verificação de GPU**: Certifique-se de que `torch.cuda.is_available()` retorna `True` e que sua GPU possui ao menos 12GB de VRAM.
+> **Dica**: Certifique-se de que o PyTorch reconhece a sua GPU:
+> ```bash
+> python3 -c "import torch; print('CUDA disponivel:', torch.cuda.is_available(), '| GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A')"
+> ```
 
 ---
 
-## 4. Passo 3: Geração do Dataset de Treinamento
+## 4. Passo 2: Geração do Dataset de Treinamento
 
-O script gera dados simulando casos reais de conformidade com a NR-1 / Portaria MTE nº 1.419/2024 (Sobrecarga de Trabalho, Conflito de Gestão, Assédio no Canal de Ética, Equipes Estáveis e Proteção LGPD para grupos N < 5):
+O dataset de 1.200 amostras com os casos da NR-1 / Portaria MTE nº 1.419/2024 (Sobrecarga de Trabalho, Conflito de Gestão, Assédio no Canal de Ética, Equipes Estáveis e Proteção LGPD para grupos N < 5) já foi gerado. Se quiser regenerar:
 
 ```bash
-python3 generate_llama_dataset.py
+python3 generate_mistral_dataset.py
 ```
 
-Isso criará:
+Isso gera:
 - `train_dataset.jsonl` (1.020 conversas)
 - `val_dataset.jsonl` (180 conversas)
 
 ---
 
-## 5. Passo 4: Executar o Treinamento
+## 5. Passo 3: Executar o Treinamento da Camada de Ajustes
 
-Inicie o fine-tuning da camada de ajustes (LoRA):
+Execute o script de fine-tuning:
 
 ```bash
-python3 train_llama.py
+python3 train_mistral.py
 ```
 
-### Argumentos Opcionais Customizáveis:
+### Argumentos Customizáveis (opcional):
 ```bash
-python3 train_llama.py \
+python3 train_mistral.py \
+  --base_model mistralai/Mistral-7B-Instruct-v0.3 \
   --epochs 3 \
   --batch_size 2 \
   --grad_accum 4 \
@@ -84,17 +84,18 @@ python3 train_llama.py \
   --output_dir lora_adapters
 ```
 
-Ao término, a pasta **`lora_adapters/`** conterá a camada de ajustes:
+Ao final do treinamento, o script salvará na pasta **`lora_adapters/`**:
 - `adapter_config.json`
 - `adapter_model.safetensors`
 - `tokenizer_config.json`
 
 ---
 
-## 6. Passo 5: Testar a Inferência com os Adaptadores
+## 6. Passo 4: Testar a Inferência com os Adaptadores
 
-Para testar a geração do modelo com os adaptadores aplicados sobre os cenários do desafio:
+Para testar o modelo treinado com a camada de ajustes acoplada:
 
 ```bash
 python3 run_inference.py
 ```
+O script carregará o `mistralai/Mistral-7B-Instruct-v0.3`, aplicará os pesos de `lora_adapters/` e executará o diagnóstico nos cenários de demonstração (Atendimento e Logística).

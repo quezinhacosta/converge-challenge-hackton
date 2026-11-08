@@ -1,4 +1,4 @@
-"""Script de Inferencia para avaliar o Llama-3.1-8B-Instruct com a camada de ajustes (LoRA).
+"""Script de Inferencia para avaliar o Mistral-7B-Instruct-v0.3 com a camada de ajustes (LoRA).
 
 Carrega o modelo base quantizado em 4-bit e acopla os adaptadores salvos em `lora_adapters/`.
 Executa o diagnóstico nos cenários do desafio (Atendimento, Logística, Vendas, Financeiro).
@@ -11,11 +11,11 @@ import sys
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Inferencia com Llama 3.1 + LoRA Adapters")
+    parser = argparse.ArgumentParser(description="Inferencia com Mistral 7B + LoRA Adapters")
     parser.add_argument(
         "--base_model",
         type=str,
-        default="meta-llama/Llama-3.1-8B-Instruct",
+        default="mistralai/Mistral-7B-Instruct-v0.3",
         help="Modelo base",
     )
     parser.add_argument(

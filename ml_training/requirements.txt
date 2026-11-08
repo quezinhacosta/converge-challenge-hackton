@@ -1,4 +1,4 @@
-# Dependencias para Fine-Tuning do Llama-3.1-8B-Instruct com QLoRA / PEFT
+# Dependencias para Fine-Tuning do Mistral-7B-Instruct-v0.3 com QLoRA / PEFT
 torch>=2.2.0
 transformers>=4.43.3
 peft>=0.11.1
@@ -9,3 +9,4 @@ datasets>=2.20.0
 huggingface_hub>=0.23.4
 scipy
 sentencepiece
+mistral_common>=1.2.0
