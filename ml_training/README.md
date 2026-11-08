@@ -1,88 +1,100 @@
-# Modulo de Treinamento de Machine Learning (NR-1 Risk Engine)
+# Fine-Tuning do Llama-3.1-8B-Instruct (vitAI NR-1 Agent)
 
-Este diretorio contem o pipeline completo para geracao de dataset sintetico, treinamento de modelo supervisionado e inferencia tabular com explicabilidade legal aditiva (SHAP) para governanca de riscos psicossociais segundo a **NR-1** e **Portaria MTE nº 1.419/2024**.
+Pipeline completo para ajuste fino supervisionado (SFT) do modelo **`meta-llama/Llama-3.1-8B-Instruct`** utilizando **QLoRA (4-bit NF4) + PEFT + TRL**, salvando exclusivamente a **camada de ajustes (LoRA Adapters)**.
 
 ---
 
-## 1. Estrutura do Diretorio
+## 1. Estrutura dos Arquivos
 
 ```
 ml_training/
-├── generate_dataset.py       # Gerador de dados com correlacoes empiricas da NR-1
-├── train_model.py            # Treinamento Gradient Boosted Decision Trees + SHAP
-├── trained_engine.py         # Motor de inferencia compativel com BaseRiskEngine
-├── test_engine.py            # Bateria de testes nos cenarios oficiais
-├── dataset_nr1.csv           # Dataset gerado (formato CSV)
-├── dataset_nr1.json          # Dataset gerado (formato JSON)
-├── artifacts/
-│   ├── model_weights.json    # Pesos treinados, thresholds das arvores e baselines
-│   └── train_report.json     # Metricas de avaliacao (R2, RMSE, MAE, Acuracia)
-└── README.md                 # Este documento
+├── requirements.txt            # Dependencias PyTorch, Transformers, PEFT, TRL, BitsAndBytes
+├── generate_llama_dataset.py   # Gerador de instrucoes no formato ChatML do Llama 3.1
+├── train_llama.py              # Script principal de fine-tuning QLoRA (salva em lora_adapters/)
+├── run_inference.py            # Teste de inferencia carregando modelo base + LoRA adapter
+├── train_dataset.jsonl         # Dataset de treino gerado (1.020 conversas estruturadas)
+├── val_dataset.jsonl           # Dataset de validacao gerado (180 conversas estruturadas)
+├── lora_adapters/              # Diretorio de saida com a camada de ajustes (criado no treino)
+│   ├── adapter_config.json     # Hiperparametros do LoRA (rank, alpha, target modules)
+│   └── adapter_model.safetensors # Pesos treinados da camada de ajuste
+└── README.md                   # Este guia
 ```
 
 ---
 
-## 2. Como Gerar o Dataset
+## 2. Passo 1: Acesso ao Modelo no Hugging Face (Gated Model)
 
-O script simula 1.500 amostras corporativas com quatro padroes fundamentais:
-1. **Equipes Estaveis (Risco Baixo - Verde)**: baixa variacao de atestados, horas extras sob controle, turnover estavel.
-2. **Sobrecarga de Trabalho (Risco Alto/Critico)**: explosao de horas extras (>20%) combinada com atestados medicos (>30%).
-3. **Conflito de Lideranca e Clima Degradado**: queda brusca na pesquisa pulso associada a pedidos atipicos de demissao voluntaria.
-4. **Denuncias Graves no Canal de Etica / Assedio**: isolamento etico com acionamento de protocolo confidencial fora do PGR.
+O modelo `meta-llama/Llama-3.1-8B-Instruct` exige concordância com os termos de licença da Meta:
+
+1. Acesse: **https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct**
+2. Clique em **"Agree and access repository"** (a aprovação costuma ser imediata).
+3. Vá em **https://huggingface.co/settings/tokens** e crie um token do tipo `Read`.
+4. No terminal da sua máquina, exporte o token:
+   ```bash
+   export HF_TOKEN="seu_token_aqui"
+   ```
+   *(Ou execute `huggingface-cli login` e cole o token quando solicitado)*.
+
+---
+
+## 3. Passo 2: Instalação das Dependências
+
+Instale os pacotes com suporte a CUDA e quantização de 4 bits:
 
 ```bash
 cd ml_training
-python3 generate_dataset.py
+pip install -r requirements.txt
 ```
+
+> **Verificação de GPU**: Certifique-se de que `torch.cuda.is_available()` retorna `True` e que sua GPU possui ao menos 12GB de VRAM.
 
 ---
 
-## 3. Como Treinar o Modelo
+## 4. Passo 3: Geração do Dataset de Treinamento
 
-O script `train_model.py`:
-- Realiza split de 80% treino e 20% teste.
-- Treina ensemble aditivo com Gradient Boosting sobre residuos quadraticos.
-- Calcula metricas de avaliacao no conjunto de teste independente.
-- Salva os artefatos em `artifacts/model_weights.json` e `artifacts/train_report.json`.
+O script gera dados simulando casos reais de conformidade com a NR-1 / Portaria MTE nº 1.419/2024 (Sobrecarga de Trabalho, Conflito de Gestão, Assédio no Canal de Ética, Equipes Estáveis e Proteção LGPD para grupos N < 5):
 
 ```bash
-cd ml_training
-python3 train_model.py
+python3 generate_llama_dataset.py
 ```
 
-### Metricas Tipicas Obtidas no Teste:
-- **R² (Coeficiente de Determinacao)**: `0.96+`
-- **MAE (Erro Medio Absoluto)**: `< 5.0 pontos`
-- **Acuracia na Classificacao de Severidade**: `94%+`
+Isso criará:
+- `train_dataset.jsonl` (1.020 conversas)
+- `val_dataset.jsonl` (180 conversas)
 
 ---
 
-## 4. Como Validar a Inferencia
+## 5. Passo 4: Executar o Treinamento
 
-O script `test_engine.py` avalia a predicao do motor treinado sobre os quatro cenarios do desafio:
+Inicie o fine-tuning da camada de ajustes (LoRA):
 
 ```bash
-cd ml_training
-python3 test_engine.py
+python3 train_llama.py
 ```
+
+### Argumentos Opcionais Customizáveis:
+```bash
+python3 train_llama.py \
+  --epochs 3 \
+  --batch_size 2 \
+  --grad_accum 4 \
+  --lr 2e-4 \
+  --lora_r 16 \
+  --lora_alpha 32 \
+  --output_dir lora_adapters
+```
+
+Ao término, a pasta **`lora_adapters/`** conterá a camada de ajustes:
+- `adapter_config.json`
+- `adapter_model.safetensors`
+- `tokenizer_config.json`
 
 ---
 
-## 5. Como Plugar este Motor no Backend vitAI
+## 6. Passo 5: Testar a Inferência com os Adaptadores
 
-No seu script ou inicializacao da aplicacao:
+Para testar a geração do modelo com os adaptadores aplicados sobre os cenários do desafio:
 
-```python
-import sys
-import os
-
-# Adiciona o diretorio ml_training ao path
-sys.path.insert(0, os.path.abspath("ml_training"))
-
-from trained_engine import activate_trained_engine
-
-# Instancia o modelo treinado e o registra como motor ativo no backend
-active_engine = activate_trained_engine()
+```bash
+python3 run_inference.py
 ```
-
-A partir desse momento, todas as chamadas de fechamento mensal, consultas de risco e explicabilidade SHAP na API REST e no Dashboard consumirao os artefatos do modelo treinado.
