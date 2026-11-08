@@ -123,27 +123,33 @@ def main() -> None:
 
     # 2. Carrega Modelo Base
     print("2/4. Carregando pesos do Mistral-7B-Instruct-v0.3...")
+    compute_dtype = (
+        torch.bfloat16
+        if (has_cuda and torch.cuda.is_bf16_supported())
+        else torch.float16
+    )
+
     if has_cuda:
         from transformers import BitsAndBytesConfig
 
         bnb_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_compute_dtype=compute_dtype,
             bnb_4bit_use_double_quant=True,
         )
         model = AutoModelForCausalLM.from_pretrained(
             args.base_model,
             quantization_config=bnb_config,
             device_map="auto",
-            torch_dtype=torch.bfloat16,
+            torch_dtype=compute_dtype,
             trust_remote_code=True,
         )
     else:
         model = AutoModelForCausalLM.from_pretrained(
             args.base_model,
             device_map="cpu",
-            torch_dtype=torch.bfloat16,
+            torch_dtype=compute_dtype,
             trust_remote_code=True,
         )
 
@@ -189,8 +195,8 @@ def main() -> None:
         max_length=args.max_seq_length,
         dataset_text_field="messages",
         use_cpu=(not has_cuda),
-        fp16=False,
-        bf16=has_cuda,
+        fp16=(has_cuda and compute_dtype == torch.float16),
+        bf16=(has_cuda and compute_dtype == torch.bfloat16),
     )
 
     trainer = SFTTrainer(
