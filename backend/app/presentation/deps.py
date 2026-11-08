@@ -25,6 +25,7 @@ from app.infrastructure.guardrails.privacy_guardrail import (
 from app.infrastructure.llm.pulso_agent import PulsoAgentLLM
 from app.infrastructure.llm.resilience.failover_manager import FailoverManager
 from app.infrastructure.llm.resilience.gemini_provider import GeminiProvider
+from app.infrastructure.llm.resilience.mistral_lora_provider import MistralLoraProvider
 from app.infrastructure.llm.resilience.strands_provider import StrandsFeatherlessProvider
 from app.infrastructure.repositories.in_memory_pulso_repositories import (
     InMemoryAreaRepository,
@@ -64,14 +65,16 @@ class PulsoAppContainer:
             self.area_repo, self.signal_repo, self.guardrail
         )
 
-        # Camada 2: agentes Strands na Featherless (primario), Gemini (secundario), regras (local)
+        # Camada 2: agentes Strands na Featherless (primario), Gemini (secundario), Mistral 7B LoRA (local especializado), regras (local)
         self.llm_provider = StrandsFeatherlessProvider(
             chat_tools=build_area_tools(self.area_repo, self.collect_signals_uc)
         )
+        self.mistral_lora_provider = MistralLoraProvider()
         self.llm_agent = PulsoAgentLLM(
             failover_manager=FailoverManager(
                 primary_provider=self.llm_provider,
                 secondary_provider=GeminiProvider(),
+                local_lora_provider=self.mistral_lora_provider if self.mistral_lora_provider.is_available() else None,
             ),
             devolutiva_writer=self.llm_provider,
         )
