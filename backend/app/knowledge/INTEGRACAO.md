@@ -4,7 +4,7 @@ Pacote isolado em `backend/app/knowledge/`, já sobre a base `feature/structured
 (contratos `ContextoAutorizado`, `CitacaoDTO`, `IndicadoresArea`, `KnowledgeIntegration`).
 Nenhum arquivo compartilhado foi alterado.
 
-## Montagem (entrypoint — Codex)
+## Montagem (ligada em `app/presentation/main.py`)
 
 ```python
 from app.knowledge.api import router as router_conhecimento

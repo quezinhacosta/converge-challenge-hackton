@@ -134,4 +134,12 @@ def create_application(knowledge_integration: KnowledgeIntegration | None = None
     return app
 
 
-app = create_application()
+def _integracao_documental() -> KnowledgeIntegration:
+    """Frente documental: router /conhecimento + servicos por requisicao (Postgres/RLS)."""
+    from app.knowledge.api import router as router_conhecimento
+    from app.knowledge.integration import criar_servicos_documentais
+
+    return KnowledgeIntegration(router=router_conhecimento, factory=criar_servicos_documentais)
+
+
+app = create_application(_integracao_documental())

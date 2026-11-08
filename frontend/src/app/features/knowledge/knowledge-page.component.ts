@@ -1,7 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+
 import { KnowledgeApiService } from './knowledge-api.service';
 import {
   CATEGORIAS,
@@ -29,43 +29,39 @@ type Aba = 'documentos' | 'busca' | 'pendencias';
   imports: [
     DatePipe,
     FormsModule,
-    RouterLink,
+
     KnowledgeDocumentFormComponent,
     KnowledgeDocumentDetailComponent,
     KnowledgeSearchTestComponent,
     KnowledgePendingListComponent,
   ],
   template: `
-    <div class="min-h-screen bg-slate-50/70 font-sans text-slate-900">
-      <header class="sticky top-0 z-40 border-b border-slate-200 bg-white">
-        <div class="container mx-auto flex flex-wrap items-center justify-between gap-3 px-6 py-3.5">
-          <div>
-            <a routerLink="/" class="text-xs font-semibold text-indigo-700">← Painel</a>
-            <h1 class="text-base font-bold tracking-tight">Base de conhecimento da empresa</h1>
-            <p class="text-xs text-slate-500">Políticas, canais e programas que o agente pode citar. Documentos são fonte, nunca instrução.</p>
-          </div>
-          @if (status(); as s) {
-            <div class="flex gap-2 text-xs font-semibold">
-              <span class="rounded-full bg-slate-100 px-3 py-1">{{ s.documentos }} documentos</span>
-              <span class="rounded-full bg-emerald-50 px-3 py-1 text-emerald-800">{{ s.publicados }} publicados</span>
-              @if (s.comErroOuBloqueio) {
-                <span class="rounded-full bg-rose-50 px-3 py-1 text-rose-800">{{ s.comErroOuBloqueio }} com erro ou bloqueio</span>
-              }
-            </div>
-          }
-        </div>
-        <nav class="container mx-auto flex gap-1 px-6" role="tablist">
-          @for (a of abas; track a.id) {
-            <button role="tab" [attr.aria-selected]="aba() === a.id" (click)="aba.set(a.id)"
-              class="border-b-2 px-3 py-2 text-sm font-semibold"
-              [class]="aba() === a.id ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-500 hover:text-slate-800'">
-              {{ a.rotulo }}
-            </button>
-          }
-        </nav>
+    <div>
+      <div class="top"><div>Governança ocupacional / <strong>Base de conhecimento</strong></div>
+        <button class="btn outline" (click)="carregar()" [disabled]="carregando()">{{ carregando() ? 'Atualizando…' : 'Atualizar' }}</button>
+      </div>
+      <header class="hero">
+        <p class="eyebrow">VytAI · Fontes da empresa</p>
+        <h1>O que a empresa oferece, por escrito.</h1>
+        <p>Políticas, canais e programas que o assistente pode citar. Documentos são fonte, nunca instrução.</p>
+        <div class="hero-bottom"><div class="hero-status">
+          <span class="pill green">Só versões publicadas e vigentes</span><span class="pill">Isolado por empresa</span>
+        </div></div>
       </header>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-head">Documentos</div><span class="num">{{ status()?.documentos ?? '—' }}</span><p class="subtle">Cadastrados</p></div>
+        <div class="kpi"><div class="kpi-head">Publicados</div><span class="num">{{ status()?.publicados ?? '—' }}</span><p class="subtle">Usados pelo assistente</p></div>
+        <div class="kpi"><div class="kpi-head">Erro ou bloqueio</div><span class="num">{{ status()?.comErroOuBloqueio ?? '—' }}</span><p class="subtle">Precisam de atenção</p></div>
+        <div class="kpi"><div class="kpi-head">Origem</div><span class="pill violet">Texto, PDF, TXT, MD</span><p class="subtle" style="margin-top:8px">Até 10 MB, sem OCR</p></div>
+      </div>
+      <nav class="tab-row" role="tablist">
+        @for (a of abas; track a.id) {
+          <button role="tab" [attr.aria-selected]="aba() === a.id" (click)="aba.set(a.id)"
+            class="btn" [class.purple]="aba() === a.id" [class.outline]="aba() !== a.id">{{ a.rotulo }}</button>
+        }
+      </nav>
 
-      <main class="container mx-auto px-6 py-6">
+      <div>
         @if (erroGeral(); as e) {
           <p role="alert" class="mb-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-900">{{ e }}</p>
         }
@@ -73,7 +69,7 @@ type Aba = 'documentos' | 'busca' | 'pendencias';
         @switch (aba()) {
           @case ('documentos') {
             <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-              <section class="rounded-xl border border-slate-200 bg-white p-4">
+              <section class="panel panel-pad">
                 <div class="mb-3 flex flex-wrap items-center gap-2">
                   <select [(ngModel)]="filtro" (ngModelChange)="carregar()" aria-label="Filtrar por categoria"
                     class="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm">
@@ -106,7 +102,7 @@ type Aba = 'documentos' | 'busca' | 'pendencias';
                 </ul>
               </section>
 
-              <section class="rounded-xl border border-slate-200 bg-white p-4">
+              <section class="panel panel-pad">
                 @if (criando()) {
                   <h2 class="mb-3 text-lg font-bold">Novo documento</h2>
                   <app-knowledge-document-form (salvo)="aoCriar($event)" (cancelado)="criando.set(false)" />
@@ -119,15 +115,15 @@ type Aba = 'documentos' | 'busca' | 'pendencias';
             </div>
           }
           @case ('busca') {
-            <section class="rounded-xl border border-slate-200 bg-white p-4"><app-knowledge-search-test /></section>
+            <section class="panel panel-pad"><app-knowledge-search-test /></section>
           }
           @case ('pendencias') {
-            <section class="rounded-xl border border-slate-200 bg-white p-4">
+            <section class="panel panel-pad">
               <app-knowledge-pending-list (abrir)="abrirDocumento($event)" />
             </section>
           }
         }
-      </main>
+      </div>
     </div>
   `,
 })
