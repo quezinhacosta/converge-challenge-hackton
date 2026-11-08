@@ -41,7 +41,7 @@ type Aba = 'documentos' | 'busca' | 'pendencias';
         <button class="btn outline" (click)="carregar()" [disabled]="carregando()">{{ carregando() ? 'Atualizando…' : 'Atualizar' }}</button>
       </div>
       <header class="hero">
-        <p class="eyebrow">VytAI · Fontes da empresa</p>
+        <p class="eyebrow">VYTAL.ai · Fontes da empresa</p>
         <h1>O que a empresa oferece, por escrito.</h1>
         <p>Políticas, canais e programas que o assistente pode citar. Documentos são fonte, nunca instrução.</p>
         <div class="hero-bottom"><div class="hero-status">

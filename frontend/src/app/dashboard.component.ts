@@ -12,7 +12,7 @@ import { AgentChatConsoleComponent } from './features/rh-dashboard/components/ag
 @Component({selector:'app-dashboard',standalone:true,imports:[CommonModule,RouterLink,RiskFocusCardComponent,PgrInventoryTableComponent,AgentChatConsoleComponent],
  template:`<div class="top"><div>Governança ocupacional / <strong>Visão executiva</strong></div><span class="demo">{{demo()?'Dados de demonstração':'Dados da empresa autenticada'}}</span></div>
  <section id="visao"><header class="hero"><svg class="hero-art" viewBox="0 0 410 340" aria-hidden="true"><path fill="#7d39eb" d="M55 10h125q38 0 38 38v60q0 32 32 32h122q38 0 38 38v124q0 38-38 38H55q-38 0-38-38V48q0-38 38-38Z"/><rect x="255" y="35" width="70" height="70" rx="15" fill="#c6ff33"/></svg>
-  <p class="eyebrow">VytAI · Digital Worker</p><h1>Governança de riscos psicossociais</h1><p>Evidências, decisões e acompanhamento das ações do RH.</p>
+  <p class="eyebrow">VYTAL.ai · Digital Worker</p><h1>Governança de riscos psicossociais</h1><p>Evidências, decisões e acompanhamento das ações do RH.</p>
   <div class="hero-bottom"><div class="hero-status"><span class="pill green">Decisão humana</span><span class="pill">{{loading()?'Atualizando informações':'Ciclo de acompanhamento'}}</span></div><button class="btn lime" (click)="closeCycle()" [disabled]="closing()||loading()">{{closing()?'Analisando áreas…':'Executar fechamento'}}</button></div>
  </header>
  <div *ngIf="message()" class="notice" [class.error]="error()" role="status">{{message()}}</div>
@@ -34,7 +34,7 @@ import { AgentChatConsoleComponent } from './features/rh-dashboard/components/ag
   </ng-container><p class="empty-state" *ngIf="!areas.length">Nenhuma área disponível.</p></div></section></div>
  <section id="inventario" class="block"><app-pgr-inventory-table [items]="inventory" /></section>
  <section class="block"><header class="section-title"><div><h2>Assistente do RH</h2><p class="subtle">Investigue evidências e prepare propostas para revisão.</p></div><a routerLink="/acoes-rh" class="btn outline">Abrir ações preparadas</a></header><app-agent-chat-console /></section>
- <footer>VytAI · Análise por área, decisão humana e trilha de acompanhamento. Indicadores operacionais não são diagnósticos.</footer>`})
+ <footer>VYTAL.ai · Análise por área, decisão humana e trilha de acompanhamento. Indicadores operacionais não são diagnósticos.</footer>`})
 export class DashboardComponent implements OnInit {
  private api=inject(PulsoApiService);
  areas:AreaInfo[]=[];cards:RiskCard[]=[];inventory:PgrInventoryItem[]=[];
