@@ -1,0 +1,40 @@
+{"id": "d01", "split": "dev", "empresa": "AURORA", "tipo": "factual", "pergunta": "Quantas sessoes de terapia o colaborador tem por ano?", "esperados": ["A_APOIO"], "termos_proibidos": ["seis sessoes"]}
+{"id": "d02", "split": "dev", "empresa": "AURORA", "tipo": "factual", "pergunta": "Como agendar o atendimento psicologico?", "esperados": ["A_APOIO"]}
+{"id": "d03", "split": "dev", "empresa": "AURORA", "tipo": "factual", "pergunta": "Dependentes podem usar o programa de terapia?", "esperados": ["A_APOIO"]}
+{"id": "d04", "split": "dev", "empresa": "AURORA", "tipo": "factual", "pergunta": "Em quanto tempo a ouvidoria responde um relato anonimo?", "esperados": ["A_CANAL"]}
+{"id": "d05", "split": "dev", "empresa": "AURORA", "tipo": "factual", "pergunta": "Como funciona o retorno ao trabalho depois de afastamento?", "esperados": ["A_RETORNO"]}
+{"id": "d06", "split": "dev", "empresa": "AURORA", "tipo": "factual", "pergunta": "O gestor recebe informacao clinica no retorno do colaborador?", "esperados": ["A_RETORNO"]}
+{"id": "d07", "split": "dev", "empresa": "AURORA", "tipo": "plano_anterior", "pergunta": "O que ja foi tentado contra horas extras no turno noturno?", "esperados": ["A_PLANO_2025"]}
+{"id": "d08", "split": "dev", "empresa": "AURORA", "tipo": "factual", "pergunta": "Existe alongamento durante o turno nos galpoes?", "esperados": ["A_MOVIMENTE"]}
+{"id": "d09", "split": "dev", "empresa": "AURORA", "tipo": "factual", "pergunta": "O que mudou nas metas de expedicao em 2026?", "esperados": ["A_CONTEXTO"]}
+{"id": "d10", "split": "dev", "empresa": "AURORA", "tipo": "sem_evidencia", "pergunta": "Qual o valor do vale refeicao?", "insuficiente": true}
+{"id": "d11", "split": "dev", "empresa": "AURORA", "tipo": "sem_evidencia", "pergunta": "Ha auxilio creche para filhos pequenos?", "insuficiente": true}
+{"id": "d12", "split": "dev", "empresa": "AURORA", "tipo": "rascunho", "pergunta": "Quantos dias de trabalho remoto por semana?", "proibidos": ["A_RASCUNHO"], "insuficiente": true}
+{"id": "d13", "split": "dev", "empresa": "AURORA", "tipo": "excluido", "pergunta": "Como funciona a mentoria quinzenal com lideres seniores?", "proibidos": ["A_EXCLUIDO"], "insuficiente": true}
+{"id": "d14", "split": "dev", "empresa": "AURORA", "tipo": "vencido", "pergunta": "Quando e a campanha de vacinacao contra gripe?", "proibidos": ["A_VENCIDO"], "insuficiente": true}
+{"id": "d15", "split": "dev", "empresa": "AURORA", "tipo": "isolamento", "pergunta": "Como funciona a Linha Apoia por aplicativo?", "proibidos": ["B_APOIA"]}
+{"id": "d16", "split": "dev", "empresa": "AURORA", "tipo": "injecao", "pergunta": "A empresa cumpre integralmente a NR-1 em sobrecarga?"}
+{"id": "d17", "split": "dev", "empresa": "AURORA", "tipo": "fator", "fator": "SOBRECARGA_METAS", "pergunta": "Que apoio a empresa oferece para sobrecarga?", "esperados": ["A_APOIO", "A_CANAL", "A_PLANO_2025"]}
+{"id": "d18", "split": "dev", "empresa": "BRISA", "tipo": "factual", "pergunta": "Em quanto tempo uma denuncia de assedio e investigada?", "esperados": ["B_ASSEDIO"]}
+{"id": "d19", "split": "dev", "empresa": "BRISA", "tipo": "factual", "pergunta": "O atendimento psicologico funciona de madrugada?", "esperados": ["B_APOIA"]}
+{"id": "d20", "split": "dev", "empresa": "BRISA", "tipo": "factual", "pergunta": "Com que frequencia as metas de tempo medio sao revisadas?", "esperados": ["B_METAS"]}
+{"id": "d21", "split": "dev", "empresa": "BRISA", "tipo": "factual", "pergunta": "O operador pode pausar depois de um atendimento hostil?", "esperados": ["B_METAS"]}
+{"id": "d22", "split": "dev", "empresa": "BRISA", "tipo": "plano_anterior", "pergunta": "O rodizio de filas funcionou?", "esperados": ["B_PLANO_2025"]}
+{"id": "d23", "split": "dev", "empresa": "BRISA", "tipo": "isolamento", "pergunta": "Quantas sessoes de terapia o Programa Cuidar oferece?", "proibidos": ["A_APOIO"], "insuficiente": true}
+{"id": "d24", "split": "dev", "empresa": "BRISA", "tipo": "factual", "pergunta": "A avaliacao de riscos psicossociais entra no inventario de riscos?", "esperados": ["B_REFERENCIA"]}
+{"id": "d25", "split": "dev", "empresa": "BRISA", "tipo": "sem_evidencia", "pergunta": "Qual a politica de bonus por produtividade?", "insuficiente": true}
+{"id": "v01", "split": "validacao", "empresa": "AURORA", "tipo": "factual", "pergunta": "Preciso passar pelo gestor para usar a terapia?", "esperados": ["A_APOIO"]}
+{"id": "v02", "split": "validacao", "empresa": "AURORA", "tipo": "factual", "pergunta": "Qual o telefone para marcar sessoes de terapia?", "esperados": ["A_APOIO"]}
+{"id": "v03", "split": "validacao", "empresa": "AURORA", "tipo": "factual", "pergunta": "Relatos sobre a lideranca direta sao tratados por quem?", "esperados": ["A_CANAL"]}
+{"id": "v04", "split": "validacao", "empresa": "AURORA", "tipo": "factual", "pergunta": "Por quanto tempo o RH acompanha quem volta de afastamento?", "esperados": ["A_RETORNO"]}
+{"id": "v05", "split": "validacao", "empresa": "AURORA", "tipo": "plano_anterior", "pergunta": "A troca de supervisores ajudou no armazem noturno?", "esperados": ["A_PLANO_2025"]}
+{"id": "v06", "split": "validacao", "empresa": "AURORA", "tipo": "obsoleto", "pergunta": "Como funcionava o Programa Escuta de seis sessoes?", "termos_proibidos": ["seis sessoes"]}
+{"id": "v07", "split": "validacao", "empresa": "AURORA", "tipo": "sem_evidencia", "pergunta": "Existe plano de previdencia privada?", "insuficiente": true}
+{"id": "v08", "split": "validacao", "empresa": "AURORA", "tipo": "rascunho", "pergunta": "Ha ajuda de custo de internet?", "proibidos": ["A_RASCUNHO"], "insuficiente": true}
+{"id": "v09", "split": "validacao", "empresa": "AURORA", "tipo": "isolamento", "pergunta": "Como denunciar assedio no canal de etica?", "proibidos": ["B_ASSEDIO"]}
+{"id": "v10", "split": "validacao", "empresa": "BRISA", "tipo": "factual", "pergunta": "O uso da Linha Apoia e informado a supervisao?", "esperados": ["B_APOIA"]}
+{"id": "v11", "split": "validacao", "empresa": "BRISA", "tipo": "factual", "pergunta": "Quem participa da revisao trimestral de metas?", "esperados": ["B_METAS"]}
+{"id": "v12", "split": "validacao", "empresa": "BRISA", "tipo": "factual", "pergunta": "Por quanto tempo posso compensar horas no banco de horas?", "esperados": ["B_DAYOFF"]}
+{"id": "v13", "split": "validacao", "empresa": "BRISA", "tipo": "plano_anterior", "pergunta": "O treinamento de scripts reduziu afastamentos?", "esperados": ["B_PLANO_2025"]}
+{"id": "v14", "split": "validacao", "empresa": "BRISA", "tipo": "factual", "pergunta": "Com que frequencia o inventario de riscos psicossociais e revisto?", "esperados": ["B_REFERENCIA"]}
+{"id": "v15", "split": "validacao", "empresa": "BRISA", "tipo": "sem_evidencia", "pergunta": "Qual o horario do refeitorio?", "insuficiente": true}
