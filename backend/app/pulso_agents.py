@@ -76,7 +76,9 @@ class FeatherlessClient:
             if completion.choices and completion.choices[0].message.content:
                 return str(completion.choices[0].message.content).strip()
         except Exception as e:
-            logger.info("SDK OpenAI nao disponivel ou falhou (%s). Tentando via requests nativo.", e)
+            logger.info(
+                "SDK OpenAI nao disponivel ou falhou (%s). Tentando via requests nativo.", e
+            )
 
         # 2. Tentativa direta via requests HTTP
         try:
@@ -132,7 +134,9 @@ class AgenteHistoriador:
                 "Sua funcao e cruzar aumentos em atestados/horas extras/turnover com eventos "
                 "corporativos (ex: metas, trocas de lideranca) e gerar uma hipotese concisa em portugues."
             )
-            eventos_str = "; ".join(eventos_contexto) if eventos_contexto else "Nenhum evento registrado"
+            eventos_str = (
+                "; ".join(eventos_contexto) if eventos_contexto else "Nenhum evento registrado"
+            )
             user_prompt = (
                 f"Area: {area_name}\n"
                 f"Evidencias: {evidencias_texto}\n"

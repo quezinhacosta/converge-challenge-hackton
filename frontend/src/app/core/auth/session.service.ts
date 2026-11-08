@@ -17,7 +17,7 @@ export class SessionService {
   if(!this.clientPromise)this.clientPromise=firstValueFrom(this.http.get<{url:string;publishableKey:string}>(environment.apiUrl+'/auth/config')).then(async config=>{
    const {createClient}=await import('@supabase/supabase-js');
    const client=createClient(config.url,config.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:'vytai.auth'}});
-   client.auth.onAuthStateChange((_event,session)=>{
+   client.auth.onAuthStateChange((_event: any, session: any)=>{
     if(!session){this.clear();return;}
     if(this.userId!==session.user.id){this.generation++;this.companyId=null;this.company.set(null);this.companies.set([]);this.authenticated.set(false);}
     this.userId=session.user.id;this.accessToken=session.access_token;this.userEmail.set(session.user.email||'');

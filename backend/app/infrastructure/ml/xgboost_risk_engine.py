@@ -9,10 +9,45 @@ Interpretabilidade Legal (SHAP):
     de cada variavel na geracao do risco.
 """
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 from app.domain.entities.risk_factor import PsychosocialRiskFactor, RiskLevel
+
+
+@runtime_checkable
+class RiskEngineProtocol(Protocol):
+    """Protocolo que define a interface obrigatoria para qualquer motor de predicao de risco."""
+
+    def predict(
+        self,
+        variacao_dias_atestado_pct: float,
+        variacao_horas_extras_pct: float,
+        pedidos_demissao: int,
+        media_empresa_pedidos_demissao: float,
+        queda_nota_clima: float,
+        denuncias_compliance: int = 0,
+    ) -> "RiskPredictionResult":
+        """Executa a inferencia estatistica sobre as variaveis operacionais."""
+        ...
+
+
+class BaseRiskEngine(ABC):
+    """Classe base abstrata para facilitar a implementacao de novos modelos customizados de ML."""
+
+    @abstractmethod
+    def predict(
+        self,
+        variacao_dias_atestado_pct: float,
+        variacao_horas_extras_pct: float,
+        pedidos_demissao: int,
+        media_empresa_pedidos_demissao: float,
+        queda_nota_clima: float,
+        denuncias_compliance: int = 0,
+    ) -> "RiskPredictionResult":
+        """Executa a inferencia do modelo customizado."""
+        pass
 
 
 @dataclass
@@ -254,3 +289,18 @@ class XGBoostRiskEngine:
             shap_breakdown=shap_items,
             audit_narrative=narrative,
         )
+
+
+_ACTIVE_ENGINE: RiskEngineProtocol = XGBoostRiskEngine()
+
+
+def get_active_risk_engine() -> RiskEngineProtocol:
+    """Retorna a instancia ativa do motor de risco (XGBoost calibrado ou customizado)."""
+    global _ACTIVE_ENGINE
+    return _ACTIVE_ENGINE
+
+
+def set_active_risk_engine(engine: RiskEngineProtocol) -> None:
+    """Permite plugar e alternar em tempo de execucao o motor de inferencia."""
+    global _ACTIVE_ENGINE
+    _ACTIVE_ENGINE = engine

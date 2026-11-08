@@ -15,7 +15,7 @@ import os
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import Any
+from typing import Any, Dict, List, Optional, cast
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,8 @@ class TakoApiClient:
         access_secret: str | None = None,
         timeout_seconds: float = 8.0,
     ) -> None:
-        self.base_url = (base_url or os.getenv("TAKO_API_BASE_URL", DEFAULT_TAKO_BASE_URL)).rstrip("/")
+        raw_base = base_url or os.getenv("TAKO_API_BASE_URL") or DEFAULT_TAKO_BASE_URL
+        self.base_url = raw_base.rstrip("/")
         self.organization_id = organization_id or os.getenv("TAKO_ORGANIZATION_ID")
         self.access_key = access_key or os.getenv("TAKO_ACCESS_KEY")
         self.access_secret = access_secret or os.getenv("TAKO_ACCESS_SECRET")
@@ -72,7 +73,7 @@ class TakoApiClient:
         try:
             with urllib.request.urlopen(req, timeout=self.timeout_seconds) as resp:
                 resp_text = resp.read().decode("utf-8")
-                return json.loads(resp_text) if resp_text else {}
+                return cast(Dict[str, Any], json.loads(resp_text)) if resp_text else {}
         except urllib.error.HTTPError as exc:
             err_body = exc.read().decode("utf-8", errors="ignore")
             logger.warning("Erro HTTP %s ao chamar Tako API em %s: %s", exc.code, path, err_body)
@@ -87,7 +88,9 @@ class TakoApiClient:
         Autentica a organização junto à Tako e armazena o token JWT.
         """
         if not self.has_credentials:
-            raise ValueError("Credenciais da Tako (organizationId, accessKey, accessSecret) não informadas.")
+            raise ValueError(
+                "Credenciais da Tako (organizationId, accessKey, accessSecret) não informadas."
+            )
 
         payload = {
             "organizationId": self.organization_id,
@@ -98,8 +101,8 @@ class TakoApiClient:
         token = res.get("token") or res.get("accessToken") or res.get("jwt")
         if not token:
             raise RuntimeError(f"Resposta de autenticação da Tako não continha token: {res}")
-        self._token = token
-        return token
+        self._token = str(token)
+        return str(token)
 
     def list_contracts(
         self,
@@ -136,8 +139,8 @@ class TakoApiClient:
         path = f"/api/v2/contracts/{urllib.parse.quote(contract_id)}/payslips?period={urllib.parse.quote(period)}"
         res = self._make_request("GET", path)
         if isinstance(res, list):
-            return res
-        return res.get("items", res.get("data", []))
+            return cast(List[Dict[str, Any]], res)
+        return cast(List[Dict[str, Any]], res.get("items", res.get("data", [])))
 
     def get_vacation_details(self, contract_id: str, vacation_id: str) -> dict[str, Any]:
         """GET /api/v2/contracts/{contractId}/vacations/{vacationId}
@@ -147,10 +150,27 @@ class TakoApiClient:
         path = f"/api/v2/contracts/{urllib.parse.quote(contract_id)}/vacations/{urllib.parse.quote(vacation_id)}"
         return self._make_request("GET", path)
 
-    def get_webhook_public_keys(self) -> list[dict[str, Any]]:
+    def search_job_titles(self, query: str = "") -> List[Dict[str, Any]]:
+        """GET /api/v1/cargo/searchJobTitles?query={query}
+
+        Pesquisa títulos de cargos homologados na estrutura de cargos da Tako.
+        """
+        path = f"/api/v1/cargo/searchJobTitles?name={urllib.parse.quote(query)}"
+        try:
+            res = self._make_request("GET", path)
+            if isinstance(res, list):
+                return cast(List[Dict[str, Any]], res)
+            return cast(List[Dict[str, Any]], res.get("items", res.get("data", [])))
+        except Exception as exc:
+            logger.warning("Falha ao pesquisar cargos na Tako: %s", exc)
+            return []
+
+    def get_webhook_public_keys(self) -> List[Dict[str, Any]]:
         """GET /api/v1/webhook/public-keys
 
         Recupera as chaves RSA públicas da Tako para validação criptográfica de webhooks.
         """
         res = self._make_request("GET", "/api/v1/webhook/public-keys", requires_auth=False)
-        return res if isinstance(res, list) else res.get("keys", [])
+        if isinstance(res, list):
+            return cast(List[Dict[str, Any]], res)
+        return cast(List[Dict[str, Any]], res.get("keys", []))

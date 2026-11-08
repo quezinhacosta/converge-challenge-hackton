@@ -35,7 +35,9 @@ class TakoSyncService:
         self.area_repo = area_repository
         self.signal_repo = signal_repository
 
-    def sync_areas_and_headcount(self, sample_contracts: list[dict[str, Any]] | None = None) -> list[Area]:
+    def sync_areas_and_headcount(
+        self, sample_contracts: list[dict[str, Any]] | None = None
+    ) -> list[Area]:
         """Sincroniza as áreas da empresa e atualiza a contagem de colaboradores (headcount)."""
         contracts: list[dict[str, Any]] = []
 
@@ -46,7 +48,10 @@ class TakoSyncService:
                 res = self.client.list_contracts(status="active", size=100)
                 contracts = res.get("data", [])
             except Exception as e:
-                logger.warning("Falha ao consultar contratos ativos na Tako API: %s. Utilizando dados locais.", e)
+                logger.warning(
+                    "Falha ao consultar contratos ativos na Tako API: %s. Utilizando dados locais.",
+                    e,
+                )
                 contracts = self._get_simulated_tako_contracts()
         else:
             contracts = self._get_simulated_tako_contracts()
@@ -64,7 +69,11 @@ class TakoSyncService:
         synced_areas: list[Area] = []
         for dept_name, count in dept_counts.items():
             area_id = f"area_{dept_name.lower().replace(' ', '_')[:10]}"
-            mgr_name = next(iter(dept_managers[dept_name])) if dept_managers[dept_name] else "Gestor da Área"
+            mgr_name = (
+                next(iter(dept_managers[dept_name]))
+                if dept_managers[dept_name]
+                else "Gestor da Área"
+            )
             area = Area(
                 id=area_id,
                 name=dept_name,
@@ -95,7 +104,9 @@ class TakoSyncService:
                 res = self.client.list_contracts(status="terminated", size=100)
                 terminated = res.get("data", [])
             except Exception as e:
-                logger.warning("Falha ao buscar rescisões na Tako API: %s. Utilizando dados locais.", e)
+                logger.warning(
+                    "Falha ao buscar rescisões na Tako API: %s. Utilizando dados locais.", e
+                )
                 terminated = self._get_simulated_terminated_contracts()
         else:
             terminated = self._get_simulated_terminated_contracts()
@@ -149,7 +160,9 @@ class TakoSyncService:
 
         if event_name == "eventTermination":
             # Demissão registrada na Tako: atualiza contador de desligamentos da área
-            return f"Rescisão do contrato {contract_id} processada com sucesso no motor de turnover."
+            return (
+                f"Rescisão do contrato {contract_id} processada com sucesso no motor de turnover."
+            )
         elif event_name == "eventAdmission":
             # Nova contratação: atualiza headcount do setor
             return f"Admissão do contrato {contract_id} refletida no dimensionamento de headcount."
@@ -163,28 +176,98 @@ class TakoSyncService:
         """Retorna estrutura de contratos simulada idêntica ao payload retornado pela Tako."""
         return [
             # Atendimento ao Cliente (32 colaboradores)
-            *[{"contractId": f"atend_{i}", "department": "Atendimento ao Cliente", "status": "active", "managerId": "mgr_atend_1"} for i in range(32)],
+            *[
+                {
+                    "contractId": f"atend_{i}",
+                    "department": "Atendimento ao Cliente",
+                    "status": "active",
+                    "managerId": "mgr_atend_1",
+                }
+                for i in range(32)
+            ],
             # Logística e Distribuição (28 colaboradores)
-            *[{"contractId": f"log_{i}", "department": "Logística e Distribuição", "status": "active", "managerId": "mgr_log_novo"} for i in range(28)],
+            *[
+                {
+                    "contractId": f"log_{i}",
+                    "department": "Logística e Distribuição",
+                    "status": "active",
+                    "managerId": "mgr_log_novo",
+                }
+                for i in range(28)
+            ],
             # Vendas B2B (35 colaboradores)
-            *[{"contractId": f"vend_{i}", "department": "Vendas B2B", "status": "active", "managerId": "mgr_vend_1"} for i in range(35)],
+            *[
+                {
+                    "contractId": f"vend_{i}",
+                    "department": "Vendas B2B",
+                    "status": "active",
+                    "managerId": "mgr_vend_1",
+                }
+                for i in range(35)
+            ],
             # Financeiro (18 colaboradores)
-            *[{"contractId": f"fin_{i}", "department": "Financeiro", "status": "active", "managerId": "mgr_fin_1"} for i in range(18)],
+            *[
+                {
+                    "contractId": f"fin_{i}",
+                    "department": "Financeiro",
+                    "status": "active",
+                    "managerId": "mgr_fin_1",
+                }
+                for i in range(18)
+            ],
             # Tecnologia / TI (25 colaboradores)
-            *[{"contractId": f"ti_{i}", "department": "Tecnologia da Informação", "status": "active", "managerId": "mgr_ti_1"} for i in range(25)],
+            *[
+                {
+                    "contractId": f"ti_{i}",
+                    "department": "Tecnologia da Informação",
+                    "status": "active",
+                    "managerId": "mgr_ti_1",
+                }
+                for i in range(25)
+            ],
             # Operações (13 colaboradores)
-            *[{"contractId": f"op_{i}", "department": "Operações", "status": "active", "managerId": "mgr_op_1"} for i in range(13)],
+            *[
+                {
+                    "contractId": f"op_{i}",
+                    "department": "Operações",
+                    "status": "active",
+                    "managerId": "mgr_op_1",
+                }
+                for i in range(13)
+            ],
             # Design (3 colaboradores - Grupo Protegido por Anonimização)
-            *[{"contractId": f"des_{i}", "department": "Design", "status": "active", "managerId": "mgr_des_1"} for i in range(3)],
+            *[
+                {
+                    "contractId": f"des_{i}",
+                    "department": "Design",
+                    "status": "active",
+                    "managerId": "mgr_des_1",
+                }
+                for i in range(3)
+            ],
         ]
 
     def _get_simulated_terminated_contracts(self) -> list[dict[str, Any]]:
         """Retorna contratos encerrados simulados idênticos ao payload retornado pela Tako."""
         return [
             # Logística: 5 pedidos de demissão voluntária após troca de gestão
-            *[{"contractId": f"term_log_{i}", "department": "Logística e Distribuição", "status": "terminated"} for i in range(5)],
+            *[
+                {
+                    "contractId": f"term_log_{i}",
+                    "department": "Logística e Distribuição",
+                    "status": "terminated",
+                }
+                for i in range(5)
+            ],
             # Atendimento: 4 pedidos de demissão voluntária sob sobrecarga
-            *[{"contractId": f"term_atend_{i}", "department": "Atendimento ao Cliente", "status": "terminated"} for i in range(4)],
+            *[
+                {
+                    "contractId": f"term_atend_{i}",
+                    "department": "Atendimento ao Cliente",
+                    "status": "terminated",
+                }
+                for i in range(4)
+            ],
             # Vendas: 1 desligamento
             {"contractId": "term_vend_1", "department": "Vendas B2B", "status": "terminated"},
         ]

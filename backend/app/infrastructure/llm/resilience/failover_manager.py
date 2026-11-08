@@ -56,11 +56,12 @@ class FailoverManager:
         primary_provider: LLMProviderProtocol | None = None,
         secondary_provider: LLMProviderProtocol | None = None,
         fallback_provider: LLMProviderProtocol | None = None,
+        local_lora_provider: LLMProviderProtocol | None = None,
     ) -> None:
         """Inicializa os provedores da cascata e seus circuit breakers."""
         self.primary = primary_provider or GeminiProvider()
         self.secondary = secondary_provider
-        self.fallback = fallback_provider or RuleBasedFallbackProvider()
+        self.fallback = local_lora_provider or fallback_provider or RuleBasedFallbackProvider()
 
         self.primary_circuit = CircuitBreaker(provider_name=self.primary.name)
 

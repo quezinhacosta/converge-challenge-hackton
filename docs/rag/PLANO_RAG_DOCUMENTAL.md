@@ -198,27 +198,28 @@ Requisitos de migration:
 
 ```python
 @dataclass(frozen=True)
-class ContextoAutorizado:          # construído pelo Codex a partir da autenticação
+class ContextoAutorizado:  # construído pelo Codex a partir da autenticação
     empresa_id: UUID
     usuario_id: UUID
-    papeis: frozenset[str]          # ex.: {"RH"}
-    escopos_permitidos: frozenset[str]   # ex.: {"RH", "RH_E_GESTORES"}
+    papeis: frozenset[str]  # ex.: {"RH"}
+    escopos_permitidos: frozenset[str]  # ex.: {"RH", "RH_E_GESTORES"}
 ```
 
 ### 5.2 Entrada e saída
 
 ```python
-class ConsultaRecuperacao(BaseModel):          # app/application/dtos/retrieval_dto.py
-    texto: str                                 # 3..500 caracteres
+class ConsultaRecuperacao(BaseModel):  # app/application/dtos/retrieval_dto.py
+    texto: str  # 3..500 caracteres
     categorias: list[CategoriaDocumento] | None = None
-    fator_nr1: str | None = None               # usado para expansão determinística
-    area_id: str | None = None                 # só para telemetria/ranking, não para filtro de acesso
-    max_trechos: int = 5                       # 1..8
-    max_caracteres: int = 6000                 # orçamento total para o prompt
-    data_referencia: date | None = None        # padrão: hoje (para vigência)
+    fator_nr1: str | None = None  # usado para expansão determinística
+    area_id: str | None = None  # só para telemetria/ranking, não para filtro de acesso
+    max_trechos: int = 5  # 1..8
+    max_caracteres: int = 6000  # orçamento total para o prompt
+    data_referencia: date | None = None  # padrão: hoje (para vigência)
+
 
 class TrechoRecuperado(BaseModel):
-    ref: str                     # "C1", "C2"... usado na resposta
+    ref: str  # "C1", "C2"... usado na resposta
     trecho_id: UUID
     documento_id: UUID
     versao_id: UUID
@@ -229,23 +230,30 @@ class TrechoRecuperado(BaseModel):
     vigencia_fim: date | None
     pagina: int | None
     secao: str | None
-    texto: str                   # trecho (limitado)
+    texto: str  # trecho (limitado)
     score: float
     suspeito_injecao: bool
+
 
 class ResultadoRecuperacao(BaseModel):
     trechos: list[TrechoRecuperado]
     evidencia_suficiente: bool
-    motivo_insuficiencia: str | None    # "nenhum documento publicado na categoria X", "score abaixo do mínimo"
-    possivel_conflito: list[tuple[str, str]]   # pares de refs de documentos vigentes da mesma categoria com orientações divergentes (heurística)
-    metodo: Literal["fts"]               # depois: "hibrido_rrf"
-    config: dict                         # pesos, limites, versão do índice
+    motivo_insuficiencia: (
+        str | None
+    )  # "nenhum documento publicado na categoria X", "score abaixo do mínimo"
+    possivel_conflito: list[
+        tuple[str, str]
+    ]  # pares de refs de documentos vigentes da mesma categoria com orientações divergentes (heurística)
+    metodo: Literal["fts"]  # depois: "hibrido_rrf"
+    config: dict  # pesos, limites, versão do índice
     latencia_ms: int
 ```
 
 ```python
 class RecuperadorConhecimento(Protocol):
-    def buscar(self, ctx: ContextoAutorizado, consulta: ConsultaRecuperacao) -> ResultadoRecuperacao: ...
+    def buscar(
+        self, ctx: ContextoAutorizado, consulta: ConsultaRecuperacao
+    ) -> ResultadoRecuperacao: ...
 ```
 
 **Filtros aplicados na query SQL, antes do ranking:** `empresa_id = ctx.empresa_id`, `versao.publicada`, `status = 'PRONTO'`, vigência contendo `data_referencia`, `escopo_acesso ∈ ctx.escopos_permitidos`, documento não excluído.

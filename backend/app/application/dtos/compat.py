@@ -55,6 +55,7 @@ except ImportError:
         def decorator(fn: Any) -> Any:
             fn._is_model_validator = True
             return fn
+
         return decorator
 
     class _DataclassBaseModel:
@@ -74,9 +75,17 @@ except ImportError:
                     val = kwargs[alias]
                 elif camel_name in kwargs:
                     val = kwargs[camel_name]
-                elif class_val is not None and hasattr(class_val, "default_factory") and class_val.default_factory:
+                elif (
+                    class_val is not None
+                    and hasattr(class_val, "default_factory")
+                    and class_val.default_factory
+                ):
                     val = class_val.default_factory()
-                elif class_val is not None and hasattr(class_val, "default") and class_val.default is not None:
+                elif (
+                    class_val is not None
+                    and hasattr(class_val, "default")
+                    and class_val.default is not None
+                ):
                     val = class_val.default
                 setattr(self, attr_name, val)
 
@@ -90,7 +99,9 @@ except ImportError:
                 if getattr(attr, "_is_model_validator", False):
                     attr(self)
 
-        def model_dump(self, *args: Any, by_alias: bool = False, **kwargs: Any) -> builtins.dict[str, Any]:
+        def model_dump(
+            self, *args: Any, by_alias: bool = False, **kwargs: Any
+        ) -> builtins.dict[str, Any]:
             result: builtins.dict[str, Any] = {}
             for k, v in self.__dict__.items():
                 if k.startswith("_"):
@@ -109,17 +120,22 @@ except ImportError:
                     result[key] = v.dict(by_alias=by_alias)
                 elif isinstance(v, list):
                     result[key] = [
-                        x.model_dump(by_alias=by_alias) if hasattr(x, "model_dump") else x for x in v
+                        x.model_dump(by_alias=by_alias) if hasattr(x, "model_dump") else x
+                        for x in v
                     ]
                 else:
                     result[key] = v
             return result
 
-        def dict(self, *args: Any, by_alias: bool = False, **kwargs: Any) -> builtins.dict[str, Any]:
+        def dict(
+            self, *args: Any, by_alias: bool = False, **kwargs: Any
+        ) -> builtins.dict[str, Any]:
             return self.model_dump(*args, by_alias=by_alias, **kwargs)
 
         def __repr__(self) -> str:
-            attrs = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items() if not k.startswith("_"))
+            attrs = ", ".join(
+                f"{k}={v!r}" for k, v in self.__dict__.items() if not k.startswith("_")
+            )
             return f"{self.__class__.__name__}({attrs})"
 
     BaseModel = _DataclassBaseModel  # type: ignore[misc,assignment]

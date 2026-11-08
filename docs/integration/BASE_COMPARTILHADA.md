@@ -48,10 +48,12 @@ O operador precisa provisionar empresas e memberships por canal administrativo a
 A montagem final sera:
 
 ```python
-create_application(knowledge_integration=KnowledgeIntegration(
-    router=router_do_claude,
-    factory=criar_servicos_documentais,
-))
+create_application(
+    knowledge_integration=KnowledgeIntegration(
+        router=router_do_claude,
+        factory=criar_servicos_documentais,
+    )
+)
 ```
 
 `factory(ctx, session)` recebe o contexto autenticado e a mesma SQLAlchemy Session da requisicao. Retorna servicos novos por chamada, com `chat_tools: tuple` e `finalize_chat(ChatQueryResponseDTO) -> ChatQueryResponseDTO`. A ferramenta captura ctx apenas nessa instancia. A finalizacao valida referencias e fidelidade antes de devolver citacoes.

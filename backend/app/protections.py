@@ -191,9 +191,7 @@ def calcular_score_e_pesos_shap(
         peso_atestados = round((c_atestados / soma_contribuicoes) * 100.0, 1)
         peso_clima = round((c_clima / soma_contribuicoes) * 100.0, 1)
         peso_he = round((c_he / soma_contribuicoes) * 100.0, 1)
-        peso_turnover = round(
-            max(0.0, 100.0 - (peso_atestados + peso_clima + peso_he)), 1
-        )
+        peso_turnover = round(max(0.0, 100.0 - (peso_atestados + peso_clima + peso_he)), 1)
     else:
         peso_atestados = 35.0
         peso_clima = 30.0

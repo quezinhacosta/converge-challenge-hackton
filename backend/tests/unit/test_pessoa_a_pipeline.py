@@ -90,13 +90,17 @@ def test_recusa_etica_busca_nominativa() -> None:
     assert "LGPD" in motivo
 
     # Tentativa de busca por CID medico
-    violou_cid, motivo_cid = inspecionar_busca_nominativa("Quantos colaboradores estao com CID F32?")
+    violou_cid, motivo_cid = inspecionar_busca_nominativa(
+        "Quantos colaboradores estao com CID F32?"
+    )
     assert violou_cid
     assert motivo_cid is not None
     assert "Sigilo Medico" in motivo_cid
 
     # Pergunta agregada valida
-    violou_ok, motivo_ok = inspecionar_busca_nominativa("Qual a situacao geral do setor de Atendimento?")
+    violou_ok, motivo_ok = inspecionar_busca_nominativa(
+        "Qual a situacao geral do setor de Atendimento?"
+    )
     assert not violou_ok
     assert motivo_ok is None
 

@@ -39,6 +39,7 @@ def get_tako_status() -> dict[str, Any]:
             "POST /api/v1/auth/token",
             "POST /api/v1/organization/contracts",
             "GET  /api/v1/organization/contracts/",
+            "GET  /api/v1/cargo/searchJobTitles",
             "GET  /api/v2/contracts/{contractId}/payslips",
             "GET  /api/v2/contracts/{contractId}/vacations/{vacationId}",
             "GET  /api/v1/webhook/public-keys",

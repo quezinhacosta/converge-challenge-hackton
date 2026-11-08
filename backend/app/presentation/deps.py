@@ -99,12 +99,15 @@ class PulsoAppContainer:
             + list(knowledge.chat_tools if knowledge else ())
         )
         from app.infrastructure.llm.resilience.groq_provider import GroqProvider
+        from app.infrastructure.llm.resilience.mistral_lora_provider import MistralLoraProvider
 
         groq = GroqProvider()
+        self.mistral_lora_provider = MistralLoraProvider()
         self.llm_agent = PulsoAgentLLM(
             failover_manager=FailoverManager(
                 primary_provider=self.llm_provider,
                 secondary_provider=groq if groq.is_available() else GeminiProvider(),
+                local_lora_provider=self.mistral_lora_provider,
             ),
             devolutiva_writer=self.llm_provider,
         )

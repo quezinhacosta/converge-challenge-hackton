@@ -55,9 +55,12 @@ def test_tako_sync_service_calculates_monthly_metrics() -> None:
     )
 
     # Cria as áreas
-    sync_service.sync_areas_and_headcount(sample_contracts=[
-        {"contractId": f"atend_{i}", "department": "Atendimento ao Cliente", "status": "active"} for i in range(10)
-    ])
+    sync_service.sync_areas_and_headcount(
+        sample_contracts=[
+            {"contractId": f"atend_{i}", "department": "Atendimento ao Cliente", "status": "active"}
+            for i in range(10)
+        ]
+    )
 
     sample_terminated = [
         {"contractId": "term_1", "department": "Atendimento ao Cliente", "status": "terminated"},
@@ -77,24 +80,30 @@ def test_tako_sync_service_calculates_monthly_metrics() -> None:
 def test_tako_webhook_processing() -> None:
     sync_service = TakoSyncService()
 
-    msg_term = sync_service.process_webhook_payload({
-        "payloadEvent": "eventTermination",
-        "payloadContractId": "contract_123",
-        "payloadEffectiveDate": "2026-10-15",
-    })
+    msg_term = sync_service.process_webhook_payload(
+        {
+            "payloadEvent": "eventTermination",
+            "payloadContractId": "contract_123",
+            "payloadEffectiveDate": "2026-10-15",
+        }
+    )
     assert "Rescisão do contrato contract_123" in msg_term
 
-    msg_adm = sync_service.process_webhook_payload({
-        "payloadEvent": "eventAdmission",
-        "payloadContractId": "contract_456",
-        "payloadEffectiveDate": "2026-10-01",
-    })
+    msg_adm = sync_service.process_webhook_payload(
+        {
+            "payloadEvent": "eventAdmission",
+            "payloadContractId": "contract_456",
+            "payloadEffectiveDate": "2026-10-01",
+        }
+    )
     assert "Admissão do contrato contract_456" in msg_adm
 
-    msg_payslip = sync_service.process_webhook_payload({
-        "payloadEvent": "eventPayslipAvailable",
-        "payloadContractId": "contract_789",
-    })
+    msg_payslip = sync_service.process_webhook_payload(
+        {
+            "payloadEvent": "eventPayslipAvailable",
+            "payloadContractId": "contract_789",
+        }
+    )
     assert "Holerite do contrato contract_789" in msg_payslip
 
 
@@ -123,4 +132,7 @@ def test_tako_endpoints_in_fastapi(monkeypatch) -> None:
     monkeypatch.setenv("VYTAI_MODE", "production")
     with TestClient(create_application()) as client:
         assert client.post(f"{base}/sync").status_code == 401
-        assert client.post(f"{base}/webhook", json={"event": "eventTermination"}).status_code in (401, 501)
+        assert client.post(f"{base}/webhook", json={"event": "eventTermination"}).status_code in (
+            401,
+            501,
+        )

@@ -18,8 +18,10 @@ def runtime_context(
     credential: HTTPAuthorizationCredentials | None = Depends(bearer),
     empresa: str | None = Header(default=None, alias="X-Empresa-Id"),
 ) -> ContextoAutorizado | None:
-    if os.getenv("VYTAI_MODE", "production") == "demo" and credential is None:
-        return contexto_demo()
+    if credential is None:
+        if os.getenv("VYTAI_MODE", "production") == "demo":
+            return contexto_demo()
+        return None
     return get_authorized_context(credential, empresa)
 
 

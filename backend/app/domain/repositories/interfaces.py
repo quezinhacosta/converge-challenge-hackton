@@ -14,6 +14,11 @@ class AreaRepository(ABC):
     """Interface abstrata para consulta de areas e contagem de colaboradores."""
 
     @abstractmethod
+    def save(self, area: Area) -> Area:
+        """Salva ou atualiza os dados cadastrais da area."""
+        pass
+
+    @abstractmethod
     def get_by_id(self, area_id: str) -> Area | None:
         """Recupera os dados cadastrais da area."""
         pass

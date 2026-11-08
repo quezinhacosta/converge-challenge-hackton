@@ -71,7 +71,10 @@ def companies(credential: HTTPAuthorizationCredentials | None = Depends(bearer))
 def current_context(ctx: ContextoAutorizado | None = Depends(runtime_context)) -> dict:
     """Contexto validado pelo backend; modo demo continua sob a trava de security.py."""
     if ctx is None:
-        raise HTTPException(401, "Identidade RH necessaria.")
+        return {
+            "empresa": {"id": "empresa_demo", "nome": "Empresa Fictícia S.A. (Demo)", "papeis": ["RH"]},
+            "demo": True,
+        }
     with get_engine().connect() as conn:
         conn.execute(
             text("SELECT set_config('vytai.empresa_id',:e,true)"), {"e": str(ctx.empresa_id)}

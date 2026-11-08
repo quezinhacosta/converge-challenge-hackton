@@ -54,12 +54,14 @@ except ImportError:
             def decorator(func: Callable) -> Callable:
                 self.routes.append({"method": "GET", "path": path, "func": func, "kwargs": kwargs})
                 return func
+
             return decorator
 
         def post(self, path: str, *args: Any, **kwargs: Any) -> Callable:
             def decorator(func: Callable) -> Callable:
                 self.routes.append({"method": "POST", "path": path, "func": func, "kwargs": kwargs})
                 return func
+
             return decorator
 
         def include_router(self, router: Any, prefix: str = "", *args: Any, **kwargs: Any) -> None:
@@ -70,12 +72,14 @@ except ImportError:
                     full_path = f"{prefix_clean}/{sub_path}"
                 else:
                     full_path = prefix_clean or "/"
-                self.routes.append({
-                    "method": route["method"],
-                    "path": full_path,
-                    "func": route["func"],
-                    "kwargs": route.get("kwargs", {}),
-                })
+                self.routes.append(
+                    {
+                        "method": route["method"],
+                        "path": full_path,
+                        "func": route["func"],
+                        "kwargs": route.get("kwargs", {}),
+                    }
+                )
 
     class _FallbackFastAPI(_FallbackRouter):
         def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -135,7 +139,9 @@ except ImportError:
             for route in self.app.routes:
                 if route["method"] != method:
                     continue
-                route_pattern = re.sub(r"\{([a-zA-Z0-9_]+)\}", r"(?P<\1>[^/]+)", route["path"].rstrip("/") or "/")
+                route_pattern = re.sub(
+                    r"\{([a-zA-Z0-9_]+)\}", r"(?P<\1>[^/]+)", route["path"].rstrip("/") or "/"
+                )
                 regex = f"^{route_pattern}$"
                 match = re.match(regex, url_clean)
                 if match:
@@ -148,11 +154,19 @@ except ImportError:
                         for param_name, param in sig.parameters.items():
                             if param_name in path_params:
                                 call_args[param_name] = path_params[param_name]
-                            elif isinstance(param.default, DependsHolder) or (param.default.__class__.__name__ == "DependsHolder"):
+                            elif isinstance(param.default, DependsHolder) or (
+                                param.default.__class__.__name__ == "DependsHolder"
+                            ):
                                 dep_fn = param.default.dependency
                                 override_fn = self.app.dependency_overrides.get(dep_fn, dep_fn)
                                 call_args[param_name] = override_fn() if override_fn else None
-                            elif param_name == "payload" or param.annotation not in (inspect.Parameter.empty, str, int, float, bool):
+                            elif param_name == "payload" or param.annotation not in (
+                                inspect.Parameter.empty,
+                                str,
+                                int,
+                                float,
+                                bool,
+                            ):
                                 ann = param.annotation
                                 if json_data is not None:
                                     if callable(ann) and ann is not dict:

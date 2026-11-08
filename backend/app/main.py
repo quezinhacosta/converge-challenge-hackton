@@ -236,28 +236,47 @@ def executar_fechamento_mensal() -> FechamentoSummaryResponse:
         queda_clima = max(0.0, area.nota_clima_anterior - area.nota_clima_atual)
 
         # Calculo do Score Matematico e Pesos SHAP
-        score, nivel, pesos_shap, narrativa_shap = calcular_score_e_pesos_shap(
-            variacao_atestados_pct=area.variacao_dias_atestado_pct,
-            variacao_horas_extras_pct=area.variacao_horas_extras_pct,
-            pedidos_demissao=area.pedidos_demissao_periodo,
-            media_empresa_pedidos_demissao=area.media_empresa_pedidos_demissao,
-            queda_clima_absoluta=queda_clima,
-        )
+        from app.infrastructure.ml.xgboost_risk_engine import XGBoostRiskEngine, get_active_risk_engine
 
-        # Caso 4 especial: Vendas tem canal confidencial com denuncias (Assedio)
-        if area.area_id == "area_vend":
-            nivel = "VERMELHO"
-            score = 88.0
-            fator_base = "Assedio Moral e Relacoes Socioprofissionais"
-            status_card = "ESCALADO_COMPLIANCE"
-        elif nivel == "VERMELHO":
-            fator_base = "Sobrecarga de Trabalho e Metas Excessivas"
-            status_card = "ABERTO"
-        elif nivel == "AMARELO":
-            fator_base = "Gestao e Conflitos de Lideranca"
-            status_card = "ABERTO"
+        engine = get_active_risk_engine()
+        if isinstance(engine, XGBoostRiskEngine):
+            score, nivel, pesos_shap, narrativa_shap = calcular_score_e_pesos_shap(
+                variacao_atestados_pct=area.variacao_dias_atestado_pct,
+                variacao_horas_extras_pct=area.variacao_horas_extras_pct,
+                pedidos_demissao=area.pedidos_demissao_periodo,
+                media_empresa_pedidos_demissao=area.media_empresa_pedidos_demissao,
+                queda_clima_absoluta=queda_clima,
+            )
+
+            # Caso 4 especial: Vendas tem canal confidencial com denuncias (Assedio)
+            if area.area_id == "area_vend":
+                nivel = "VERMELHO"
+                score = 88.0
+                fator_base = "Assedio Moral e Relacoes Socioprofissionais"
+                status_card = "ESCALADO_COMPLIANCE"
+            elif nivel == "VERMELHO":
+                fator_base = "Sobrecarga de Trabalho e Metas Excessivas"
+                status_card = "ABERTO"
+            elif nivel == "AMARELO":
+                fator_base = "Gestao e Conflitos de Lideranca"
+                status_card = "ABERTO"
+            else:
+                fator_base = "Ambiente Estavel / Baixo Risco"
+                status_card = "ABERTO"
         else:
-            fator_base = "Ambiente Estavel / Baixo Risco"
+            pred = engine.predict(
+                variacao_dias_atestado_pct=area.variacao_dias_atestado_pct,
+                variacao_horas_extras_pct=area.variacao_horas_extras_pct,
+                pedidos_demissao=area.pedidos_demissao_periodo,
+                media_empresa_pedidos_demissao=area.media_empresa_pedidos_demissao,
+                queda_nota_clima=queda_clima,
+                denuncias_compliance=3 if area.area_id == "area_vend" else 0,
+            )
+            score = pred.risk_score
+            nivel = pred.risk_level.value
+            pesos_shap = {item.feature_name: item.contribution_pct for item in pred.shap_breakdown}
+            narrativa_shap = pred.audit_narrative
+            fator_base = pred.probable_factor.value if hasattr(pred.probable_factor, "value") else str(pred.probable_factor)
             status_card = "ABERTO"
 
         # 1. Agente Historiador
