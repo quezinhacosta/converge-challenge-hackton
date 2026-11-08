@@ -265,3 +265,31 @@ npx ng build --configuration production
 ```
 
 O backend atual usa repositorios em memoria: reinicios perdem as decisoes e os registros. Consulte as limitacoes atuais do plano Free no Render antes de usar esta demonstracao em producao: https://render.com/docs/free
+
+---
+
+## 12. Integracao com a API da Tako (customer-api.8arm.io)
+
+O vitAI extrai os sinais operacionais de RH diretamente da **Customer API da Tako** (`https://customer-api.8arm.io/docs`):
+
+### Endpoints da Tako Consumidos:
+- **`POST /api/v1/auth/token`**: Autenticacao automatica via JWT utilizando `organizationId`, `accessKey` e `accessSecret`.
+- **`POST /api/v1/organization/contracts`**: Obtencao de contratos ativos (`headcount` por setor) e contratos rescindidos (`turnover` e pedidos de demissao).
+- **`GET /api/v1/organization/contracts/`**: Detalhes contratuais para mapeamento de departamento (`department`) e deteccao de trocas de lideranca (`managerId`).
+- **`GET /api/v2/contracts/{contractId}/payslips?period={period}`**: Consulta de holerites para calculo de horas extras e adicionais de sobrejornada.
+- **`GET /api/v2/contracts/{contractId}/vacations/{vacationId}`**: Programacoes e gozo de ferias para correlacao de fadiga acumulada.
+- **`GET /api/v1/webhook/public-keys`**: Validacao de assinatura RSA das notificacoes da Tako.
+
+### Endpoints Disponibilizados no vitAI:
+- **`GET /api/v1/integrations/tako/status`**: Verifica o status da conexao e credenciais configuradas.
+- **`POST /api/v1/integrations/tako/sync`**: Dispara a sincronizacao e agregacao automatica das metricas de NR-1.
+- **`POST /api/v1/integrations/tako/webhook`**: Recebe eventos da Tako em tempo real (`eventAdmission`, `eventTermination`, `eventPayslipAvailable`).
+
+### Variaveis de Ambiente Opcionais:
+```env
+TAKO_API_BASE_URL=https://customer-api.8arm.io
+TAKO_ORGANIZATION_ID=seu-org-id
+TAKO_ACCESS_KEY=sua-access-key
+TAKO_ACCESS_SECRET=seu-access-secret
+```
+*Nota: Se as credenciais nao forem preenchidas, o sistema utiliza o gerador sintetico compativel com o payload oficial da Tako, garantindo demonstrabilidade imediata sem bloquear a aplicacao.*

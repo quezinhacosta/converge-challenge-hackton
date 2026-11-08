@@ -14,6 +14,7 @@ from app.presentation.api.v1.endpoints import (
     health as health_v1,
     pgr as pgr_v1,
     risk_cards as risk_cards_v1,
+    tako as tako_v1,
 )
 from app.presentation.compat import CORSMiddleware, FastAPI, status
 from app.schemas import (
@@ -105,6 +106,7 @@ def create_application() -> FastAPI:
     app.include_router(pgr_v1.router, prefix="/api/v1/pgr", tags=["PGR / NR-1"])
     app.include_router(chat_v1.router, prefix="/api/v1/chat", tags=["Chat do Agente"])
     app.include_router(closing_v1.router, prefix="/api/v1/fechamento", tags=["Fechamento"])
+    app.include_router(tako_v1.router, prefix="/api/v1/integrations/tako", tags=["Integracao Tako"])
 
     return app
 
