@@ -92,7 +92,7 @@ class TrainedRiskEngine(BaseRiskEngine):
         # Caso critico de compliance / assedio sobrepoe com isolamento etico
         if denuncias_compliance >= 3:
             pred_score = max(pred_score, 82.0)
-            probable_factor = PsychosocialRiskFactor.ASSEDIO_OU_VIOLENCIA
+            probable_factor = PsychosocialRiskFactor.ASSEDIO
             risk_level = RiskLevel.VERMELHO
         else:
             pred_score = max(5.0, min(99.0, pred_score))
@@ -105,13 +105,13 @@ class TrainedRiskEngine(BaseRiskEngine):
 
             # Classificacao de fator preponderante
             if queda_nota_clima >= 0.8 and pedidos_demissao >= (media_empresa_pedidos_demissao * 1.5):
-                probable_factor = PsychosocialRiskFactor.CONFLITO_LIDERANCA
+                probable_factor = PsychosocialRiskFactor.LIDERANCA_CONFLITO
             elif variacao_horas_extras_pct >= 20.0 or variacao_dias_atestado_pct >= 30.0:
-                probable_factor = PsychosocialRiskFactor.SOBRECARGA_TRABALHO
+                probable_factor = PsychosocialRiskFactor.SOBRECARGA_METAS
             elif pred_score >= 40.0:
-                probable_factor = PsychosocialRiskFactor.CLIMA_ORGANIZACIONAL
+                probable_factor = PsychosocialRiskFactor.SOBRECARGA_METAS
             else:
-                probable_factor = PsychosocialRiskFactor.ESTABILIDADE
+                probable_factor = PsychosocialRiskFactor.ESTAVEL_SEM_FATOR
 
         # Calcula decomposicao percentual SHAP
         abs_sum = sum(abs(v) for v in feature_contributions.values()) or 1.0
