@@ -355,8 +355,8 @@ def get_synthetic_initial_cards() -> list[RiskCard]:
             risk_level=RiskLevel.VERMELHO,
             probable_risk_factor=PsychosocialRiskFactor.SOBRECARGA_METAS,
             evidence_summary=(
-                "dias de atestado +45%, horas extras +60%, 4 pedidos de demissao "
-                "(media da empresa: 1), nota de carga de trabalho na pesquisa pulso caiu de 3,9 para 2,4."
+                "dias de atestado +34,5%, horas extras +50%, 4 pedidos de demissao "
+                "(media da empresa: 1), nota de carga de trabalho na pesquisa pulso caiu de 3,0 para 2,4."
             ),
             context_description=(
                 "a alta comeca 2 semanas depois da nova meta de atendimentos por hora "
@@ -378,23 +378,23 @@ def get_synthetic_initial_cards() -> list[RiskCard]:
             shap_breakdown=[
                 {
                     "feature_name": "delta_atestados",
-                    "display_name": "Aumento em Dias de Atestado (+45%)",
+                    "display_name": "Aumento em Dias de Atestado (+34,5%)",
                     "contribution_pct": 38.0,
-                    "observed_value": "+45% vs historico trimestral",
+                    "observed_value": "+34,5% vs historico trimestral",
                     "direction": "AGRAVANTE",
                 },
                 {
                     "feature_name": "queda_nota_clima",
                     "display_name": "Queda na Avaliacao de Carga / Clima",
                     "contribution_pct": 27.0,
-                    "observed_value": "Queda de 3.9 para 2.4",
+                    "observed_value": "Queda de 3.0 para 2.4",
                     "direction": "AGRAVANTE",
                 },
                 {
                     "feature_name": "delta_horas_extras",
-                    "display_name": "Sobrecarga em Horas Extras (+60%)",
+                    "display_name": "Sobrecarga em Horas Extras (+50%)",
                     "contribution_pct": 24.0,
-                    "observed_value": "+60% vs media basal",
+                    "observed_value": "+50% vs media basal",
                     "direction": "AGRAVANTE",
                 },
                 {
@@ -405,7 +405,7 @@ def get_synthetic_initial_cards() -> list[RiskCard]:
                     "direction": "AGRAVANTE",
                 },
             ],
-            ai_provider_used="xgboost+gemini-1.5-pro",
+            ai_provider_used="regras_transparentes_v1",
             ai_fallback_triggered=False,
         ),
         # Caso 3: Logistica (Card Amarelo)
@@ -418,7 +418,7 @@ def get_synthetic_initial_cards() -> list[RiskCard]:
             probable_risk_factor=PsychosocialRiskFactor.LIDERANCA_CONFLITO,
             evidence_summary=(
                 "5 pedidos de demissao em 30 dias apos meses de estabilidade turnover zero; "
-                "queda na nota de suporte da lideranca de 3,9 para 2,7."
+                "queda na nota de carga de trabalho de 3,3 para 2,7."
             ),
             context_description=(
                 "pico de saidas comeca logo apos mudanca de gestor da area ocorrida em setembro."
@@ -440,20 +440,20 @@ def get_synthetic_initial_cards() -> list[RiskCard]:
                 },
                 {
                     "feature_name": "queda_suporte_lideranca",
-                    "display_name": "Queda no Suporte da Lideranca (Pesquisa)",
+                    "display_name": "Queda na Nota de Carga (Pesquisa)",
                     "contribution_pct": 25.0,
-                    "observed_value": "Queda de 3.9 para 2.7",
+                    "observed_value": "Queda de 3.3 para 2.7",
                     "direction": "AGRAVANTE",
                 },
                 {
                     "feature_name": "variacao_atestados",
-                    "display_name": "Variacao Residual em Atestados",
+                    "display_name": "Variacao em Atestados",
                     "contribution_pct": 10.0,
-                    "observed_value": "+5%",
+                    "observed_value": "+25%",
                     "direction": "AGRAVANTE",
                 },
             ],
-            ai_provider_used="xgboost+gemini-1.5-pro",
+            ai_provider_used="regras_transparentes_v1",
             ai_fallback_triggered=False,
         ),
         # Caso 4: Vendas (Escalonamento para Compliance)

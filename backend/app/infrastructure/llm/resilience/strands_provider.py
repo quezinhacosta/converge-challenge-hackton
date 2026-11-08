@@ -23,8 +23,8 @@ from pathlib import Path
 from typing import Any, TypeVar
 
 from app.application.dtos.compat import BaseModel
-
 from app.domain.entities.risk_factor import PsychosocialRiskFactor
+from app.infrastructure.llm.fidelidade_chat import aplicar_fidelidade, resultados_de_ferramentas
 from app.infrastructure.llm.knowledge import (
     PRIVACY_RULES,
     factor_catalog_text,
@@ -299,7 +299,11 @@ class StrandsFeatherlessProvider(LLMProviderProtocol):
             reply = clean_model_text(str(agent(prompt)))
             if len(reply) < 5:
                 raise RuntimeError("Resposta vazia ou degenerada do agente de chat.")
-            return reply
+            # Numero sem fonte nesta conversa sai; "a empresa nao oferece X" vira "nao encontrei".
+            evidencias = resultados_de_ferramentas(getattr(agent, "messages", []) or [])
+            if context_data:
+                evidencias += "\n" + json.dumps(context_data, ensure_ascii=False, default=str)
+            return aplicar_fidelidade(reply, evidencias, query_text)
 
         return self._with_retry(task, "chat")
 

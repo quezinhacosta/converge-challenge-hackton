@@ -238,14 +238,13 @@ class AssistenteDocumental:
                         prazo=dia + timedelta(days=15),
                     )
                 )
-        if not self.recuperador.buscar(
-            ctx,
-            ConsultaRecuperacao(
-                texto="canal de apoio psicologico",
-                data_referencia=dia,
-                categorias=[CategoriaDocumento.CANAL_APOIO],
-            ),
-        ).evidencia_suficiente:
+        # Estrutural (nao lexical): basta um documento de canal publicado e vigente.
+        if not self.repo.trechos_elegiveis(
+            ctx.empresa_id,
+            ctx.escopos_permitidos,
+            dia,
+            frozenset({CategoriaDocumento.CANAL_APOIO}),
+        ):
             add(
                 PendenciaBase(
                     "SEM_CANAL_DE_APOIO",
