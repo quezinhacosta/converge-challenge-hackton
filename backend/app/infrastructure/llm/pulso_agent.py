@@ -13,7 +13,12 @@ from app.infrastructure.llm.resilience.failover_manager import (
     FailoverExecutionMetadata,
     FailoverManager,
 )
-from app.infrastructure.ml.xgboost_risk_engine import RiskPredictionResult, XGBoostRiskEngine
+from app.infrastructure.ml.xgboost_risk_engine import (
+    RiskEngineProtocol,
+    RiskPredictionResult,
+    XGBoostRiskEngine,
+    get_active_risk_engine,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +36,7 @@ class PulsoAgentLLM:
         self,
         api_key: str | None = None,
         model_name: str = "gemini-1.5-pro",
-        xgboost_engine: XGBoostRiskEngine | None = None,
+        xgboost_engine: RiskEngineProtocol | None = None,
         failover_manager: FailoverManager | None = None,
         devolutiva_writer: Any | None = None,
     ) -> None:
@@ -42,7 +47,7 @@ class PulsoAgentLLM:
         """
         self.api_key = api_key
         self.model_name = model_name
-        self.ml_engine = xgboost_engine or XGBoostRiskEngine()
+        self.ml_engine = xgboost_engine or get_active_risk_engine()
         self.failover_manager = failover_manager or FailoverManager()
         self.devolutiva_writer = devolutiva_writer
 

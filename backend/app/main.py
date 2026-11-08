@@ -36,6 +36,14 @@ from app.protections import (
     inspecionar_busca_nominativa,
     verificar_quorum_anonimizacao,
 )
+from app.infrastructure.ml.xgboost_risk_engine import (
+    BaseRiskEngine,
+    RiskEngineProtocol,
+    RiskPredictionResult,
+    ShapContribution,
+    get_active_risk_engine,
+    set_active_risk_engine,
+)
 from app.pulso_agents import (
     AgenteComunicacao,
     AgenteHistoriador,
@@ -243,29 +251,37 @@ def executar_fechamento_mensal() -> FechamentoSummaryResponse:
         elegiveis_count += 1
         queda_clima = max(0.0, area.nota_clima_anterior - area.nota_clima_atual)
 
-        # Calculo do Score Matematico e Pesos SHAP
-        score, nivel, pesos_shap, narrativa_shap = calcular_score_e_pesos_shap(
-            variacao_atestados_pct=area.variacao_dias_atestado_pct,
+        # Calculo do Score Matematico e Pesos SHAP via Motor Ativo (Pluggable)
+        engine = get_active_risk_engine()
+        ml_pred = engine.predict(
+            variacao_dias_atestado_pct=area.variacao_dias_atestado_pct,
             variacao_horas_extras_pct=area.variacao_horas_extras_pct,
             pedidos_demissao=area.pedidos_demissao_periodo,
             media_empresa_pedidos_demissao=area.media_empresa_pedidos_demissao,
-            queda_clima_absoluta=queda_clima,
+            queda_nota_clima=queda_clima,
+            denuncias_compliance=3 if area.area_id == "area_vend" else 0,
         )
+        score = ml_pred.risk_score
+        nivel = ml_pred.risk_level.value
+        fator_base = ml_pred.probable_factor.value
+        pesos_shap = {
+            item.feature_name: item.contribution_pct for item in ml_pred.shap_breakdown
+        }
+        # Garante chaves canonicas para o contrato da Pessoa B
+        if "delta_atestados" in pesos_shap:
+            pesos_shap["atestados"] = pesos_shap["delta_atestados"]
+        if "queda_nota_clima" in pesos_shap:
+            pesos_shap["clima"] = pesos_shap["queda_nota_clima"]
+        if "delta_horas_extras" in pesos_shap:
+            pesos_shap["horas_extras"] = pesos_shap["delta_horas_extras"]
+        if "razao_turnover" in pesos_shap:
+            pesos_shap["turnover"] = pesos_shap["razao_turnover"]
+        narrativa_shap = ml_pred.audit_narrative
 
         # Caso 4 especial: Vendas tem canal confidencial com denuncias (Assedio)
-        if area.area_id == "area_vend":
-            nivel = "VERMELHO"
-            score = 88.0
-            fator_base = "Assedio Moral e Relacoes Socioprofissionais"
+        if area.area_id == "area_vend" or fator_base == "Assedio Moral e Relacoes Socioprofissionais":
             status_card = "ESCALADO_COMPLIANCE"
-        elif nivel == "VERMELHO":
-            fator_base = "Sobrecarga de Trabalho e Metas Excessivas"
-            status_card = "ABERTO"
-        elif nivel == "AMARELO":
-            fator_base = "Gestao e Conflitos de Lideranca"
-            status_card = "ABERTO"
         else:
-            fator_base = "Ambiente Estavel / Baixo Risco"
             status_card = "ABERTO"
 
         # 1. Agente Historiador
