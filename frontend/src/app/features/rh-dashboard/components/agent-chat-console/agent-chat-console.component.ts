@@ -32,7 +32,7 @@ export interface ChatMessage {
             <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
               Assistente do RH
               <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.2 text-[10px] font-semibold text-emerald-800">
-                VytAI
+                VYTAL.ai
               </span>
             </h3>
             <p class="text-[11px] text-slate-500">
@@ -152,7 +152,7 @@ export interface ChatMessage {
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                 </svg>
               </div>
-              <span class="text-[11px] font-bold text-slate-800">Assistente VytAI</span>
+              <span class="text-[11px] font-bold text-slate-800">Assistente VYTAL.ai</span>
             </div>
 
             <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">
@@ -177,7 +177,7 @@ export interface ChatMessage {
             <div class="h-2 w-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.2s]"></div>
             <div class="h-2 w-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.4s]"></div>
           </div>
-          <span>VytAI consultando as informações disponíveis...</span>
+          <span>VYTAL.ai consultando as informações disponíveis...</span>
         </div>
       </div>
 
