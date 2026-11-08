@@ -120,6 +120,21 @@ def test_demo_sem_login_e_decisao_vira_memoria(engine, monkeypatch):
         )
         titulos = [x["titulo"] for x in busca.json()["trechos"]]
         assert any(t.startswith("Decisao ") and card["area"] in t for t in titulos), titulos
+
+        relatorio = client.get("/api/v1/worker/relatorio.pdf")
+        assert relatorio.status_code == 200, relatorio.text
+        assert relatorio.headers["content-type"] == "application/pdf"
+        assert relatorio.content.startswith(b"%PDF")
+        import io
+
+        from pypdf import PdfReader
+
+        texto = " ".join(p.extract_text() for p in PdfReader(io.BytesIO(relatorio.content)).pages)
+        assert "Relatório de riscos psicossociais" in texto
+        assert "Atendimento ao Cliente" in texto and "Protegido por quórum" in texto
+        assert "Inventário de riscos do PGR" in texto and card["area"] in texto
+        assert "Programa Cuidar" in texto  # base de conhecimento publicada
+        assert "Juliana" not in texto  # nome de gestor nao entra no relatorio
     app_engine.dispose()
     with Session(engine) as session, session.begin():
         auditoria = session.execute(

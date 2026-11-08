@@ -27,6 +27,7 @@ export interface WorkerCycle {
 export class HrActionsApi {
  private http=inject(HttpClient); private base=environment.apiUrl+'/rh';
  cycle(){return this.http.post<WorkerCycle>(environment.apiUrl+'/worker/ciclo',{});}
+ report(){return this.http.get(environment.apiUrl+'/worker/relatorio.pdf',{responseType:'blob'});}
  list(){return this.http.get<Intervention[]>(this.base+'/intervencoes');}
  pending(){return this.http.get<Pending>(this.base+'/pendencias');}
  readiness(){return this.http.get<Readiness>(this.base+'/conectores');}

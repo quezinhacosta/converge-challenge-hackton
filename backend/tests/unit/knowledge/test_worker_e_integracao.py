@@ -53,7 +53,7 @@ def test_investigacao_traz_o_que_a_empresa_oferece_e_ja_tentou() -> None:
     assert inv.tem_acao_da_empresa
     assert inv.acoes_disponiveis[0].titulo_documento == "Programa Escuta"
     assert inv.planos_anteriores and "2025" in inv.planos_anteriores[0].texto
-    assert "Nenhuma politica publicada sobre este fator." in inv.lacunas
+    assert "Nenhuma política publicada sobre este fator." in inv.lacunas
     refs = [t.ref for t in inv.trechos()]
     assert refs == [f"C{i}" for i in range(1, len(refs) + 1)]
     # Outra empresa nao ve nada disso.

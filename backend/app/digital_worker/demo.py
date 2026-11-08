@@ -72,6 +72,100 @@ jornadas e relacoes de trabalho sao revistas sempre que os sinais agregados indi
 avaliar pessoas individualmente e sem diagnostico de saude.
 """,
     ),
+    (
+        "Procedimento de Jornada, Pausas e Banco de Horas",
+        CategoriaDocumento.PROCEDIMENTO_ACOLHIMENTO,
+        """# Jornada, pausas e descanso
+
+Quando as horas extras de uma equipe passam de dez horas por pessoa no mês, o RH e a liderança
+revisam a jornada e a escala em até quinze dias. A pausa de quinze minutos a cada duas horas é
+garantida, e o descanso entre jornadas nunca é menor que onze horas.
+
+# Banco de horas
+
+O banco de horas é compensado em até seis meses, com folga combinada com a pessoa. Saldo alto de
+banco de horas por três meses seguidos abre uma revisão da carga da área.
+""",
+    ),
+    (
+        "Programa Liderar com Escuta",
+        CategoriaDocumento.PROGRAMA_BENEFICIO,
+        """# Programa Liderar com Escuta
+
+Formação para cada gestor nos primeiros noventa dias no cargo: feedback contínuo, conversas de
+alinhamento e mediação de conflitos. Quando há conflito entre liderança e equipe, o RH oferece
+mediação com um facilitador de fora da área, sem expor quem relatou o problema.
+""",
+    ),
+    (
+        "Procedimento de Clareza de Papéis e Responsabilidades",
+        CategoriaDocumento.PROCEDIMENTO_ACOLHIMENTO,
+        """# Clareza de papel
+
+Cada área mantém um quadro de papel e responsabilidade de cada função, revisado a cada semestre
+ou quando houver mudança de atribuição. Toda nova atribuição é combinada por escrito entre a
+pessoa e o gestor, com prazo e critério de entrega.
+""",
+    ),
+    (
+        "Programa Autonomia no Dia a Dia",
+        CategoriaDocumento.PROGRAMA_BENEFICIO,
+        """# Autonomia e flexibilidade
+
+As equipes definem com a liderança como organizar o próprio trabalho dentro das metas da área.
+Cada pessoa tem autonomia de decisão sobre a ordem das tarefas e flexibilidade de horário de
+entrada e saída de até uma hora, combinada com a equipe.
+""",
+    ),
+    (
+        "Procedimento de Comunicação em Mudanças",
+        CategoriaDocumento.PROCEDIMENTO_ACOLHIMENTO,
+        """# Comunicação em mudanças e reestruturação
+
+Toda mudança de estrutura, gestor ou meta é comunicada à equipe antes de entrar em vigor, com o
+motivo e o que muda para cada função. Em uma reestruturação, o RH conduz um período de transição
+de pelo menos trinta dias, com encontros de dúvidas e canal aberto para preocupações.
+""",
+    ),
+    (
+        "Política de Organização do Trabalho e Liderança",
+        CategoriaDocumento.POLITICA,
+        """# Jornada e horas extras
+
+Horas extras são exceção, não rotina. A jornada é acompanhada por área, e a pausa e o descanso
+previstos em lei são respeitados por toda liderança.
+
+# Liderança e conflito
+
+Todo gestor dá feedback regular à equipe. Conflito entre liderança e equipe é tratado com
+mediação do RH, nunca com retaliação.
+
+# Papel e responsabilidade
+
+Cada função tem papel e responsabilidade definidos por escrito, e nenhuma atribuição nova é
+cobrada sem ter sido combinada.
+
+# Autonomia e decisão
+
+A empresa valoriza a autonomia das equipes: a decisão sobre como organizar o trabalho é tomada
+junto com quem faz o trabalho, com flexibilidade sempre que a operação permitir.
+
+# Mudança e comunicação
+
+Toda mudança ou reestruturação tem comunicação prévia e um período de transição acompanhado
+pelo RH.
+""",
+    ),
+    (
+        "Política de Prevenção ao Assédio",
+        CategoriaDocumento.POLITICA,
+        """# Prevenção ao assédio
+
+A empresa não tolera assédio moral ou sexual. Toda denúncia pode ser feita pelo canal de ética
+do compliance, inclusive de forma anônima, e é apurada por um comitê independente. Retaliação
+contra quem denuncia é falta grave.
+""",
+    ),
 ]
 
 
@@ -92,8 +186,8 @@ def preparar_demo(engine: Engine) -> dict[str, object]:
     with engine.begin() as conn:
         conn.execute(
             text(
-                "INSERT INTO empresa(id,nome) VALUES(:id,'Empresa Demonstracao (ficticia)') "
-                "ON CONFLICT (id) DO NOTHING"
+                "INSERT INTO empresa(id,nome) VALUES(:id,'Empresa Demonstração (fictícia)') "
+                "ON CONFLICT (id) DO UPDATE SET nome=EXCLUDED.nome"
             ),
             {"id": EMPRESA_DEMO},
         )
