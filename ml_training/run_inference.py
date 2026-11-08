@@ -1,21 +1,21 @@
-"""Script de Inferencia para avaliar o Mistral-7B-Instruct-v0.3 com a camada de ajustes (LoRA).
+"""Script de Inferencia para avaliar o modelo com a camada de ajustes (LoRA).
 
-Carrega o modelo base quantizado em 4-bit e acopla os adaptadores salvos em `lora_adapters/`.
-Executa o diagnóstico nos cenários do desafio (Atendimento, Logística, Vendas, Financeiro).
+Carrega o modelo base e acopla os adaptadores salvos em `lora_adapters/`.
+Executa o diagnóstico nos cenários do desafio (Atendimento e Logística).
+Suporta tanto CPU quanto GPU automaticamente.
 """
 
 import argparse
-import json
 import os
 import sys
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Inferencia com Mistral 7B + LoRA Adapters")
+    parser = argparse.ArgumentParser(description="Inferencia com vitAI + LoRA Adapters")
     parser.add_argument(
         "--base_model",
         type=str,
-        default="mistralai/Mistral-7B-Instruct-v0.3",
+        default="Qwen/Qwen2.5-0.5B-Instruct",
         help="Modelo base",
     )
     parser.add_argument(
@@ -23,12 +23,6 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default="lora_adapters",
         help="Diretorio com a camada de ajustes LoRA",
-    )
-    parser.add_argument(
-        "--use_adapters",
-        action="store_true",
-        default=True,
-        help="Se True, carrega os adaptadores LoRA salvos",
     )
     return parser.parse_args()
 
@@ -41,47 +35,42 @@ def main() -> None:
     try:
         import torch
         from peft import PeftModel
-        from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+        from transformers import AutoModelForCausalLM, AutoTokenizer
     except ImportError as e:
         print(f"[ERRO] Faltam bibliotecas: {e}")
-        print("Instale com: pip install -r requirements.txt")
+        print("Instale com: pip install torch transformers peft")
         sys.exit(1)
 
-    print(f"=== Inicializando Inferencia do vitAI ===")
+    has_cuda = torch.cuda.is_available()
+    device = "cuda" if has_cuda else "cpu"
+    torch_dtype = torch.float16 if has_cuda else torch.float32
+
+    print("=" * 60)
+    print(f"      vitAI - Inferencia com Modelo Ajustado")
+    print("=" * 60)
+    print(f"Dispositivo: {'GPU NVIDIA' if has_cuda else 'CPU'}")
     print(f"Modelo Base: {args.base_model}")
 
-    compute_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=compute_dtype,
-        bnb_4bit_use_double_quant=True,
-    )
-
-    print("Carregando tokenizer...")
+    print("1/2. Carregando tokenizer e modelo base...")
     tokenizer = AutoTokenizer.from_pretrained(args.base_model, trust_remote_code=True)
-
-    print("Carregando modelo base...")
     model = AutoModelForCausalLM.from_pretrained(
         args.base_model,
-        quantization_config=bnb_config,
-        device_map="auto",
-        torch_dtype=compute_dtype,
+        device_map=device,
+        torch_dtype=torch_dtype,
         trust_remote_code=True,
     )
 
-    if args.use_adapters and os.path.exists(os.path.join(adapter_path, "adapter_config.json")):
-        print(f"Acoplando camada de ajustes (LoRA) de: {adapter_path}")
+    if os.path.exists(os.path.join(adapter_path, "adapter_config.json")):
+        print(f"2/2. Acoplando camada de ajustes (LoRA) de: {adapter_path}")
         model = PeftModel.from_pretrained(model, adapter_path)
     else:
-        print("[AVISO] Adaptadores LoRA nao encontrados em 'lora_adapters/'. Executando com modelo base.")
+        print(f"[AVISO] Adaptadores nao encontrados em '{adapter_path}'. Rodando com modelo base.")
 
     model.eval()
 
-    # Cenarios de teste
     test_cases = [
         {
-            "area": "Atendimento ao Cliente",
+            "area": "Atendimento ao Cliente (Sobrecarga de Trabalho)",
             "prompt": (
                 "Analise a seguinte área corporativa para o fechamento mensal da NR-1:\n\n"
                 "Nome da Área: Atendimento ao Cliente\n"
@@ -99,7 +88,7 @@ def main() -> None:
             ),
         },
         {
-            "area": "Logística e Distribuição",
+            "area": "Logística e Distribuição (Conflito de Liderança)",
             "prompt": (
                 "Analise a seguinte área corporativa para o fechamento mensal da NR-1:\n\n"
                 "Nome da Área: Logística e Distribuição\n"
@@ -124,8 +113,8 @@ def main() -> None:
     )
 
     for case in test_cases:
-        print(f"\n" + "=" * 60)
-        print(f"Testando Inferencia para: {case['area']}")
+        print("\n" + "=" * 60)
+        print(f"Diagnostico vitAI: {case['area']}")
         print("=" * 60)
 
         messages = [
@@ -134,12 +123,12 @@ def main() -> None:
         ]
 
         prompt_text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-        inputs = tokenizer(prompt_text, return_tensors="pt").to(model.device)
+        inputs = tokenizer(prompt_text, return_tensors="pt").to(device)
 
         with torch.no_grad():
             outputs = model.generate(
                 **inputs,
-                max_new_tokens=512,
+                max_new_tokens=400,
                 temperature=0.2,
                 top_p=0.9,
                 do_sample=True,

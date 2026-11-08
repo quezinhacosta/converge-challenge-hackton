@@ -1,101 +1,58 @@
-# Fine-Tuning do Mistral-7B-Instruct-v0.3 (vitAI NR-1 Agent)
+# Fine-Tuning Eficiente (vitAI NR-1 Agent)
 
-Pipeline completo para ajuste fino supervisionado (SFT) do modelo **`mistralai/Mistral-7B-Instruct-v0.3`** utilizando **QLoRA (4-bit NF4) + PEFT + TRL**, salvando exclusivamente a **camada de ajustes (LoRA Adapters)**.
-
-Link oficial do modelo: **[https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3)**
+Este pipeline foi otimizado para executar um treinamento **rápido (20 a 40 minutos)**, com **download leve (~900MB)**, adaptado tanto para **CPU (AMD Ryzen)** quanto para **GPU (NVIDIA CUDA)**, salvando a **camada de ajustes (LoRA Adapters)**.
 
 ---
 
-## 1. Vantagens do Mistral-7B-Instruct-v0.3
+## 1. Por que o Mistral 7B / Llama 8B falhou?
 
-- **Licença Aberta Apache 2.0**: Não exige aprovação manual nem termos restritos da Meta. O download é público e imediato.
-- **Janela de Contexto de 32k Tokens**: Suporta históricos longos e múltiplos cenários de auditoria.
-- **Suporte Nativo a Chamada de Funções e Ferramentas (Function Calling)** via v3 Tokenizer.
-- **Excelente Eficiência de VRAM**: Roda com QLoRA 4-bit ocupando em torno de 6 a 8 GB de memória de vídeo, ideal para GPUs como RTX 3060, 3080, 4070, 4080, 4090, A10 ou T4.
+Modelos de 7B a 8B possuem mais de **14,5 GB de arquivos** e exigem:
+- Pelo menos **16 GB a 24 GB de memória RAM** só para descompactar os pesos.
+- Uma **GPU dedicada NVIDIA com CUDA** para quantização 4-bit (`bitsandbytes`).
 
----
-
-## 2. Estrutura dos Arquivos
-
-```
-ml_training/
-├── requirements.txt              # Dependencias PyTorch, Transformers, PEFT, TRL, BitsAndBytes, mistral_common
-├── generate_mistral_dataset.py   # Gerador de instrucoes no padrao de chat do Mistral
-├── train_mistral.py              # Script principal de fine-tuning QLoRA (salva em lora_adapters/)
-├── run_inference.py              # Teste de inferencia carregando modelo base + LoRA adapter
-├── train_dataset.jsonl           # 1.020 amostras de treino formatadas em ChatML
-├── val_dataset.jsonl             # 180 amostras de validacao formatadas em ChatML
-├── lora_adapters/                # Diretorio onde a camada de ajustes sera salva:
-│   ├── adapter_config.json       # Hiperparametros do LoRA (rank, alpha, target modules)
-│   └── adapter_model.safetensors # Pesos treinados da camada de ajuste
-└── README.md                     # Este guia
-```
+No notebook **Acer Aspire A515-45 (AMD Ryzen 5 com 7,1 GB de RAM total)**:
+- O download de 14,5 GB esgota o buffer de memória (`RuntimeError: Background writer channel closed`).
+- Em CPU pura, treinar 7 bilhões de parâmetros demoraria mais de 15 horas.
 
 ---
 
-## 3. Passo 1: Instalação das Dependências
+## 2. A Solução: Small Language Model de Alta Precisão (SLM)
 
-No seu ambiente Python com suporte a GPU NVIDIA CUDA:
+Utilizamos o **`Qwen/Qwen2.5-0.5B-Instruct`** (ou `Qwen2.5-1.5B-Instruct`):
+- **Download Leve**: apenas **~900 MB** (baixa em menos de 1 minuto).
+- **Consumo de RAM**: cerca de **1,8 GB** (roda com muita folga nos 3,7 GB livres).
+- **Tempo de Treinamento**: **20 a 35 minutos** utilizando todos os núcleos do AMD Ryzen 5.
+- **Camada de Ajustes LoRA**: salva exatamente em `lora_adapters/adapter_model.safetensors` e `adapter_config.json`.
+- **Qualidade**: Modelo de última geração treinado em 18T tokens, com suporte de ponta a português e geração estrita de JSON para conformidade com a NR-1.
+
+---
+
+## 3. Como Executar o Treinamento
+
+No seu ambiente virtual (`.venv`):
 
 ```bash
 cd ml_training
-pip install -r requirements.txt
+python3 train.py
 ```
 
-> **Dica**: Certifique-se de que o PyTorch reconhece a sua GPU:
-> ```bash
-> python3 -c "import torch; print('CUDA disponivel:', torch.cuda.is_available(), '| GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A')"
-> ```
+### O que o script faz:
+1. Detecta automaticamente sua CPU (AMD Ryzen 5 com 6 núcleos) ou GPU se disponível.
+2. Faz o download rápido de apenas ~900 MB do modelo base.
+3. Injeta a camada de adaptadores LoRA (`q_proj`, `v_proj`, `k_proj`, `o_proj`).
+4. Treina sobre o dataset da NR-1 / Portaria MTE nº 1.419/2024.
+5. Salva a camada de ajustes em:
+   - `lora_adapters/adapter_config.json`
+   - `lora_adapters/adapter_model.safetensors`
 
 ---
 
-## 4. Passo 2: Geração do Dataset de Treinamento
+## 4. Como Testar a Inferência com os Adaptadores
 
-O dataset de 1.200 amostras com os casos da NR-1 / Portaria MTE nº 1.419/2024 (Sobrecarga de Trabalho, Conflito de Gestão, Assédio no Canal de Ética, Equipes Estáveis e Proteção LGPD para grupos N < 5) já foi gerado. Se quiser regenerar:
-
-```bash
-python3 generate_mistral_dataset.py
-```
-
-Isso gera:
-- `train_dataset.jsonl` (1.020 conversas)
-- `val_dataset.jsonl` (180 conversas)
-
----
-
-## 5. Passo 3: Executar o Treinamento da Camada de Ajustes
-
-Execute o script de fine-tuning:
-
-```bash
-python3 train_mistral.py
-```
-
-### Argumentos Customizáveis (opcional):
-```bash
-python3 train_mistral.py \
-  --base_model mistralai/Mistral-7B-Instruct-v0.3 \
-  --epochs 3 \
-  --batch_size 2 \
-  --grad_accum 4 \
-  --lr 2e-4 \
-  --lora_r 16 \
-  --lora_alpha 32 \
-  --output_dir lora_adapters
-```
-
-Ao final do treinamento, o script salvará na pasta **`lora_adapters/`**:
-- `adapter_config.json`
-- `adapter_model.safetensors`
-- `tokenizer_config.json`
-
----
-
-## 6. Passo 4: Testar a Inferência com os Adaptadores
-
-Para testar o modelo treinado com a camada de ajustes acoplada:
+Após a conclusão do treino:
 
 ```bash
 python3 run_inference.py
 ```
-O script carregará o `mistralai/Mistral-7B-Instruct-v0.3`, aplicará os pesos de `lora_adapters/` e executará o diagnóstico nos cenários de demonstração (Atendimento e Logística).
+
+O script carregará o modelo base com a sua camada de ajustes LoRA acoplada e gerará os pareceres estruturados para os cenários oficiais do projeto.
