@@ -148,33 +148,69 @@ def main() -> None:
         print(f"[Otimizacao CPU] Selecionadas {len(train_dataset)} amostras para treino rapido (< 40 min).")
 
     # 5. Argumentos de Treinamento
-    training_args = TrainingArguments(
-        output_dir=output_dir,
-        num_train_epochs=args.epochs,
-        per_device_train_batch_size=args.batch_size,
-        gradient_accumulation_steps=args.grad_accum,
-        learning_rate=args.lr,
-        lr_scheduler_type="cosine",
-        warmup_ratio=0.05,
-        logging_steps=10,
-        save_strategy="epoch",
-        evaluation_strategy="epoch",
-        report_to="none",
-        save_total_limit=1,
-        dataloader_num_workers=0,
-        use_cpu=(not has_cuda),
-    )
+    try:
+        from trl import SFTConfig
 
-    trainer = SFTTrainer(
-        model=model,
-        train_dataset=train_dataset,
-        eval_dataset=val_dataset,
-        peft_config=lora_config,
-        dataset_text_field="messages",
-        max_seq_length=args.max_seq_length,
-        tokenizer=tokenizer,
-        args=training_args,
-    )
+        training_args = SFTConfig(
+            output_dir=output_dir,
+            num_train_epochs=args.epochs,
+            per_device_train_batch_size=args.batch_size,
+            gradient_accumulation_steps=args.grad_accum,
+            learning_rate=args.lr,
+            lr_scheduler_type="cosine",
+            warmup_steps=10,
+            logging_steps=10,
+            save_strategy="epoch",
+            eval_strategy="epoch",
+            report_to="none",
+            save_total_limit=1,
+            max_length=args.max_seq_length,
+            dataset_text_field="messages",
+            use_cpu=(not has_cuda),
+            fp16=False,
+            bf16=False,
+        )
+    except Exception:
+        from transformers import TrainingArguments
+
+        training_args = TrainingArguments(
+            output_dir=output_dir,
+            num_train_epochs=args.epochs,
+            per_device_train_batch_size=args.batch_size,
+            gradient_accumulation_steps=args.grad_accum,
+            learning_rate=args.lr,
+            lr_scheduler_type="cosine",
+            warmup_steps=10,
+            logging_steps=10,
+            save_strategy="epoch",
+            eval_strategy="epoch",
+            report_to="none",
+            save_total_limit=1,
+            use_cpu=(not has_cuda),
+            fp16=False,
+            bf16=False,
+        )
+
+    try:
+        trainer = SFTTrainer(
+            model=model,
+            train_dataset=train_dataset,
+            eval_dataset=val_dataset,
+            peft_config=lora_config,
+            processing_class=tokenizer,
+            args=training_args,
+        )
+    except Exception:
+        trainer = SFTTrainer(
+            model=model,
+            train_dataset=train_dataset,
+            eval_dataset=val_dataset,
+            peft_config=lora_config,
+            tokenizer=tokenizer,
+            dataset_text_field="messages",
+            max_seq_length=args.max_seq_length,
+            args=training_args,
+        )
 
     # 6. Executa Treino
     print("\n5/5. Iniciando treinamento da camada de ajustes...")
