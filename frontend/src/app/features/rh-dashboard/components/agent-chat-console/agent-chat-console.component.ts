@@ -30,13 +30,13 @@ export interface ChatMessage {
           </div>
           <div>
             <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              Copilot VytAI NR-1
+              Assistente do RH
               <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.2 text-[10px] font-semibold text-emerald-800">
-                Online
+                VytAI
               </span>
             </h3>
             <p class="text-[11px] text-slate-500">
-              Perguntas e respostas com dados agregados &bull; Guardrails LGPD ativos
+              Indicadores agregados e ações para revisão do RH
             </p>
           </div>
         </div>
@@ -56,7 +56,7 @@ export interface ChatMessage {
       <!-- Chips de Sugestões Rápidas (Pitch Demos) -->
       <div class="border-b border-slate-100 bg-white px-4 py-2">
         <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-          Cenários Rápidos para Demonstração:
+          Por onde começar
         </span>
         <div class="flex flex-wrap gap-1.5">
           <button
@@ -79,9 +79,9 @@ export interface ChatMessage {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
             </svg>
           </div>
-          <p class="text-xs font-semibold text-slate-700">Como posso apoiar a governança da NR-1 hoje?</p>
+          <p class="text-xs font-semibold text-slate-700">Como posso ajudar o RH hoje?</p>
           <p class="text-[11px] text-slate-500 max-w-sm mx-auto">
-            Consulte tendências de equipes, correlações de ponto/folha ou teste o guardrail de privacidade.
+            Consulte os indicadores disponíveis, organize acompanhamentos e prepare ações para aprovação.
           </p>
         </div>
 
@@ -112,7 +112,7 @@ export interface ChatMessage {
                 </svg>
               </div>
               <span class="inline-flex items-center rounded-full bg-amber-200/80 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900">
-                Recusado por Guardrail LGPD & Desafio Tako
+                Consulta protegida
               </span>
             </div>
 
@@ -125,7 +125,7 @@ export interface ChatMessage {
                 <svg class="h-3.5 w-3.5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                 </svg>
-                Motivo da Recusa Ética:
+                Proteção de privacidade
               </div>
               <p class="text-slate-600">
                 {{ msg.refusalReason || 'Proteção de dados sensíveis de saúde e vedação estrita a buscas individualizadas de colaboradores.' }}
@@ -152,7 +152,7 @@ export interface ChatMessage {
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                 </svg>
               </div>
-              <span class="text-[11px] font-bold text-slate-800">Resposta VytAI (Agente NR-1)</span>
+              <span class="text-[11px] font-bold text-slate-800">Assistente VytAI</span>
             </div>
 
             <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">
@@ -164,7 +164,7 @@ export interface ChatMessage {
             </div>
 
             <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-100">
-              <span>Fontes auditadas: {{ (msg.sourcesUsed || ['ponto', 'folha']).join(', ') }}</span>
+              <span>Fontes informadas: {{ (msg.sourcesUsed || []).join(', ') || 'Não informadas' }}</span>
               <span class="font-mono">{{ msg.timestamp }}</span>
             </div>
           </div>
@@ -177,7 +177,7 @@ export interface ChatMessage {
             <div class="h-2 w-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.2s]"></div>
             <div class="h-2 w-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.4s]"></div>
           </div>
-          <span>VytAI cruzando dados de ponto, folha e guardrails de conformidade...</span>
+          <span>VytAI consultando as informações disponíveis...</span>
         </div>
       </div>
 
@@ -187,7 +187,7 @@ export interface ChatMessage {
           type="text"
           [(ngModel)]="inputQuery"
           name="query"
-          placeholder="Ex: Como está a Logística? ou teste: Me mostra os atestados da Carla..."
+          placeholder="O que o RH precisa acompanhar hoje?"
           class="flex-1 rounded-xl border border-slate-300 bg-slate-50/60 px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
         />
         <button
@@ -215,11 +215,9 @@ export class AgentChatConsoleComponent implements AfterViewChecked {
   loading = false;
 
   quickChips = [
-    { label: 'Guardrail: Atestados da Carla', query: 'Me mostra os atestados da Carla' },
-    { label: 'Time de Logística (Cenário 3)', query: 'Como está o time de Logística após a troca de liderança?' },
-    { label: 'Vendas & Denúncias (Cenário 4)', query: 'Qual o status da área de Vendas no canal de denúncias?' },
-    { label: 'Financeiro (Cenário 1)', query: 'Como está o financeiro?' },
-    { label: 'Visão Geral das Áreas', query: 'Resumo das áreas com riscos da NR-1' },
+    { label: 'Visão dos setores', query: 'Resuma os indicadores agregados disponíveis por setor e informe suas limitações.' },
+    { label: 'Pendências do RH', query: 'Consulte minhas pendências de acompanhamento de RH.' },
+    { label: 'Planejar acompanhamento', query: 'Quero preparar uma intervenção. Quais informações você precisa antes de criar a proposta?' },
   ];
 
   ngAfterViewChecked(): void {
@@ -264,6 +262,7 @@ export class AgentChatConsoleComponent implements AfterViewChecked {
       },
       error: () => {
         this.loading = false;
+        this.messages.push({id: crypto.randomUUID(), sender: 'pulso', text: 'Não foi possível consultar o assistente. Verifique sua sessão e tente novamente.', timestamp: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})});
       },
     });
   }
