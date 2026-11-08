@@ -13,8 +13,20 @@ from datetime import date
 from typing import Any, TypeVar
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+    status,
+)
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 
 from app.knowledge.domain import (
     PAPEL_RH,
@@ -25,15 +37,18 @@ from app.knowledge.domain import (
 )
 from app.knowledge.dtos import (
     AtualizarMetadadosRequest,
+    CadastroArquivoMetadados,
     CadastroTextoRequest,
     ConsultaRecuperacao,
     DocumentoDTO,
+    NovaVersaoArquivoMetadados,
     NovaVersaoTextoRequest,
     PerguntaRequest,
     RespostaFundamentadaDTO,
     ResultadoRecuperacao,
     VersaoDTO,
 )
+from app.knowledge.extraction import LIMITE_ARQUIVO_BYTES
 from app.knowledge.integration import ServicosDocumentais
 from app.presentation.knowledge_integration import get_knowledge_services
 from app.presentation.security import request_session, require_authorized_context
@@ -92,6 +107,98 @@ def cadastrar_documento_texto(
 ) -> DocumentoDTO:
     """Cadastra um documento a partir de texto colado e ja processa a versao 1."""
     return _executar(lambda: s.servico.cadastrar_texto(s.ctx, payload))
+
+
+async def _ler_limitado(arquivo: UploadFile) -> bytes:
+    """Le no maximo 10 MiB + 1 byte: arquivo maior e recusado sem ser carregado inteiro."""
+    partes: list[bytes] = []
+    lidos = 0
+    while parte := await arquivo.read(1024 * 1024):
+        lidos += len(parte)
+        if lidos > LIMITE_ARQUIVO_BYTES:
+            raise HTTPException(
+                413,
+                {"codigo": "ARQUIVO_GRANDE", "mensagem": "O arquivo passa de 10 MB."},
+            )
+        partes.append(parte)
+    return b"".join(partes)
+
+
+def _metadados(modelo: type[T], **campos: object) -> T:
+    try:
+        return modelo.model_validate({k: v for k, v in campos.items() if v not in (None, "")})  # type: ignore[attr-defined, no-any-return]
+    except ValidationError as erro:
+        raise HTTPException(
+            422,
+            {
+                "codigo": "METADADOS_INVALIDOS",
+                "mensagem": "Confira titulo, categoria, responsavel e vigencia.",
+                "detalhes": {"campos": [".".join(map(str, e["loc"])) for e in erro.errors()]},
+            },
+        ) from erro
+
+
+@router.post(
+    "/documentos/arquivo", response_model=DocumentoDTO, status_code=status.HTTP_201_CREATED
+)
+async def cadastrar_documento_arquivo(
+    arquivo: UploadFile = File(...),
+    titulo: str = Form(...),
+    categoria: str = Form(...),
+    responsavel: str = Form(...),
+    fonte: str | None = Form(default=None),
+    rotulo_versao: str | None = Form(default=None, alias="rotuloVersao"),
+    vigencia_inicio: str | None = Form(default=None, alias="vigenciaInicio"),
+    vigencia_fim: str | None = Form(default=None, alias="vigenciaFim"),
+    confirma: bool = Form(default=False, alias="confirmaSemDadosSensiveis"),
+    s: ServicosDocumentais = S,
+) -> DocumentoDTO:
+    """Upload .pdf/.txt/.md (ate 10 MB). O tipo e conferido pelo conteudo do arquivo."""
+    req = _metadados(
+        CadastroArquivoMetadados,
+        titulo=titulo,
+        categoria=categoria,
+        responsavel=responsavel,
+        fonte=fonte,
+        rotulo_versao=rotulo_versao,
+        vigencia_inicio=vigencia_inicio,
+        vigencia_fim=vigencia_fim,
+        confirma_sem_dados_sensiveis=confirma,
+    )
+    conteudo = await _ler_limitado(arquivo)
+    return await run_in_threadpool(
+        _executar, lambda: s.servico.cadastrar_arquivo(s.ctx, req, arquivo.filename, conteudo)
+    )
+
+
+@router.post(
+    "/documentos/{documento_id}/versoes/arquivo",
+    response_model=DocumentoDTO,
+    status_code=status.HTTP_201_CREATED,
+)
+async def adicionar_versao_arquivo(
+    documento_id: UUID,
+    arquivo: UploadFile = File(...),
+    rotulo_versao: str | None = Form(default=None, alias="rotuloVersao"),
+    vigencia_inicio: str | None = Form(default=None, alias="vigenciaInicio"),
+    vigencia_fim: str | None = Form(default=None, alias="vigenciaFim"),
+    confirma: bool = Form(default=False, alias="confirmaSemDadosSensiveis"),
+    s: ServicosDocumentais = S,
+) -> DocumentoDTO:
+    req = _metadados(
+        NovaVersaoArquivoMetadados,
+        rotulo_versao=rotulo_versao,
+        vigencia_inicio=vigencia_inicio,
+        vigencia_fim=vigencia_fim,
+        confirma_sem_dados_sensiveis=confirma,
+    )
+    conteudo = await _ler_limitado(arquivo)
+    return await run_in_threadpool(
+        _executar,
+        lambda: s.servico.adicionar_versao_arquivo(
+            s.ctx, documento_id, req, arquivo.filename, conteudo
+        ),
+    )
 
 
 @router.get("/documentos", response_model=list[DocumentoDTO])

@@ -3,6 +3,7 @@
 import hashlib
 import unicodedata
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from uuid import UUID, uuid4, uuid5
 
@@ -22,10 +23,18 @@ from app.knowledge.domain import (
 from app.knowledge.dtos import (
     LIMITE_CARACTERES_TEXTO,
     AtualizarMetadadosRequest,
+    CadastroArquivoMetadados,
     CadastroTextoRequest,
     DocumentoDTO,
+    NovaVersaoArquivoMetadados,
     NovaVersaoTextoRequest,
     VersaoDTO,
+)
+from app.knowledge.extraction import (
+    ArquivoValidado,
+    extrair,
+    formato_do_mime,
+    validar_arquivo,
 )
 from app.knowledge.repository import ArmazenamentoOriginal, RepositorioConhecimento
 from app.knowledge.screening import parece_injecao, triar_conteudo_sensivel
@@ -41,6 +50,24 @@ def _normalizar_para_hash(texto: str) -> str:
 
 def _sha256(texto: str) -> str:
     return hashlib.sha256(_normalizar_para_hash(texto).encode("utf-8")).hexdigest()
+
+
+@dataclass(frozen=True)
+class _Original:
+    """O que vai para documento_arquivo: texto colado (utf-8) ou o arquivo enviado."""
+
+    conteudo: bytes
+    origem: OrigemVersao
+    mime: str
+    nome: str | None = None
+
+    @staticmethod
+    def de_texto(texto: str) -> "_Original":
+        return _Original(texto.encode("utf-8"), OrigemVersao.TEXTO, "text/plain")
+
+    @staticmethod
+    def de_arquivo(arquivo: ArquivoValidado, conteudo: bytes) -> "_Original":
+        return _Original(conteudo, OrigemVersao.UPLOAD, arquivo.mime, arquivo.nome)
 
 
 class ServicoConhecimento:
@@ -134,11 +161,32 @@ class ServicoConhecimento:
     # -- cadastro e versoes -----------------------------------------------------------------
 
     def cadastrar_texto(self, ctx: ContextoAutorizado, req: CadastroTextoRequest) -> DocumentoDTO:
+        return self._cadastrar(ctx, req, req.texto, _Original.de_texto(req.texto))
+
+    def cadastrar_arquivo(
+        self,
+        ctx: ContextoAutorizado,
+        req: CadastroArquivoMetadados,
+        nome: str | None,
+        conteudo: bytes,
+    ) -> DocumentoDTO:
+        """Upload .pdf/.txt/.md: valida tipo pelo conteudo, limites e texto extraivel."""
+        self._exigir_rh(ctx)
+        arquivo = validar_arquivo(nome, conteudo)
+        return self._cadastrar(ctx, req, arquivo.texto, _Original.de_arquivo(arquivo, conteudo))
+
+    def _cadastrar(
+        self,
+        ctx: ContextoAutorizado,
+        req: CadastroTextoRequest | CadastroArquivoMetadados,
+        texto: str,
+        original: "_Original",
+    ) -> DocumentoDTO:
         self._exigir_rh(ctx)
         inicio, fim = self._validar_texto_e_vigencia(
-            req.texto, req.confirma_sem_dados_sensiveis, req.vigencia_inicio, req.vigencia_fim
+            texto, req.confirma_sem_dados_sensiveis, req.vigencia_inicio, req.vigencia_fim
         )
-        sha = _sha256(req.texto)
+        sha = _sha256(texto)
         self._checar_duplicado(ctx, sha)
         agora = self.agora()
         doc = Documento(
@@ -155,21 +203,46 @@ class ServicoConhecimento:
         )
         self.repo.salvar_documento(doc)
         self._evento(ctx, doc.id, "CRIADO", categoria=doc.categoria.value)
-        versao = self._criar_versao(ctx, doc, req.texto, sha, req.rotulo_versao, inicio, fim)
+        versao = self._criar_versao(ctx, doc, original, sha, req.rotulo_versao, inicio, fim)
         self.processar(ctx, versao.id)
         return self.obter(ctx, doc.id)
 
     def adicionar_versao_texto(
         self, ctx: ContextoAutorizado, documento_id: UUID, req: NovaVersaoTextoRequest
     ) -> DocumentoDTO:
+        return self._nova_versao(ctx, documento_id, req, req.texto, _Original.de_texto(req.texto))
+
+    def adicionar_versao_arquivo(
+        self,
+        ctx: ContextoAutorizado,
+        documento_id: UUID,
+        req: NovaVersaoArquivoMetadados,
+        nome: str | None,
+        conteudo: bytes,
+    ) -> DocumentoDTO:
+        self._exigir_rh(ctx)
+        self._documento(ctx, documento_id)  # 404 antes de ler o arquivo
+        arquivo = validar_arquivo(nome, conteudo)
+        return self._nova_versao(
+            ctx, documento_id, req, arquivo.texto, _Original.de_arquivo(arquivo, conteudo)
+        )
+
+    def _nova_versao(
+        self,
+        ctx: ContextoAutorizado,
+        documento_id: UUID,
+        req: NovaVersaoTextoRequest | NovaVersaoArquivoMetadados,
+        texto: str,
+        original: "_Original",
+    ) -> DocumentoDTO:
         self._exigir_rh(ctx)
         doc = self._documento(ctx, documento_id)
         inicio, fim = self._validar_texto_e_vigencia(
-            req.texto, req.confirma_sem_dados_sensiveis, req.vigencia_inicio, req.vigencia_fim
+            texto, req.confirma_sem_dados_sensiveis, req.vigencia_inicio, req.vigencia_fim
         )
-        sha = _sha256(req.texto)
+        sha = _sha256(texto)
         self._checar_duplicado(ctx, sha)
-        versao = self._criar_versao(ctx, doc, req.texto, sha, req.rotulo_versao, inicio, fim)
+        versao = self._criar_versao(ctx, doc, original, sha, req.rotulo_versao, inicio, fim)
         self.processar(ctx, versao.id)
         return self.obter(ctx, doc.id)
 
@@ -177,7 +250,7 @@ class ServicoConhecimento:
         self,
         ctx: ContextoAutorizado,
         doc: Documento,
-        texto: str,
+        original: "_Original",
         sha: str,
         rotulo: str | None,
         inicio: date,
@@ -185,21 +258,22 @@ class ServicoConhecimento:
     ) -> DocumentoVersao:
         existentes = self.repo.versoes_do_documento(ctx.empresa_id, doc.id)
         numero = (max((v.numero for v in existentes), default=0)) + 1
-        conteudo = texto.encode("utf-8")
+        conteudo = original.conteudo
         versao = DocumentoVersao(
             id=uuid4(),
             documento_id=doc.id,
             empresa_id=ctx.empresa_id,
             numero=numero,
             rotulo=rotulo or f"v{numero}",
-            origem=OrigemVersao.TEXTO,
+            origem=original.origem,
             sha256_conteudo=sha,
             vigencia_inicio=inicio,
             vigencia_fim=fim,
             criado_por=ctx.usuario_id,
             criado_em=self.agora(),
             tamanho_bytes=len(conteudo),
-            mime="text/plain",
+            mime=original.mime,
+            nome_arquivo=original.nome,
         )
         self.repo.salvar_versao(versao)
         self.armazenamento.salvar(ctx.empresa_id, versao.id, conteudo)
@@ -277,7 +351,7 @@ class ServicoConhecimento:
     def _extrair(versao: DocumentoVersao, original: bytes) -> list[tuple[int | None, str]]:
         if versao.origem == OrigemVersao.TEXTO:
             return [(None, original.decode("utf-8"))]
-        raise ErroConhecimento("FORMATO_NAO_SUPORTADO", "Formato ainda nao suportado.")
+        return extrair(formato_do_mime(versao.mime), original)
 
     def _falhar(
         self, ctx: ContextoAutorizado, versao: DocumentoVersao, codigo: str, mensagem: str

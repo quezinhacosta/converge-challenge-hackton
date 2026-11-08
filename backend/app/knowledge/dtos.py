@@ -34,6 +34,27 @@ class NovaVersaoTextoRequest(ApiModel):
     confirma_sem_dados_sensiveis: bool = False
 
 
+class CadastroArquivoMetadados(ApiModel):
+    """Campos do formulario multipart que acompanham o arquivo (o texto vem do arquivo)."""
+
+    titulo: str = Field(min_length=3, max_length=200)
+    categoria: CategoriaDocumento
+    responsavel: str = Field(min_length=2, max_length=120)
+    fonte: str | None = Field(default=None, max_length=200)
+    escopo_acesso: Literal["RH"] = "RH"
+    rotulo_versao: str | None = Field(default=None, max_length=60)
+    vigencia_inicio: date | None = None
+    vigencia_fim: date | None = None
+    confirma_sem_dados_sensiveis: bool = False
+
+
+class NovaVersaoArquivoMetadados(ApiModel):
+    rotulo_versao: str | None = Field(default=None, max_length=60)
+    vigencia_inicio: date | None = None
+    vigencia_fim: date | None = None
+    confirma_sem_dados_sensiveis: bool = False
+
+
 class AtualizarMetadadosRequest(ApiModel):
     titulo: str | None = Field(default=None, min_length=3, max_length=200)
     categoria: CategoriaDocumento | None = None

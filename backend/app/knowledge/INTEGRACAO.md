@@ -10,10 +10,12 @@ Nenhum arquivo compartilhado foi alterado.
 from app.knowledge.api import router as router_conhecimento
 from app.knowledge.integration import criar_servicos_documentais
 
-create_application(knowledge_integration=KnowledgeIntegration(
-    router=router_conhecimento,
-    factory=criar_servicos_documentais,   # (ctx, session) -> ServicosDocumentais novos
-))
+create_application(
+    knowledge_integration=KnowledgeIntegration(
+        router=router_conhecimento,
+        factory=criar_servicos_documentais,  # (ctx, session) -> ServicosDocumentais novos
+    )
+)
 ```
 
 - O router usa `require_authorized_context` e `Depends(request_session, scope="function")`.
@@ -42,10 +44,11 @@ Depois que nível e fator já foram calculados:
 
 ```python
 from app.knowledge.indicadores import indicadores_para_prompt
-ind = indicadores_para_prompt(indicadores_area, area_nome)       # [] se não elegível
+
+ind = indicadores_para_prompt(indicadores_area, area_nome)  # [] se não elegível
 inv = servicos.assistente.investigar(ctx, fator, area_nome, eventos)
 resp = servicos.respondedor.responder(ctx, PerguntaRequest(pergunta=...), ind, fator_nr1=fator)
-card.fontes_documentais = resp.citacoes                               # snapshot persistido
+card.fontes_documentais = resp.citacoes  # snapshot persistido
 card.evidencia_documental_suficiente = resp.evidencia_suficiente and not resp.resposta_segura
 ```
 
@@ -63,6 +66,18 @@ O RAG não altera score, nível, fator nem indicadores.
 
 Rotas: `GET /status`, `GET /pendencias`, `GET /investigar?fator=...`, além do CRUD de documentos,
 `POST /buscar` e `POST /responder`.
+
+## Upload (.pdf, .txt, .md)
+
+- `POST /documentos/arquivo` e `POST /documentos/{id}/versoes/arquivo` (multipart: `arquivo` +
+  campos em camelCase, ex. `confirmaSemDadosSensiveis=true`).
+- Tipo conferido pela assinatura do conteudo (nao pelo nome/Content-Type); `.docx`, imagem e
+  binario disfarcado: 415. Leitura interrompida acima de 10 MiB: 413.
+- PDF: ate 300 paginas, 500 mil caracteres e 20 s de extracao; protegido por senha ou corrompido:
+  `ARQUIVO_CORROMPIDO`. Sem camada de texto (escaneado): `SEM_TEXTO_EXTRAIVEL` (sem OCR no MVP).
+- O original vai para `documento_arquivo`; reprocessar extrai de novo dele. Trechos guardam a
+  pagina, entao a citacao aponta "pagina N". Triagem, deduplicacao (pelo texto extraido) e
+  publicacao sao as mesmas do texto colado.
 
 ## Pendências para o Codex
 
