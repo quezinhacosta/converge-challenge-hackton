@@ -29,6 +29,9 @@ from app.presentation.api.v1.endpoints import (
 from app.presentation.api.v1.endpoints import (
     risk_cards as risk_cards_v1,
 )
+from app.presentation.api.v1.endpoints import (
+    tako as tako_v1,
+)
 from app.presentation.compat import CORSMiddleware, FastAPI
 from app.presentation.knowledge_integration import KnowledgeIntegration
 from app.rh_actions.api import router as rh_actions_router
@@ -122,6 +125,7 @@ def create_application(knowledge_integration: KnowledgeIntegration | None = None
     app.include_router(pgr_v1.router, prefix="/api/v1/pgr", tags=["PGR / NR-1"])
     app.include_router(chat_v1.router, prefix="/api/v1/chat", tags=["Chat do Agente"])
     app.include_router(closing_v1.router, prefix="/api/v1/fechamento", tags=["Fechamento"])
+    app.include_router(tako_v1.router, prefix="/api/v1/integrations/tako", tags=["Integracao Tako"])
 
     from app.presentation.knowledge_integration import unavailable_router
 

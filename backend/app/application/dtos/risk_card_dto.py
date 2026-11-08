@@ -98,6 +98,10 @@ class ResolveRiskCardRequestDTO(ApiModel):
     @model_validator(mode="after")
     def _check_decision_requirements(self) -> "ResolveRiskCardRequestDTO":
         """Ajuste exige o texto novo; descarte exige justificativa; aprovacao exige prazo."""
+        if self.action_type not in ("APROVAR_PGR", "AJUSTAR_ACAO", "DESCARTAR"):
+            raise ValueError(
+                f"action_type '{self.action_type}' invalido. Esperado APROVAR_PGR, AJUSTAR_ACAO ou DESCARTAR."
+            )
         if self.action_type == "AJUSTAR_ACAO" and not (self.adjusted_action_text or "").strip():
             raise ValueError("AJUSTAR_ACAO exige adjusted_action_text com a acao ajustada.")
         if self.action_type == "DESCARTAR" and len((self.justification_notes or "").strip()) < 5:

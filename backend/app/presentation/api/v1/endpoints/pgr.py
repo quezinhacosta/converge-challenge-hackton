@@ -53,3 +53,21 @@ def evaluate_risk_reassessment(
         return container.track_evolution_uc.execute(pgr_item_id)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.post(
+    "/{pgr_item_id}/reassess",
+    response_model=ReassessmentEvaluationDTO,
+    status_code=status.HTTP_200_OK,
+)
+@router.get(
+    "/{pgr_item_id}/reassess",
+    response_model=ReassessmentEvaluationDTO,
+    status_code=status.HTTP_200_OK,
+)
+def reassess_pgr_item_action(
+    pgr_item_id: str,
+    container: PulsoAppContainer = Depends(get_container, scope="function"),
+) -> ReassessmentEvaluationDTO:
+    """Rota usada pelo frontend; mesma protecao da rota /reassessment (sem simulacao em producao)."""
+    return evaluate_risk_reassessment(pgr_item_id, container)
