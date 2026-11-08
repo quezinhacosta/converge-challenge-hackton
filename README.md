@@ -69,7 +69,7 @@ flowchart LR
 
 ## 👀 Veja funcionando
 
-> **Demo:** _link da Vercel aqui_ · dados 100% sintéticos de uma empresa fictícia
+> **Demo:** [vytai.vercel.app](https://vytai.vercel.app) · dados 100% sintéticos de uma empresa fictícia
 
 **Ações do RH:** as propostas que o worker preparou sozinho, esperando aprovação.
 
@@ -141,7 +141,8 @@ flowchart TB
 |---|---|
 | Frontend | Angular 17 (standalone, signals), Tailwind |
 | Backend | FastAPI, Pydantic v2, Clean Architecture |
-| Agentes | Strands Agents + Featherless (Qwen 2.5 72B), com Gemini como provedor de reserva |
+| Agentes | Strands Agents + Featherless (Qwen 2.5 72B), com Groq como provedor de reserva |
+| Login | Supabase Auth (JWT ES256/RS256 via JWKS) com vínculo RH por empresa validado no backend |
 | Banco | PostgreSQL 17 / Supabase, Alembic, RLS, busca textual em português |
 | Integrações | MCP, Slack, Google Agenda, Tako Customer API |
 
@@ -195,7 +196,7 @@ Os testes de integração rodam contra um PostgreSQL real descartável quando `V
 
 ## 🗺️ Próximos passos
 
-- Login com Supabase no frontend. O backend já valida o token; hoje a demo usa uma identidade fictícia.
+- Provisionar as contas de RH no Supabase e vincular cada pessoa à sua empresa (a CLI `python -m app.infrastructure.auth.manage_membership` já faz o vínculo).
 - Integração com a Tako: renovar o token de 15 minutos e respeitar os limites de uso da API.
 - Verificação da assinatura RSA dos webhooks da Tako.
 - Reavaliação de 60 dias com dados reais. Hoje ela é simulada só no modo demo.

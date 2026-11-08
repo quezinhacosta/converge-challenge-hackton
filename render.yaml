@@ -3,17 +3,33 @@ services:
     name: pulso-backend
     runtime: python
     plan: free
-    branch: feature/strands-agents
+    branch: main
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.presentation.main:app --host 0.0.0.0 --port $PORT
+    startCommand: alembic upgrade head && uvicorn app.presentation.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/v1/health
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.7"
+      - key: VYTAI_MODE
+        value: production
       - key: PULSO_LLM_MODEL
         value: Qwen/Qwen2.5-72B-Instruct
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: DATABASE_SSLMODE
+        value: require
+      - key: SUPABASE_URL
+        value: https://tvkvorzwjlivucubhwxu.supabase.co
+      - key: SUPABASE_JWT_ISSUER
+        value: https://tvkvorzwjlivucubhwxu.supabase.co/auth/v1
+      - key: PULSO_CORS_ORIGINS
+        value: https://vytai.vercel.app
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
       - key: FEATHERLESS_API_KEY
         sync: false
-      - key: PULSO_CORS_ORIGINS
+      - key: GROQ_API_KEY
         sync: false
