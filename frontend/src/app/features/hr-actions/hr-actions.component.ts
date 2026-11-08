@@ -24,6 +24,7 @@ export class HrActionsComponent implements OnInit {
  private actionDrafts=new Map<string,{payload:unknown;notBefore:string}>();
  runCycle():void {if(this.busy||this.loading||!this.connected)return;this.cycle=null;this.execute(this.api.cycle(),'Ciclo concluído. As propostas aguardam revisão do RH; nenhuma mensagem foi enviada.',result=>this.cycle=result);}
  cycleState(value:string):string{return ({PROPOSTA_PREPARADA:'Proposta preparada',PROPOSTA_JA_EXISTIA:'Proposta já existente',FLUXO_COMPLIANCE:'Encaminhamento ao compliance',BLOQUEADO:'Requer conferência'} as Record<string,string>)[value]||'Resultado para revisão';}
+ downloadReport():void {if(this.busy||!this.connected)return;this.busy=true;this.error=false;this.api.report().subscribe({next:blob=>{this.busy=false;const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`vytai-relatorio-nr1-${new Date().toISOString().slice(0,10)}.pdf`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);this.message='Relatório gerado com dados agregados por área.';},error:e=>this.fail(e)});}
  cycleCount(value:string):number{return this.cycle?.cards.filter(c=>c.resultado===value).length||0;}
  slackCount():number{return this.cycle?.cards.filter(c=>c.avisoSlack).length||0;}
  ngOnInit():void {this.load();}

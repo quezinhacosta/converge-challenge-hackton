@@ -79,6 +79,8 @@ flowchart LR
 
 ![Base de conhecimento](docs/img/base-conhecimento.png)
 
+**Relatório NR-1 em PDF:** um clique em *Ações do RH*. O PDF traz os sinais por área, os focos de atenção, o inventário do PGR, as intervenções na fila e o que a empresa oferece na base, com dados agregados e sem dados individuais. Veja o [exemplo gerado com a demo](docs/exemplo-relatorio-nr1.pdf).
+
 **Assistente do RH:** resposta real do modelo (Qwen 2.5 72B na Featherless) sobre os dados da demo:
 
 > **RH:** Como está o Atendimento ao Cliente e que apoio a empresa já oferece para sobrecarga?
