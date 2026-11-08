@@ -20,7 +20,16 @@ _STOPWORDS = frozenset(
 
 # Expansao deterministica por fator de risco (o vocabulario dos documentos varia).
 EXPANSAO_POR_FATOR: dict[str, tuple[str, ...]] = {
-    "SOBRECARGA_METAS": ("carga", "metas", "jornada", "pausa", "ritmo", "acolhimento"),
+    "SOBRECARGA_METAS": (
+        "sobrecarga",
+        "carga",
+        "metas",
+        "jornada",
+        "pausa",
+        "ritmo",
+        "acolhimento",
+        "apoio psicologico",
+    ),
     "JORNADAS_LONGAS": ("jornada", "horas extras", "pausa", "descanso", "banco de horas"),
     "LIDERANCA_CONFLITO": ("lideranca", "gestor", "conflito", "feedback", "mediacao"),
     "ASSEDIO": ("assedio", "denuncia", "canal", "compliance", "etica"),

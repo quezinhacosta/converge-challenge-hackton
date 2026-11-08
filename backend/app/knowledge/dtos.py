@@ -6,6 +6,7 @@ from uuid import UUID
 
 from pydantic import Field
 
+from app.application.dtos.citation_dto import CitacaoDTO
 from app.application.dtos.compat import ApiModel
 from app.knowledge.domain import CategoriaDocumento, OrigemVersao, StatusVersao
 
@@ -113,20 +114,6 @@ class ResultadoRecuperacao(ApiModel):
     metodo: Literal["texto_bm25", "fts_postgres"] = "texto_bm25"
     config: dict[str, float | int | str] = Field(default_factory=dict)
     latencia_ms: int = 0
-
-
-class CitacaoDTO(ApiModel):
-    """Snapshot da citacao (os cards persistem isto; nao reconsultam o documento atual)."""
-
-    ref: str
-    trecho_id: UUID
-    documento_id: UUID
-    versao_id: UUID
-    titulo: str
-    versao_rotulo: str
-    pagina: int | None
-    secao: str | None
-    trecho_curto: str
 
 
 class PerguntaRequest(ApiModel):

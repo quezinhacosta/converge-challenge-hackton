@@ -66,6 +66,7 @@ class RepositorioConhecimento(Protocol):
         escopos: frozenset[str],
         dia: date,
         categorias: frozenset[CategoriaDocumento] | None = None,
+        consulta: str | None = None,
     ) -> list[TrechoElegivel]: ...
     def registrar_evento(self, evento: EventoDocumento) -> None: ...
     def contar_trechos(self, empresa_id: UUID, versao_id: UUID) -> int: ...
@@ -221,6 +222,7 @@ class RepositorioConhecimentoEmMemoria:
         escopos: frozenset[str],
         dia: date,
         categorias: frozenset[CategoriaDocumento] | None = None,
+        consulta: str | None = None,  # usado pelo Postgres para pre-filtro FTS; aqui ignorado
     ) -> list[TrechoElegivel]:
         """Filtros ANTES do ranking: empresa, publicacao, PRONTO, vigencia, escopo, categoria."""
         elegiveis: list[TrechoElegivel] = []

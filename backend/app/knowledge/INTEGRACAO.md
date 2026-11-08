@@ -30,7 +30,10 @@ Sem override, as rotas respondem 401 (contexto) ou 503 (componentes): nunca acei
 
 ```python
 from app.knowledge.tool import criar_ferramenta_conhecimento
-ferramenta = criar_ferramenta_conhecimento(recuperador, ctx)   # ctx = ContextoAutorizado DESTA requisição
+
+ferramenta = criar_ferramenta_conhecimento(
+    recuperador, ctx
+)  # ctx = ContextoAutorizado DESTA requisição
 ```
 Criar a cada requisição e passar ao agente Strands do chat junto das ferramentas por área.
 Nunca guardar a ferramenta num singleton.

@@ -184,7 +184,7 @@ def citacoes_de(resultado: ResultadoRecuperacao, refs: Sequence[str]) -> list[Ci
             versao_rotulo=t.versao_rotulo,
             pagina=t.pagina,
             secao=t.secao,
-            trecho_curto=t.texto[:TAMANHO_TRECHO_CURTO],
+            trecho=t.texto[:TAMANHO_TRECHO_CURTO],
         )
         for r in refs
         if (t := por_ref.get(r)) is not None

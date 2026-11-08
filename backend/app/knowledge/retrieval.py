@@ -35,8 +35,11 @@ class RecuperadorTextual:
         inicio = time.perf_counter()
         dia = consulta.data_referencia or date.today()
         categorias = frozenset(consulta.categorias) if consulta.categorias else None
+        texto_consulta = consulta.texto
+        if consulta.fator_nr1 in EXPANSAO_POR_FATOR:
+            texto_consulta += " " + " ".join(EXPANSAO_POR_FATOR[consulta.fator_nr1])
         candidatos = self.repo.trechos_elegiveis(
-            ctx.empresa_id, ctx.escopos_permitidos, dia, categorias
+            ctx.empresa_id, ctx.escopos_permitidos, dia, categorias, consulta=texto_consulta
         )
         config: dict[str, float | int | str] = {
             "min_termos_cobertos": self.min_termos,
@@ -50,9 +53,6 @@ class RecuperadorTextual:
 
         termos_pergunta = set(termos(consulta.texto))
         exigidos = min(self.min_termos, len(termos_pergunta)) or 1
-        texto_consulta = consulta.texto
-        if consulta.fator_nr1 in EXPANSAO_POR_FATOR:
-            texto_consulta += " " + " ".join(EXPANSAO_POR_FATOR[consulta.fator_nr1])
         q = termos(texto_consulta)
         corpo = [termos(c.trecho.texto) for c in candidatos]
         extra = [termos(f"{c.documento.titulo} {c.trecho.secao or ''}") for c in candidatos]

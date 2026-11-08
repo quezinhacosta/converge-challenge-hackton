@@ -6,20 +6,11 @@ from enum import StrEnum
 from typing import Any
 from uuid import UUID
 
+# Contrato compartilhado (Codex): identidade resolvida no servidor, nunca pelo body.
+from app.application.contracts.identity import ContextoAutorizado as ContextoAutorizado
+
 PAPEL_RH = "RH"
 ESCOPO_RH = "RH"
-
-
-@dataclass(frozen=True)
-class ContextoAutorizado:
-    """Contexto resolvido no servidor a partir da autenticacao (contrato acordado com a
-    integracao). Nunca e montado a partir do corpo da requisicao."""
-
-    empresa_id: UUID
-    usuario_id: UUID
-    papeis: frozenset[str]
-    escopos_permitidos: frozenset[str]
-    request_id: str
 
 
 class CategoriaDocumento(StrEnum):
