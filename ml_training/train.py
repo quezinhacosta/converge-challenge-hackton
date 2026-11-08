@@ -129,9 +129,6 @@ def main() -> None:
         task_type=TaskType.CAUSAL_LM,
     )
 
-    model = get_peft_model(model, lora_config)
-    model.print_trainable_parameters()
-
     # 4. Carrega Datasets
     print("\n4/5. Preparando datasets de treino e validacao...")
     dataset = load_dataset(
