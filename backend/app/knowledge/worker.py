@@ -27,6 +27,15 @@ CATEGORIAS_DE_ACAO = (
     CategoriaDocumento.CANAL_APOIO,
     CategoriaDocumento.PROCEDIMENTO_ACOLHIMENTO,
 )
+NOME_FATOR = {
+    "SOBRECARGA_METAS": "sobrecarga e metas",
+    "JORNADAS_LONGAS": "jornadas longas",
+    "LIDERANCA_CONFLITO": "conflito com a liderança",
+    "ASSEDIO": "assédio",
+    "FALTA_CLAREZA_PAPEL": "falta de clareza de papel",
+    "FALTA_AUTONOMIA": "falta de autonomia",
+    "INSEGURANCA_TRABALHO": "insegurança no trabalho",
+}
 JANELA_VENCIMENTO_DIAS = 30
 DIAS_PRONTO_SEM_PUBLICAR = 7
 
@@ -150,7 +159,7 @@ class AssistenteDocumental:
         if not acoes:
             lacunas.append("Nenhum programa, canal ou procedimento publicado cobre este fator.")
         if not politicas:
-            lacunas.append("Nenhuma politica publicada sobre este fator.")
+            lacunas.append("Nenhuma política publicada sobre este fator.")
         return InvestigacaoDocumental(fator, acoes, planos, politicas, lacunas)
 
     # -- 3: cuidar da base ------------------------------------------------------------------
@@ -232,8 +241,9 @@ class AssistenteDocumental:
                 add(
                     PendenciaBase(
                         "LACUNA_FATOR",
-                        f"Nao ha programa, canal ou procedimento publicado para {fator}. "
-                        "Sem isso o VytAI so consegue sugerir medidas genericas.",
+                        f"Não há programa, canal ou procedimento publicado sobre "
+                        f"{NOME_FATOR.get(fator, fator)}. Sem isso, o VytAI só consegue "
+                        "sugerir medidas genéricas.",
                         fator=fator,
                         prazo=dia + timedelta(days=15),
                     )
