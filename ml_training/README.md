@@ -1,58 +1,37 @@
-# Fine-Tuning Eficiente (vitAI NR-1 Agent)
+# Fine-Tuning e Inferencia LoRA (vitAI NR-1 Agent)
 
-Este pipeline foi otimizado para executar um treinamento **rápido (20 a 40 minutos)**, com **download leve (~900MB)**, adaptado tanto para **CPU (AMD Ryzen)** quanto para **GPU (NVIDIA CUDA)**, salvando a **camada de ajustes (LoRA Adapters)**.
-
----
-
-## 1. Por que o Mistral 7B / Llama 8B falhou?
-
-Modelos de 7B a 8B possuem mais de **14,5 GB de arquivos** e exigem:
-- Pelo menos **16 GB a 24 GB de memória RAM** só para descompactar os pesos.
-- Uma **GPU dedicada NVIDIA com CUDA** para quantização 4-bit (`bitsandbytes`).
-
-No notebook **Acer Aspire A515-45 (AMD Ryzen 5 com 7,1 GB de RAM total)**:
-- O download de 14,5 GB esgota o buffer de memória (`RuntimeError: Background writer channel closed`).
-- Em CPU pura, treinar 7 bilhões de parâmetros demoraria mais de 15 horas.
+Este pipeline treina e integra a camada de adaptadores LoRA especializada na Norma Regulamentadora nº 1 (NR-1) e Portaria MTE nº 1.419/2024 para gestao e governanca de riscos psicossociais.
 
 ---
 
-## 2. A Solução: Small Language Model de Alta Precisão (SLM)
+## 1. Modelo Treinado: Mistral-7B-Instruct-v0.3 + LoRA
 
-Utilizamos o **`Qwen/Qwen2.5-0.5B-Instruct`** (ou `Qwen2.5-1.5B-Instruct`):
-- **Download Leve**: apenas **~900 MB** (baixa em menos de 1 minuto).
-- **Consumo de RAM**: cerca de **1,8 GB** (roda com muita folga nos 3,7 GB livres).
-- **Tempo de Treinamento**: **20 a 35 minutos** utilizando todos os núcleos do AMD Ryzen 5.
-- **Camada de Ajustes LoRA**: salva exatamente em `lora_adapters/adapter_model.safetensors` e `adapter_config.json`.
-- **Qualidade**: Modelo de última geração treinado em 18T tokens, com suporte de ponta a português e geração estrita de JSON para conformidade com a NR-1.
+A camada de adaptadores LoRA foi treinada com sucesso via Google Colab (GPU NVIDIA Tesla T4) e esta integrada ao projeto em:
+- `lora_adapters/adapter_config.json` (Modelo Base: `mistralai/Mistral-7B-Instruct-v0.3`, Rank: 16, Alpha: 32)
+- `lora_adapters/adapter_model.safetensors` (~83.9 MB)
+- `lora_adapters/tokenizer.json`
 
 ---
 
-## 3. Como Executar o Treinamento
+## 2. Integracao com o Backend vitAI
 
-No seu ambiente virtual (`.venv`):
-
-```bash
-cd ml_training
-python3 train.py
-```
-
-### O que o script faz:
-1. Detecta automaticamente sua CPU (AMD Ryzen 5 com 6 núcleos) ou GPU se disponível.
-2. Faz o download rápido de apenas ~900 MB do modelo base.
-3. Injeta a camada de adaptadores LoRA (`q_proj`, `v_proj`, `k_proj`, `o_proj`).
-4. Treina sobre o dataset da NR-1 / Portaria MTE nº 1.419/2024.
-5. Salva a camada de ajustes em:
-   - `lora_adapters/adapter_config.json`
-   - `lora_adapters/adapter_model.safetensors`
+A camada LoRA do Mistral-7B foi integrada diretamente a arquitetura de IA em cascata (FailoverManager):
+1. **`MistralLoraProvider`** (`backend/app/infrastructure/llm/resilience/mistral_lora_provider.py`):
+   - Provedor on-premise/local de alta fidelidade regulatoria.
+   - Gera pareceres tecnicos de riscos psicossociais, hipoteses contextuais e acoes para o PGR.
+   - Atende consultas no chat de RH com respeito a privacidade (LGPD).
+2. **`FailoverManager`**:
+   - Cadeia: Cloud (Strands/Gemini) -> **Mistral 7B LoRA (Local Especializado)** -> Regras Deterministicas.
+   - Garante zero indisponibilidade operacional.
 
 ---
 
-## 4. Como Testar a Inferência com os Adaptadores
+## 3. Como Testar a Inferencia
 
-Após a conclusão do treino:
+Na pasta `ml_training`:
 
 ```bash
 python3 run_inference.py
 ```
 
-O script carregará o modelo base com a sua camada de ajustes LoRA acoplada e gerará os pareceres estruturados para os cenários oficiais do projeto.
+O script detecta automaticamente a presenca dos adaptadores LoRA e do modelo Mistral 7B, executando os diagnosticos dos cenarios oficiais (Atendimento ao Cliente e Logistica). Em ambiente sem GPU dedicada, o script opera em modo protegido para evitar estouro de memoria RAM.
