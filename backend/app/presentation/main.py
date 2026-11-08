@@ -32,6 +32,7 @@ from app.presentation.api.v1.endpoints import (
 from app.presentation.api.v1.endpoints import (
     tako as tako_v1,
 )
+from app.presentation.auth_api import router as auth_router
 from app.presentation.compat import CORSMiddleware, FastAPI
 from app.presentation.knowledge_integration import KnowledgeIntegration
 from app.rh_actions.api import router as rh_actions_router
@@ -86,6 +87,7 @@ def create_application(knowledge_integration: KnowledgeIntegration | None = None
         )
 
     app.include_router(rh_actions_router, prefix="/api/v1/rh", tags=["Operacao do RH"])
+    app.include_router(auth_router, prefix="/api/v1/auth", tags=["Autenticacao"])
     allowed_origins = [
         origin.strip()
         for origin in os.getenv(

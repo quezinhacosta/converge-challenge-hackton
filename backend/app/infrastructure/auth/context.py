@@ -54,6 +54,9 @@ def get_authorized_context(
     from app.infrastructure.persistence.database import get_engine
 
     with get_engine().connect() as conn:
+        conn.execute(
+            text("SELECT set_config('vytai.usuario_id',:user,true)"), {"user": str(user_id)}
+        )
         rows = (
             conn.execute(
                 text(

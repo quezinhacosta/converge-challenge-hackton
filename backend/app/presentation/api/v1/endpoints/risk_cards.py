@@ -40,7 +40,10 @@ def resolve_risk_card_and_register_pgr(
 
             from sqlalchemy import text
 
-            container.session.execute(
+            session = container.session
+            if session is None:
+                raise HTTPException(503, "Transacao autenticada indisponivel.")
+            session.execute(
                 text(
                     "INSERT INTO auditoria(id,empresa_id,usuario_id,recurso_id,acao) "
                     "VALUES(:id,:empresa,:usuario,:recurso,:acao)"

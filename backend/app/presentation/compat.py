@@ -21,7 +21,7 @@ try:
     APIRouter = _FastAPIRouter
     HTTPException = _FastAPIHTTPException
     status = _FastAPIStatus
-    Depends = _FastAPIDepends
+    Depends: Callable[..., Any] = _FastAPIDepends
     CORSMiddleware = _FastAPICORSMiddleware
     TestClient = _FastAPITestClient
 
@@ -96,8 +96,10 @@ except ImportError:
         def __init__(self, dependency: Callable | None = None) -> None:
             self.dependency = dependency
 
-    def Depends(dependency: Callable | None = None) -> Any:  # type: ignore[no-redef]
+    def _fallback_depends(dependency: Callable | None = None, **kwargs: Any) -> Any:
         return DependsHolder(dependency)
+
+    Depends = _fallback_depends
 
     class _TestResponse:
         def __init__(self, status_code: int, data: Any) -> None:
@@ -153,7 +155,7 @@ except ImportError:
                             elif param_name == "payload" or param.annotation not in (inspect.Parameter.empty, str, int, float, bool):
                                 ann = param.annotation
                                 if json_data is not None:
-                                    if hasattr(ann, "__call__") and ann is not dict:
+                                    if callable(ann) and ann is not dict:
                                         try:
                                             call_args[param_name] = ann(**json_data)
                                         except Exception as e:

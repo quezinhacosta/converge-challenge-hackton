@@ -71,7 +71,9 @@ class RiskCardDTO(ApiModel):
             shap_breakdown=card.shap_breakdown,
             ai_provider_used=card.ai_provider_used,
             ai_fallback_triggered=card.ai_fallback_triggered,
-            fontes_documentais=card.fontes_documentais,
+            fontes_documentais=[
+                CitacaoDTO.model_validate(item) for item in card.fontes_documentais
+            ],
             evidencia_documental_suficiente=card.evidencia_documental_suficiente,
         )
 

@@ -4,10 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin, Observable } from 'rxjs';
 import { PulsoApiService } from '../../core/services/pulso-api.service';
 import { AreaInfo } from '../../core/models/nr1.model';
-import { HrActionsApi, RhAction, RhTask, Intervention, Readiness, Pending, History } from './hr-actions-api.service';
+import { HrActionsApi, RhAction, RhTask, Intervention, Readiness, Pending, History, WorkerCycle } from './hr-actions-api.service';
 @Component({selector:'app-hr-actions',standalone:true,imports:[CommonModule,FormsModule],templateUrl:'./hr-actions.component.html'})
 export class HrActionsComponent implements OnInit {
  private api=inject(HrActionsApi); private pulso=inject(PulsoApiService);
+ cycle:WorkerCycle|null=null;
  areas:AreaInfo[]=[];interventions:Intervention[]=[];pending:Pending={actions:[],tasks:[],asOf:''};
  readiness:Readiness={externalEnabled:false,slackConfigured:false,calendarConfigured:false,slackChannels:[],calendars:[],allowedAttendees:[]};
  selected:Intervention|null=null;history:History|null=null;review:RhAction|null=null;confirmation=false;
@@ -21,6 +22,10 @@ export class HrActionsComponent implements OnInit {
  uncertain:RhAction|null=null;outcome:'CONFIRMED'|'NOT_DELIVERED'='CONFIRMED';externalRef='';reconciliationNote='';
  private keys=new Map<string,string>();
  private actionDrafts=new Map<string,{payload:unknown;notBefore:string}>();
+ runCycle():void {if(this.busy||this.loading||!this.connected)return;this.cycle=null;this.execute(this.api.cycle(),'Ciclo concluído. As propostas aguardam revisão do RH; nenhuma mensagem foi enviada.',result=>this.cycle=result);}
+ cycleState(value:string):string{return ({PROPOSTA_PREPARADA:'Proposta preparada',PROPOSTA_JA_EXISTIA:'Proposta já existente',FLUXO_COMPLIANCE:'Encaminhamento ao compliance',BLOQUEADO:'Requer conferência'} as Record<string,string>)[value]||'Resultado para revisão';}
+ cycleCount(value:string):number{return this.cycle?.cards.filter(c=>c.resultado===value).length||0;}
+ slackCount():number{return this.cycle?.cards.filter(c=>c.avisoSlack).length||0;}
  ngOnInit():void {this.load();}
  localDate(days:number,hours=0):string {const date=new Date();date.setDate(date.getDate()+days);date.setHours(10+hours,0,0,0);return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}T${String(date.getHours()).padStart(2,'0')}:00`;}
  key(body:unknown):string {const value=JSON.stringify(body);if(!this.keys.has(value))this.keys.set(value,crypto.randomUUID());return this.keys.get(value)!;}

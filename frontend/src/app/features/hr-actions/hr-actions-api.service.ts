@@ -18,9 +18,15 @@ export interface Intervention {id:string;areaId:string;title:string;objective:st
 export interface Pending {actions:RhAction[];tasks:RhTask[];asOf:string;}
 export interface Readiness {externalEnabled:boolean;slackConfigured:boolean;calendarConfigured:boolean;slackChannels:string[];calendars:string[];allowedAttendees:string[];}
 export interface History {events:{id:string;eventType:string;createdAt:string}[];evidence:{id:string;description:string;url?:string;createdAt:string}[];}
+export interface WorkerCycle {
+ executadoEm:string;areasAnalisadas:number;cardsAbertos:number;
+ cards:{cardId:string;areaId:string;area:string;nivel:string;fator:string;resultado:string;intervencaoId:string|null;avisoSlack:boolean;temAcaoDaEmpresa:boolean|null;lacunas:string[];motivo:string|null}[];
+ pendenciasBase:{tipo:string;mensagem:string;responsavel:string|null;documentoId:string|null;versaoId:string|null;prazo:string|null;fator:string|null}[];
+}
 @Injectable({providedIn:'root'})
 export class HrActionsApi {
  private http=inject(HttpClient); private base=environment.apiUrl+'/rh';
+ cycle(){return this.http.post<WorkerCycle>(environment.apiUrl+'/worker/ciclo',{});}
  list(){return this.http.get<Intervention[]>(this.base+'/intervencoes');}
  pending(){return this.http.get<Pending>(this.base+'/pendencias');}
  readiness(){return this.http.get<Readiness>(this.base+'/conectores');}

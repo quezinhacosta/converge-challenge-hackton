@@ -29,11 +29,16 @@ def build_area_tools(
 ) -> list[Any]:
     """Cria as ferramentas do chat. Devolve lista vazia se o strands nao estiver instalado."""
     try:
-        from strands import tool
+        import strands
+
+        tool_decorator: Any = strands.tool
     except ImportError:
-        def tool(fn: Any) -> Any:
+
+        def _fallback_tool(fn: Any) -> Any:
             fn.tool_name = getattr(fn, "__name__", "tool")
             return fn
+
+        tool_decorator = _fallback_tool
 
     def resolve_area_id(area: str) -> str | None:
         wanted = _normalize(area)
@@ -45,7 +50,7 @@ def build_area_tools(
                 return item.id
         return None
 
-    @tool
+    @tool_decorator
     def listar_areas() -> list[dict[str, Any]]:
         """Lista as areas monitoradas com numero de pessoas e se os dados estao ocultos (LGPD)."""
         return [
@@ -58,7 +63,7 @@ def build_area_tools(
             for a in area_repository.list_all()
         ]
 
-    @tool
+    @tool_decorator
     def sinais_da_area(area: str) -> dict[str, Any]:
         """Indicadores agregados de uma area (variacao de atestados, horas extras, demissoes,
         nota de carga e eventos de contexto). Aceita o id ou o nome da area.

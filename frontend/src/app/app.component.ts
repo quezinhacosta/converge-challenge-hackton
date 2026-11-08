@@ -1,7 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SessionService } from './core/auth/session.service';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 @Component({
- selector:'app-root',standalone:true,imports:[RouterOutlet,RouterLink,RouterLinkActive],
+ selector:'app-root',standalone:true,imports:[CommonModule,RouterOutlet,RouterLink,RouterLinkActive],
  template:`<a class="skip" href="#principal">Ir para o conteúdo</a><div class="app">
  <aside class="side" aria-label="Navegação principal">
   <a class="brand" routerLink="/" aria-label="VytAI, início">
@@ -16,9 +18,9 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
    <a routerLink="/" fragment="inventario">▤ <span>Inventário PGR</span></a>
    <a routerLink="/conhecimento" routerLinkActive="active" ariaCurrentWhenActive="page">▥ <span>Base de conhecimento</span></a>
   </nav>
-  <div class="side-foot"><strong>RH / SESMT</strong>Acompanhamento com decisão humana</div>
+  <div class="side-foot"><strong>{{session.company()?.nome||'RH / SESMT'}}</strong><span>{{session.demo()?'Demonstração · dados sintéticos':session.userEmail()}}</span><button *ngIf="session.userEmail()&&!session.demo()" class="btn outline" (click)="logout()">Sair da conta</button></div>
  </aside>
  <main id="principal" class="main" tabindex="-1"><router-outlet /></main>
  </div>`
 })
-export class AppComponent { readonly router=inject(Router); }
+export class AppComponent { readonly router=inject(Router);readonly session=inject(SessionService);constructor(){effect(()=>{if(this.session.ready()&&!this.session.authenticated()&&this.router.url!=='/entrar')void this.router.navigateByUrl('/entrar');});}async logout():Promise<void>{await this.session.signOut();await this.router.navigateByUrl('/entrar');} }

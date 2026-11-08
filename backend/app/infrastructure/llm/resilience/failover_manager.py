@@ -164,6 +164,19 @@ class FailoverManager:
         else:
             fail_reason = f"Circuito do provedor primario '{self.primary_circuit.state.value}'."
 
+        if self.secondary and self.secondary.is_available():
+            try:
+                reply = self.secondary.generate_chat_reply(query_text, context_data)
+                return reply, FailoverExecutionMetadata(
+                    provider_used=self.secondary.name,
+                    fallback_triggered=True,
+                    failover_reason=fail_reason,
+                    circuit_state=self.primary_circuit.state.value,
+                    latency_ms=(time.perf_counter() - start_time) * 1000,
+                )
+            except Exception:
+                fail_reason += " | Falha no provedor secundario do chat."
+
         # Contingencia com o Fallback Local
         reply = self.fallback.generate_chat_reply(query_text, context_data)
         latency = (time.perf_counter() - start_time) * 1000.0
